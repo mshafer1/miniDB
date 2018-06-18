@@ -9,17 +9,66 @@ using System.ComponentModel;
 using System.Threading;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace MiniDB
 {
     public class DataBase<T> : ObservableCollection<T>, IDisposable where T : DatabaseObject
     {
-        protected const float db_version = 1.2f;
-        protected const float minimum_compatible_version = 1;
-        private static JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings()
+        #region properties
+
+        public bool CanUndo
+        {
+            get
+            {
+                return transactions_db.Count() > 0 && transactions_db.Count() >
+                    2 * (transactions_db.Count(x => x.TransactionType == TransactionType.Undo));
+            }
+        }
+        public bool CanRedo
+        {
+            get
+            {
+                // TODOne: this should be number of immediate redo's is less than number of next immediate undo's
+                //bool result = true;
+                var redos_count = countRecentTransactions(TransactionType.Redo);
+                //if (redos_count == 0 && transactions_db.First().TransactionType == TransactionType.Undo)
+                //{
+                //    return result;
+                //}
+                Func<DBTransaction<T>, bool> matcher = x => x.TransactionType == TransactionType.Undo && x.Active == true;
+                var undos_count = countRecentTransactions(matcher, transactions_db.Skip(redos_count * 2));
+                //return redos_count < undos_count;
+                return undos_count > 0;
+
+                //return (transactions_db.FirstOrDefault().TransactionType == TransactionType.Undo || 
+                //    transactions_db.FirstOrDefault().TransactionType == TransactionType.Redo) &&  
+                //    transactions_db.Count(x => x.TransactionType == TransactionType.Redo) < transactions_db.Count(x => x.TransactionType == TransactionType.Undo); }
+            }
+        }
+
+        [JsonProperty()]
+        public float dbVersion { get; set; }
+
+        protected string Filename { get; set; }
+        protected DataBase<DBTransaction<T>> transactions_db { get; set; }
+        #endregion
+
+        #region fields
+        protected readonly float db_version = 1.0f;
+        protected readonly float minimum_compatible_version = 1;
+        private static readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings()
         {
             TypeNameHandling = TypeNameHandling.All
         };
+
+        // http://www.albahari.com/threading/part2.aspx#_Mutex
+        // Create mutex in constructor - name it so that only one instance of db class can be accessing file
+        // - this allows for multiple instances of a DB, but only one of a given type accessing a given file
+        private Mutex mut = null;
+        // lock object
+        protected static readonly object _locker = new object();
+        #endregion
 
         #region constructors
 
@@ -28,9 +77,27 @@ namespace MiniDB
             this.dbVersion = db_version;
             lock (_locker)
             {
-                string mutex_name = string.Format("{0} {1}", nameof(DataBase<T>), filename);
-                mut = new Mutex(false, mutex_name);
+                filename = Path.GetFullPath(filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
+                string mutex_file_path = filename;
+                mutex_file_path = mutex_file_path.Replace("\\", "_");
+                string mutex_name = string.Format(@"{0}<{1}>:{2}", nameof(DataBase<T>), typeof(T).Name, mutex_file_path); // from https://stackoverflow.com/a/2534867
+                string global_lock_mutex_name = @"Global\" + mutex_name;
+                // from https://stackoverflow.com/a/3111740
 
+                // try to get existing mutex from syste
+                try
+                {
+                    mut = System.Threading.Mutex.OpenExisting(global_lock_mutex_name);
+                    //mutex already exists
+                    throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name);
+                }
+                catch (WaitHandleCannotBeOpenedException)
+                {
+                    mut = new System.Threading.Mutex(false, global_lock_mutex_name);//these names need to match.
+                }
+
+
+                // acquire the lock from the mutex - this is release in dispose
                 if (!mut.WaitOne(TimeSpan.FromSeconds(5), false))
                 {
                     throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name);
@@ -45,7 +112,7 @@ namespace MiniDB
                     return;
                 }
 
-                string Transactions_filename = String.Format("transactions_{0}.data", Filename);
+                string Transactions_filename = String.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(Filename), Path.GetFileName(Filename));
                 transactions_db = getTransactionsDB(Transactions_filename);
                 transactions_db.CollectionChanged += DataBase_TransactionsChanged;
 
@@ -71,22 +138,24 @@ namespace MiniDB
         #region destructors
         ~DataBase()
         {
-            // should not need this at all - https://stackoverflow.com/a/3484673/8100990
-            // release the system mutex
-            //this.Dispose();
-            //if (mut != null)
-            //    mut.ReleaseMutex();
+            // double check that this gets disposed of properly
+            this.Dispose();
         }
 
         public void Dispose()
         {
-           //NO-OP
+            if (mut != null)
+            {
+                mut.ReleaseMutex();
+                mut.Close();
+                mut = null;
+            }
         }
         #endregion
 
         #region public methods        
 
-        // TODO: make sure to use lock everywhere that it is messing with the data
+        // TODO: make sure to use locker everywhere that it is messing with the data
         public void Undo()
         {
             if (!this.CanUndo)
@@ -436,11 +505,6 @@ namespace MiniDB
 
         public delegate void TChangedEventHandler(object sender, ID id);
         public event TChangedEventHandler ItemChanged;
-
-        public T Find(Func<T, bool> select)
-        {
-            return this.FirstOrDefault(select);
-        }
         #endregion
 
         #region private methods
@@ -815,7 +879,7 @@ namespace MiniDB
                 }
                 _cacheDB();
                 // if not an undoable change, alert property changes and leave
-                if (!e.undoableChange)
+                if (!e.UndoableChange)
                 {
                     OnItemChanged(item);
                     PublicOnPropertyChanged(nameof(CanUndo));
@@ -869,171 +933,5 @@ namespace MiniDB
             ItemChanged?.Invoke(this, id);
         }
         #endregion
-
-        #region properties
-
-        public bool CanUndo
-        {
-            get
-            {
-                return transactions_db.Count() > 0 && transactions_db.Count() >
-                    2 * (transactions_db.Count(x => x.TransactionType == TransactionType.Undo));
-            }
-        }
-        public bool CanRedo
-        {
-            get
-            {
-                // TODOne: this should be number of immediate redo's is less than number of next immediate undo's
-                //bool result = true;
-                var redos_count = countRecentTransactions(TransactionType.Redo);
-                //if (redos_count == 0 && transactions_db.First().TransactionType == TransactionType.Undo)
-                //{
-                //    return result;
-                //}
-                Func<DBTransaction<T>, bool> matcher = x => x.TransactionType == TransactionType.Undo && x.Active == true;
-                var undos_count = countRecentTransactions(matcher, transactions_db.Skip(redos_count * 2));
-                //return redos_count < undos_count;
-                return undos_count > 0;
-
-                //return (transactions_db.FirstOrDefault().TransactionType == TransactionType.Undo || 
-                //    transactions_db.FirstOrDefault().TransactionType == TransactionType.Redo) &&  
-                //    transactions_db.Count(x => x.TransactionType == TransactionType.Redo) < transactions_db.Count(x => x.TransactionType == TransactionType.Undo); }
-            }
-        }
-
-        [JsonProperty()]
-        public float dbVersion { get; set; }
-
-        protected string Filename { get; set; }
-        protected DataBase<DBTransaction<T>> transactions_db { get; set; }
-        #endregion
-
-        #region fields
-        // http://www.albahari.com/threading/part2.aspx#_Mutex
-        // Create mutex in constructor - name it so that only one instance of db class can be accessing files
-        protected static Mutex mut;
-        // lock object
-        protected static readonly object _locker = new object();
-        #endregion
-    }
-
-    // TODO: add resolve transaction - cannot be undone
-    public enum TransactionType
-    {
-        Add,
-        Delete,
-        Modify,
-        Undo,
-        Redo,
-        Unknown
-    }
-
-    public class DBTransaction<T> : DatabaseObject where T : DatabaseObject
-    {
-        public DBTransaction() : base()
-        {
-            ID = count++;
-            Transaction_timestamp = DateTime.Now;
-            this.Active = true;
-        }
-
-        internal DBTransaction(DBTransaction<T> inTransaction) : base()
-        {
-            ID = inTransaction.ID;
-            Transaction_timestamp = inTransaction.Transaction_timestamp;
-            Transacted_item = inTransaction.Transacted_item;
-            TransactionType = inTransaction.TransactionType;
-            Item_ID = inTransaction.Item_ID;
-            changed_property = inTransaction.changed_property;
-            property_new = inTransaction.property_new;
-            property_old = inTransaction.property_old;
-
-            count++;
-        }
-
-        public TransactionType TransactionType { get; set; }
-        [JsonProperty()]
-        public DateTime Transaction_timestamp { get; private set; }
-        public ID Item_ID { get; set; }
-        public T Transacted_item { get; set; }
-        public string changed_property { get; set; }
-        public object property_old { get; set; }
-        public object property_new { get; set; }
-        [JsonProperty()]
-        public int ID { get; private set; } // switch to using default ID??
-        private static int count = 0;
-        public bool? Active { get => this.Get(); set => this.Set(value); }
-
-        public static string ITEM_REMOVED { get { return "ITEM_REMOVED"; } }
-        public static string ITEM_ADDED { get { return "ITEM_ADDED"; } }
-    }
-
-    public class DBCreationException : Exception
-    {
-        public DBCreationException()
-        {
-        }
-
-        public DBCreationException(string message)
-        : base(message)
-        {
-        }
-
-        public DBCreationException(string message, Exception inner)
-        : base(message, inner)
-        {
-        }
-    }
-
-    public class DBCannotUndoException : Exception
-    {
-        public DBCannotUndoException()
-        {
-        }
-
-        public DBCannotUndoException(string message)
-        : base(message)
-        {
-        }
-
-        public DBCannotUndoException(string message, Exception inner)
-        : base(message, inner)
-        {
-        }
-    }
-
-    public class DBCannotRedoException : Exception
-    {
-        public DBCannotRedoException()
-        {
-        }
-
-        public DBCannotRedoException(string message)
-        : base(message)
-        {
-        }
-
-        public DBCannotRedoException(string message, Exception inner)
-        : base(message, inner)
-        {
-        }
-    }
-
-    public class DBException : Exception
-    {
-        public DBException()
-        {
-        }
-
-        public DBException(string message)
-        : base(message)
-        {
-        }
-
-        public DBException(string message, Exception inner)
-        : base(message, inner)
-        {
-        }
     }
 }

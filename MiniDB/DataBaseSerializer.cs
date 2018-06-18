@@ -15,9 +15,9 @@ namespace MiniDB
     // and contains the same data as Database<T> - allows for DBVersion to be serialized
     class DataBaseSurrogate<T> where T : DatabaseObject
     {
-        // the collection of foo elements
+        // the collection of T elements
         public ObservableCollection<T> Collection { get; set; }
-        // the properties of FooCollection to serialize
+        // the properties of DataBase to serialize
         public float DBVersion { get; set; }
     }
 
@@ -36,24 +36,24 @@ namespace MiniDB
         {
             // N.B. null handling is missing
             var surrogate = serializer.Deserialize<DataBaseSurrogate<T>>(reader);
-            var fooElements = surrogate.Collection;
-            var fooColl = new DataBase<T>() { dbVersion = surrogate.DBVersion };
-            foreach (var el in fooElements)
-                fooColl.Add(el);
-            return fooColl;
+            var elements = surrogate.Collection;
+            var db = new DataBase<T>() { dbVersion = surrogate.DBVersion };
+            foreach (var el in elements)
+                db.Add(el);
+            return db;
         }
 
         public override void WriteJson(JsonWriter writer, object value,
                                        JsonSerializer serializer)
         {
             // N.B. null handling is missing
-            var fooColl = (DataBase<T>)value;
+            var db = (DataBase<T>)value;
             // create the surrogate and serialize it instead 
             // of the collection itself
             var surrogate = new DataBaseSurrogate<T>()
             {
-                Collection = new ObservableCollection<T>(fooColl),
-                DBVersion = fooColl.dbVersion
+                Collection = new ObservableCollection<T>(db),
+                DBVersion = db.dbVersion
             };
 
             // from https://stackoverflow.com/questions/7397207/json-net-error-self-referencing-loop-detected-for-type

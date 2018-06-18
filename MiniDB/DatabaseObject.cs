@@ -10,10 +10,10 @@ using System.Runtime.CompilerServices;
 
 namespace MiniDB
 {
-    public class DatabaseObject : IDatabaseItem
+    public class DatabaseObject : DatabaseItem
     {
         [JsonProperty()]
-        public virtual ID ID { get; private set; }
+        public ID ID { get; private set; } // using private set to prevent children classes from creating a new ID, but allowing Newtonsoft.json to tweak it.
 
         public DatabaseObject()
         {
@@ -22,7 +22,5 @@ namespace MiniDB
         }
 
         public void setID() { ID.Set(); } // randomly re-assign
-
-        
     }
 }

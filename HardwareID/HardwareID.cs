@@ -9,40 +9,31 @@ using System.Runtime.CompilerServices;
 
 namespace HardwareID
 {
-    public class HardwareID
+    public sealed class HardwareID
     {
         public static string UniqueID()
         {
-            string data = "Volume Info >> " + /*VolumeSerialNumber +*/
-                "  OSName >> " + OSName +
-                "  OSManufacturer >>" + OSManufacturer +
-                //"  Product ID >> " + ProductID + -- apparently can change with a windows update
-                "  SystemModel >> " + SystemModel +
-                "  PhysicalMemory >> " + PhysicalMemory;
-            //Debug.WriteLine(data);
-            return GetHash(data);
+            return GetHash(_data);
         }
 
         public static string UniqueID(string seed)
         {
-            string data = "Volume Info >> " + /*VolumeSerialNumber +*/
-               "  OSName >> " + OSName +
-               "  OSManufacturer >>" + OSManufacturer +
-               //"  Product ID >> " + ProductID + -- apparently can change with a windows update
-               "  SystemModel >> " + SystemModel +
-               "  PhysicalMemory >> " + PhysicalMemory + 
-               "  Seed >> " + seed;
-            //Debug.WriteLine(data);
-            return GetHash(data);
+            return GetHash($"{_data}\nSeed >> {seed}");
         }
 
 
-        private static string OSName { get => Get(); }
-        private static string OSManufacturer { get => Get(); }
-        private static string ProductID{ get => Get(); }
-        private static string SystemModel { get => Get(); }
-        private static string SystemType { get => Get(); }
-        private static string PhysicalMemory { get => Get(); }
+        private static string OSName => Get();
+        private static string OSManufacturer => Get();
+        private static string ProductID => Get();
+        private static string SystemModel => Get();
+        private static string SystemType => Get();
+        private static string PhysicalMemory => Get();
+        private static string _data {
+            get {
+                return $@"OSName >> {OSName}
+OSManufacturer >> {OSManufacturer}
+SystemModel >> {SystemModel}
+PhysicalMemory >> {PhysicalMemory}"; } }
 
         private static Dictionary<string, string> systemInfoFields = new Dictionary<string, string>()
         {
@@ -65,7 +56,8 @@ namespace HardwareID
             string output = p.StandardOutput.ReadToEnd();
             p.WaitForExit();
 
-            foreach (var line in output.Split('\n'))
+            // split the output based on the system's new line charecter(s) - don't use any empty splits
+            foreach (var line in output.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
             {
                 var workingLine = line.Trim();
                 var match = systemInfoFields.FirstOrDefault(x => workingLine.StartsWith(x.Key));
@@ -90,22 +82,34 @@ namespace HardwareID
 
         private static string GetHexString(IList<byte> bt)
         {
+            
             string s = string.Empty;
+            // replace with s += b.ToString("X2"); ??
+            //for (int i = 0; i < bt.Count; i++)
+            //{
+            //    byte b = bt[i];
+
+            //    int n = b;
+            //    int n1 = n & 15;
+            //    int n2 = (n >> 4) & 15;
+            //    if (n2 > 9)
+            //        s += ((char)(n2 - 10 + 'A')).ToString(CultureInfo.InvariantCulture);
+            //    else
+            //        s += n2.ToString(CultureInfo.InvariantCulture);
+            //    if (n1 > 9)
+            //        s += ((char)(n1 - 10 + 'A')).ToString(CultureInfo.InvariantCulture);
+            //    else
+            //        s += n1.ToString(CultureInfo.InvariantCulture);
+            //    if ((i + 1) != bt.Count && (i + 1) % 2 == 0) s += "-";
+            //}
             for (int i = 0; i < bt.Count; i++)
             {
                 byte b = bt[i];
-                int n = b;
-                int n1 = n & 15;
-                int n2 = (n >> 4) & 15;
-                if (n2 > 9)
-                    s += ((char)(n2 - 10 + 'A')).ToString(CultureInfo.InvariantCulture);
-                else
-                    s += n2.ToString(CultureInfo.InvariantCulture);
-                if (n1 > 9)
-                    s += ((char)(n1 - 10 + 'A')).ToString(CultureInfo.InvariantCulture);
-                else
-                    s += n1.ToString(CultureInfo.InvariantCulture);
-                if ((i + 1) != bt.Count && (i + 1) % 2 == 0) s += "-";
+                s += b.ToString("X2"); //format into hexidecima 0XFF;
+                if ((i + 1) % 2 == 0 && (i + 1) < bt.Count)
+                {
+                    s += "-";
+                }
             }
             return s;
         }
@@ -116,7 +120,7 @@ namespace HardwareID
         /// </summary>
         /// <param name="name">The name of the item to fetch (default: caller)</param>
         /// <returns></returns>
-        protected static dynamic Get([CallerMemberName]string name = null)
+        private static dynamic Get([CallerMemberName]string name = null)
         { // TODO changing this to dynamic may make structs not work correctly unless initialized 
             if(fields.ContainsKey(name))
             {
@@ -137,7 +141,7 @@ namespace HardwareID
         /// <param name="value">The desired value to store in fields</param>
         /// <param name="name">The name to store the value under (default: caller)</param>
         /// <returns></returns>
-        protected bool Set<T>(T value, [CallerMemberName]string name = null)
+        private bool Set<T>(T value, [CallerMemberName]string name = null)
         {
             T oldVal;
             if (fields.ContainsKey(name))
@@ -161,6 +165,6 @@ namespace HardwareID
             return true;
         }
 
-        protected static Dictionary<string, object>  fields = new Dictionary<string, object>();
+        private static Dictionary<string, object>  fields = new Dictionary<string, object>();
     }
 }

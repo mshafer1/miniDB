@@ -54,7 +54,7 @@ namespace MiniDB
             //Create a new instance of the RijndaelManaged class  
             // and decrypt the stream.  
             RijndaelManaged RMCrypto = new RijndaelManaged();
-            byte[] IV = new byte[Key.Length];
+            byte[] InitializationVector = new byte[Key.Length];
             using (System.IO.FileStream fileStream = new FileStream(this.Filename, FileMode.Open))
             {
                 var fileVersion = (short)fileStream.ReadByte();
@@ -63,9 +63,9 @@ namespace MiniDB
                     case (12):
                     case (11):
                     case (10):
-                        fileStream.Read(IV, 0, IV.Length);
-                        fileStream.Seek(IV.Length + 1, SeekOrigin.Begin); // + 1 for version byte
-                        using (CryptoStream cryptoStream = new CryptoStream(fileStream, RMCrypto.CreateDecryptor(Key, IV), CryptoStreamMode.Read))
+                        fileStream.Read(InitializationVector, 0, InitializationVector.Length);
+                        fileStream.Seek(InitializationVector.Length + 1, SeekOrigin.Begin); // + 1 for version byte
+                        using (CryptoStream cryptoStream = new CryptoStream(fileStream, RMCrypto.CreateDecryptor(Key, InitializationVector), CryptoStreamMode.Read))
                         {
                             using (StreamReader sreader = new StreamReader(cryptoStream))
                             {
@@ -85,28 +85,30 @@ namespace MiniDB
         {
             RijndaelManaged RMCrypto = new RijndaelManaged();
 
-            byte[] IV = new byte[Key.Length];
+            byte[] InitializationVector = new byte[Key.Length];
 
             var r = new Random();
-            r.NextBytes(IV); // fill the IV with random Bytes
-            Debug.Assert(IV.Length == Key.Length && Key.Length == 16);
+            r.NextBytes(InitializationVector); // fill the Initilization Vector with random Bytes
+            Debug.Assert(InitializationVector.Length == Key.Length && Key.Length == 16);
 
-            var encryptor = RMCrypto.CreateEncryptor(Key, IV);
+            var encryptor = RMCrypto.CreateEncryptor(Key, InitializationVector);
 
             if(!System.IO.File.Exists(this.Filename))
             {
                 File.Create(this.Filename).Close();
             }
 
+            // overwrite old file
             using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Truncate))
             {
                 // write file version
-                fileStream.WriteByte((int)(db_version * 10));
+                fileStream.WriteByte((byte)(db_version * 10));
 
-                // write IV
-                fileStream.Write(IV, 0, IV.Length);
+                // write Initilization Vector
+                fileStream.Write(InitializationVector, 0, InitializationVector.Length);
             }
 
+            // re-open append mode, cryptStream needs a new fileStream
             using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Append))
             {
                 using (CryptoStream CryptStream = new CryptoStream(fileStream, encryptor, CryptoStreamMode.Write))
@@ -121,7 +123,5 @@ namespace MiniDB
         }
 
         private static byte[] HardwareID { get { return DBHardwareID.IDValueBytes().Take(16).ToArray(); } }
-        //private static ulong HardwardIDLow { get { } }
-        
     }
 }

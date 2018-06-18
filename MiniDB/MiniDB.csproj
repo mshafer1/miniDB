@@ -43,10 +43,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseModelItem.cs" />
     <Compile Include="DataBase.cs" />
     <Compile Include="DatabaseObject.cs" />
     <Compile Include="DataBaseSerializer.cs" />
+    <Compile Include="DBExceptions.cs" />
+    <Compile Include="DBTransaction.cs" />
     <Compile Include="EncryptedDataBase.cs" />
     <Compile Include="HardwareID.cs" />
     <Compile Include="ID.cs" />

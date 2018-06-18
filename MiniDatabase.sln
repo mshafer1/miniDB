@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniDB", "MiniDB\MiniDB.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HardwareID", "HardwareID\HardwareID.csproj", "{8E28E859-E1E9-45DB-84E4-25FE9A4617F7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbXunitTests", "DbXunitTests\DbXunitTests.csproj", "{D3B56464-0AFA-472F-A650-F53D0B782AF1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8E28E859-E1E9-45DB-84E4-25FE9A4617F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E28E859-E1E9-45DB-84E4-25FE9A4617F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E28E859-E1E9-45DB-84E4-25FE9A4617F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3B56464-0AFA-472F-A650-F53D0B782AF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3B56464-0AFA-472F-A650-F53D0B782AF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3B56464-0AFA-472F-A650-F53D0B782AF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3B56464-0AFA-472F-A650-F53D0B782AF1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -21,17 +21,14 @@ namespace MiniDB
         public static UInt64 IDValueInt()
         {
             string id = ID();
-            //Debug.WriteLine(id);
             byte[] bytes = Encoding.ASCII.GetBytes(id);
             ulong result = BitConverter.ToUInt64(bytes, 0);
-            //Debug.WriteLine(result);
             return result;
         }
 
         public static byte[] IDValueBytes()
         {
             string id = ID();
-            //Debug.WriteLine(id);
             byte[] bytes = Encoding.ASCII.GetBytes(id);
             return bytes;
         }
@@ -39,17 +36,14 @@ namespace MiniDB
         public static UInt64 IDValueInt(string seed)
         {
             string id = ID(seed);
-            //Debug.WriteLine(id);
             byte[] bytes = Encoding.ASCII.GetBytes(id);
             ulong result = BitConverter.ToUInt64(bytes, 0);
-            //Debug.WriteLine(result);
             return result;
         }
 
         public static byte[] IDValueBytes(string seed)
         {
             string id = ID(seed);
-            //Debug.WriteLine(id);
             byte[] bytes = Encoding.ASCII.GetBytes(id);
             return bytes;
         }

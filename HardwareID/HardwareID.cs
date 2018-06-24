@@ -2,15 +2,55 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace HardwareID
 {
     public sealed class HardwareID
     {
+        #region properties
+        private static string OSName => Get();
+
+        private static string OSManufacturer => Get();
+
+        private static string ProductID => Get();
+
+        private static string SystemModel => Get();
+
+        private static string SystemType => Get();
+
+        private static string PhysicalMemory => Get();
+
+        private static string _data
+        {
+            get
+            {
+                return $@"OSName >> {OSName}
+OSManufacturer >> {OSManufacturer}
+SystemModel >> {SystemModel}
+PhysicalMemory >> {PhysicalMemory}";
+            }
+        }
+        #endregion
+
+        #region properties
+        private static Dictionary<string, object> data = new Dictionary<string, object>();
+
+        private static Dictionary<string, string> systemInfoFields = new Dictionary<string, string>()
+        {
+            {"OS Name:",  nameof(OSName) },
+            {"OS Manufacturer:", nameof(OSManufacturer) },
+            {"Product ID:", nameof(ProductID) },
+            {"System Model:", nameof(SystemModel) },
+            {"System Type:", nameof(SystemType) },
+            {"Total Physical Memory:", nameof(PhysicalMemory) },
+        };
+        #endregion
+
+        #region constructors
         public static string UniqueID()
         {
             return GetHash(_data);
@@ -20,31 +60,9 @@ namespace HardwareID
         {
             return GetHash($"{_data}\nSeed >> {seed}");
         }
+        #endregion
 
-
-        private static string OSName => Get();
-        private static string OSManufacturer => Get();
-        private static string ProductID => Get();
-        private static string SystemModel => Get();
-        private static string SystemType => Get();
-        private static string PhysicalMemory => Get();
-        private static string _data {
-            get {
-                return $@"OSName >> {OSName}
-OSManufacturer >> {OSManufacturer}
-SystemModel >> {SystemModel}
-PhysicalMemory >> {PhysicalMemory}"; } }
-
-        private static Dictionary<string, string> systemInfoFields = new Dictionary<string, string>()
-        {
-            {"OS Name:",  nameof(OSName) },
-            { "OS Manufacturer:", nameof(OSManufacturer) },
-            { "Product ID:", nameof(ProductID) },
-            { "System Model:", nameof(SystemModel) },
-            { "System Type:", nameof(SystemType) },
-            { "Total Physical Memory:", nameof(PhysicalMemory) },
-        };
-
+        #region helper methods
         private static void getSystemInfo()
         {
             Process p = new Process();
@@ -64,7 +82,7 @@ PhysicalMemory >> {PhysicalMemory}"; } }
                 if (!match.Equals(default(KeyValuePair<string, string>)))
                 {
                     var rest = workingLine.Substring(match.Key.Length).Trim();
-                    fields[match.Value] = rest;
+                    data[match.Value] = rest;
                 }
             }
         }
@@ -82,7 +100,7 @@ PhysicalMemory >> {PhysicalMemory}"; } }
 
         private static string GetHexString(IList<byte> bt)
         {
-            
+
             string s = string.Empty;
             // replace with s += b.ToString("X2"); ??
             //for (int i = 0; i < bt.Count; i++)
@@ -116,37 +134,37 @@ PhysicalMemory >> {PhysicalMemory}"; } }
 
 
         /// <summary>
-        /// Return the requested item by name from fields if it is there, else null.
+        /// Return the requested item by name from data if it is there, else null.
         /// </summary>
         /// <param name="name">The name of the item to fetch (default: caller)</param>
         /// <returns></returns>
         private static dynamic Get([CallerMemberName]string name = null)
         { // TODO changing this to dynamic may make structs not work correctly unless initialized 
-            if(fields.ContainsKey(name))
+            if (data.ContainsKey(name))
             {
-                return fields[name];
+                return data[name];
             }
             else
             {
                 getSystemInfo();
-                return fields[name];
+                return data[name];
             }
         }
 
         /// <summary>
-        /// Store the value in fields and raise a PropertyChangedExtended event
+        /// Store the value in data and raise a PropertyChangedExtended event
         ///   if the new value is different, else return false.
         /// </summary>
         /// <typeparam name="T">The type of the value</typeparam>
-        /// <param name="value">The desired value to store in fields</param>
+        /// <param name="value">The desired value to store in data</param>
         /// <param name="name">The name to store the value under (default: caller)</param>
         /// <returns></returns>
         private bool Set<T>(T value, [CallerMemberName]string name = null)
         {
             T oldVal;
-            if (fields.ContainsKey(name))
+            if (data.ContainsKey(name))
             {
-                oldVal = (T)fields[name];
+                oldVal = (T)data[name];
                 if (oldVal == null && value == null)
                 {
                     return false;
@@ -155,16 +173,15 @@ PhysicalMemory >> {PhysicalMemory}"; } }
                 {
                     return false; // NO-OP
                 }
-                fields[name] = value;
+                data[name] = value;
             }
             else
             {
                 oldVal = default(T);
-                fields.Add(name, value);
+                data.Add(name, value);
             }
             return true;
         }
-
-        private static Dictionary<string, object>  fields = new Dictionary<string, object>();
+        #endregion
     }
 }

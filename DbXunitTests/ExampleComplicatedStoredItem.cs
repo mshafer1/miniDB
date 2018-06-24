@@ -6,13 +6,21 @@ using System.Threading.Tasks;
 
 namespace DbXunitTests
 {
-    class ExampleComplicatedStoredItem : MiniDB.DatabaseObject
+    /// <summary>
+    /// 
+    /// </summary>
+    internal class ExampleComplicatedStoredItem : MiniDB.DatabaseObject
     {
+        /// <summary>
+        /// Create the object with a nested tracked object (Address)
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
         public ExampleComplicatedStoredItem(string firstName, string lastName)
         {
-            FirstName = firstName;
-            LastName = lastName;
-            Address = new AddressClass();
+            this.FirstName = firstName;
+            this.LastName = lastName;
+            this.Address = new AddressClass();
             Address.PropertyChangedExtended += Address_PropertyChangedExtended;
         }
 

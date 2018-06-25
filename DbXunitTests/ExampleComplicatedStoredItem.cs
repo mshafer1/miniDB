@@ -29,10 +29,44 @@ namespace DbXunitTests
             this.OnPropertyChangedExtended(nameof(Address) + "." + e.PropertyName, e.OldValue, e.NewValue, e.UndoableChange);
         }
 
-        public string FirstName { set => this.Set(value); get => this.Get(); }
-        public string LastName { set => this.Set(value); get => this.Get(); }
-        public int? Age { set => this.Set(value); get => this.Get(); }
-        public string Name { get { return $"{FirstName} {LastName}"; } }
+        /// <summary>
+        /// Gets or sets the first name
+        /// </summary>
+        public string FirstName
+        {
+            get => this.Get();
+            set => this.Set(value);
+        }
+
+        /// <summary>
+        /// Gets or sets the last name of the example person stored int the db
+        /// </summary>
+        public string LastName
+        {
+            get => this.Get();
+            set => this.Set(value);
+        }
+
+        /// <summary>
+        /// Gets or sets the age of the example person stored in the db
+        /// </summary>
+        public int? Age
+        {
+            get => this.Get();
+            set => this.Set(value);
+        }
+
+        /// <summary>
+        /// Gets the full name of the stored person
+        /// </summary>
+        public string Name
+        {
+            get
+            {
+                return $"{FirstName} {LastName}";
+            }
+        }
+
         public AddressClass Address { get; }
     }
 

@@ -37,7 +37,7 @@ namespace MiniDB
             // N.B. null handling is missing
             var surrogate = serializer.Deserialize<DataBaseSurrogate<T>>(reader);
             var elements = surrogate.Collection;
-            var db = new DataBase<T>() { dbVersion = surrogate.DBVersion };
+            var db = new DataBase<T>() { DBVersion = surrogate.DBVersion };
             foreach (var el in elements)
                 db.Add(el);
             return db;
@@ -53,7 +53,7 @@ namespace MiniDB
             var surrogate = new DataBaseSurrogate<T>()
             {
                 Collection = new ObservableCollection<T>(db),
-                DBVersion = db.dbVersion
+                DBVersion = db.DBVersion
             };
 
             // from https://stackoverflow.com/questions/7397207/json-net-error-self-referencing-loop-detected-for-type

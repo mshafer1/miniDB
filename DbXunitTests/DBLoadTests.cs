@@ -58,31 +58,30 @@ namespace DbXunitTests
         [Fact]
         public void TestNormalDBCanReload()
         {
-            TestDBType(file => new MiniDB.DataBase<ExampleComplicatedStoredItem>(file));
+            TestDBType(file => new MiniDB.DataBase<ExampleComplicatedStoredItem>(file, 1.0f, 1));
         }
 
         [Fact]
         public void TestEncryptedDBCanReload()
         {
-            TestDBType(file => new MiniDB.EncryptedDataBase<ExampleComplicatedStoredItem>(file));
+            TestDBType(file => new MiniDB.EncryptedDataBase<ExampleComplicatedStoredItem>(file, 1, 1));
         }
 
         [Fact]
         public void TestCannotReloadSameDBTypeWithSameFile()
         {
-            using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename))
+            using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename, 1, 1))
             {
-                Assert.Throws<MiniDB.DBCreationException>(() => new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename));
+                Assert.Throws<MiniDB.DBCreationException>(() => new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename, 1, 1));
             }
-
         }
 
         [Fact]
         public void TestCanReloadSameDBTypeWithDifferentFile()
         {
-            using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename))
+            using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename, 1, 1))
             {
-                new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename2); // should not throw
+                new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename2, 1, 1); // should not throw
                 Assert.True(true); // if it made it this far, test is a success.
             }
 
@@ -91,11 +90,11 @@ namespace DbXunitTests
         [Fact]
         public void TestCanUseUsingToReloadSameDBTypeWithSameFile()
         {
-            using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename))
+            using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename, 1, 1))
             {
                 // NO-OP
             }
-            using (var db2 = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename))
+            using (var db2 = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.Filename, 1, 1))
             {
                 // create second DB of same type after cleaning the last one - this should succeed
             }

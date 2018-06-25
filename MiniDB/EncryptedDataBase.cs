@@ -15,19 +15,19 @@ namespace MiniDB
     public class EncryptedDataBase<T> : DataBase<T> where T : DatabaseObject
     {
         internal byte[] Key { get { return HardwareID; } }
-        public EncryptedDataBase(string filename) : base(filename)
+        public EncryptedDataBase(string filename, float DBVersion, float MinimumCompatibleVersion) : base(filename, DBVersion, MinimumCompatibleVersion)
         {
             // NOOP
         }
 
-        private EncryptedDataBase(string filename, bool base_case) : base(filename, base_case)
+        private EncryptedDataBase(string filename, float DBVersion, float MinimumCompatibleVersion, bool base_case) : base(filename, DBVersion, MinimumCompatibleVersion, base_case)
         {
             // NOOP
         }
 
         protected override DataBase<DBTransaction<T>> getTransactionsDB(string transactions_filename)
         {
-            return new EncryptedDataBase<DBTransaction<T>>(transactions_filename, true);
+            return new EncryptedDataBase<DBTransaction<T>>(transactions_filename, this.DBVersion, this.MinimumCompatibleVersion, true);
         }
 
         protected override string readFile(string filename)
@@ -42,7 +42,7 @@ namespace MiniDB
 
         protected override void _cacheDB()
         {
-            lock (_locker)
+            lock (Locker)
             {
                 // store local version
                 encryptFile();
@@ -102,7 +102,7 @@ namespace MiniDB
             using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Truncate))
             {
                 // write file version
-                fileStream.WriteByte((byte)(db_version * 10));
+                fileStream.WriteByte((byte)(base.DBVersion * 10));
 
                 // write Initilization Vector
                 fileStream.Write(InitializationVector, 0, InitializationVector.Length);

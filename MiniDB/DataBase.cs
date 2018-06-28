@@ -47,7 +47,7 @@ namespace MiniDB
 
         #region constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="{T}" /> class.
+        /// Initializes a new instance of the <see cref="DataBase{T}" /> class.
         /// Create instance of database - if file exists, load collection from it; else, create new empty collection
         /// </summary>
         /// <param name="filename">The filename or path to store the collection in</param>
@@ -95,7 +95,7 @@ namespace MiniDB
                 }
 
                 string transactionFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-                this.Transactions_DB = this.getTransactionsDB(transactionFilename);
+                this.Transactions_DB = this.GetTransactionsDB(transactionFilename);
                 this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
 
                 this.LoadFile(filename, true);
@@ -231,7 +231,7 @@ namespace MiniDB
                         transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
                         if (transactedItem == null)
                         {
-                            throw new DBCannotUndoException(string.Format("Failed to find item with ID {1} to undo property {0}", last_transaction.changed_property, last_transaction.Item_ID));
+                            throw new DBCannotUndoException(string.Format("Failed to find item with ID {1} to undo property {0}", last_transaction.Changed_property, last_transaction.Item_ID));
                         }
 
                         transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
@@ -244,9 +244,9 @@ namespace MiniDB
                             TransactionType = TransactionType.Undo,
                             Item_ID = transactedItem.ID,
                             Transacted_item = null,
-                            property_old = last_transaction.property_new,
-                            property_new = last_transaction.property_old,
-                            changed_property = last_transaction.changed_property
+                            Property_old = last_transaction.Property_new,
+                            Property_new = last_transaction.Property_old,
+                            Changed_property = last_transaction.Changed_property
                         };
                     }
                     else if (last_transaction.TransactionType == TransactionType.Add)
@@ -270,9 +270,9 @@ namespace MiniDB
                             TransactionType = TransactionType.Undo,
                             Item_ID = transactedItem.ID,
                             Transacted_item = transactedItem,
-                            property_old = null,
-                            property_new = null,
-                            changed_property = DBTransaction<T>.ITEM_REMOVED
+                            Property_old = null,
+                            Property_new = null,
+                            Changed_property = DBTransaction<T>.ItemRemovedConstKey
                         };
                     }
                     else if (last_transaction.TransactionType == TransactionType.Delete)
@@ -285,7 +285,7 @@ namespace MiniDB
                         transactedItem = last_transaction.Transacted_item;
                         if (transactedItem == null)
                         {
-                            throw new DBCannotUndoException(string.Format("Failed to find item to re-add", last_transaction.changed_property, last_transaction.Item_ID));
+                            throw new DBCannotUndoException(string.Format("Failed to find item to re-add", last_transaction.Changed_property, last_transaction.Item_ID));
                         }
 
                         transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
@@ -297,31 +297,31 @@ namespace MiniDB
                             TransactionType = TransactionType.Undo,
                             Item_ID = transactedItem.ID,
                             Transacted_item = last_transaction.Transacted_item,
-                            property_old = null,
-                            property_new = null,
-                            changed_property = DBTransaction<T>.ITEM_ADDED
+                            Property_old = null,
+                            Property_new = null,
+                            Changed_property = DBTransaction<T>.ItemAddConstKey
                         };
                     }
                     else if (last_transaction.TransactionType == TransactionType.Redo)
                     {
                         // TODOne: if it was a REDO - there is more involved
-                        if (last_transaction.changed_property == DBTransaction<T>.ITEM_REMOVED)
+                        if (last_transaction.Changed_property == DBTransaction<T>.ItemRemovedConstKey)
                         {
                             transactedItem = last_transaction.Transacted_item;
                             this.Add(transactedItem);
                             undoTransaction = new DBTransaction<T>
                             {
                                 Item_ID = transactedItem.ID,
-                                changed_property = DBTransaction<T>.ITEM_ADDED,
+                                Changed_property = DBTransaction<T>.ItemAddConstKey,
                                 TransactionType = TransactionType.Undo
                             };
                         }
-                        else if (last_transaction.changed_property == DBTransaction<T>.ITEM_ADDED)
+                        else if (last_transaction.Changed_property == DBTransaction<T>.ItemAddConstKey)
                         {
                             transactedItem = last_transaction.Transacted_item;
                             if (transactedItem == null)
                             {
-                                throw new DBCannotUndoException(string.Format("Failed to find item with ID {1} to redo property {0}", last_transaction.changed_property, last_transaction.Item_ID));
+                                throw new DBCannotUndoException(string.Format("Failed to find item with ID {1} to redo property {0}", last_transaction.Changed_property, last_transaction.Item_ID));
                             }
 
                             transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
@@ -329,7 +329,7 @@ namespace MiniDB
                             registerItem = false;
                             undoTransaction = new DBTransaction<T>
                             {
-                                changed_property = DBTransaction<T>.ITEM_REMOVED,
+                                Changed_property = DBTransaction<T>.ItemRemovedConstKey,
                                 Item_ID = transactedItem.ID,
                                 Transacted_item = transactedItem,
                                 TransactionType = TransactionType.Undo
@@ -340,7 +340,7 @@ namespace MiniDB
                             transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
                             if (transactedItem == null)
                             {
-                                throw new DBCannotUndoException(string.Format("Failed to load item with ID {0} to reset {1}", last_transaction.Transacted_item.ID, last_transaction.changed_property));
+                                throw new DBCannotUndoException(string.Format("Failed to load item with ID {0} to reset {1}", last_transaction.Transacted_item.ID, last_transaction.Changed_property));
                             }
 
                             transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
@@ -352,9 +352,9 @@ namespace MiniDB
                                 TransactionType = TransactionType.Undo,
                                 Item_ID = last_transaction.Item_ID,
                                 Transacted_item = null,
-                                changed_property = last_transaction.changed_property,
-                                property_new = last_transaction.property_old,
-                                property_old = last_transaction.property_new
+                                Changed_property = last_transaction.Changed_property,
+                                Property_new = last_transaction.Property_old,
+                                Property_old = last_transaction.Property_new
                             };
                         }
                     }
@@ -364,6 +364,7 @@ namespace MiniDB
                     }
 
                     this.OnItemChanged(transactedItem.ID);
+
                     // store Undo transaction at start
                     last_transaction.Active = false;
                     this.Transactions_DB.Insert(0, undoTransaction);
@@ -379,13 +380,17 @@ namespace MiniDB
                     this.CollectionChanged += this.DataBase_CollectionChanged;
 
                     // update the DB on disk
-                    _cacheDB();
+                    this._cacheDB();
                 }
             }
-            PublicOnPropertyChanged(nameof(CanUndo));
-            PublicOnPropertyChanged(nameof(CanRedo));
+
+            this.PublicOnPropertyChanged(nameof(this.CanUndo));
+            this.PublicOnPropertyChanged(nameof(this.CanRedo));
         }
 
+        /// <summary>
+        /// Reverse the last undo transaction
+        /// </summary>
         public void Redo()
         {
             if (!this.CanRedo)
@@ -393,7 +398,7 @@ namespace MiniDB
                 throw new DBCannotRedoException("Cannot redo at this time");
             }
 
-            DBTransaction<T> last_transaction = GetLastTransaction(TransactionType.Redo, x => x.Active == true);
+            DBTransaction<T> last_transaction = this.GetLastTransaction(TransactionType.Redo, x => x.Active == true);
             T transactedItem;
             // get the mutex
             lock (Locker)
@@ -410,26 +415,26 @@ namespace MiniDB
                 }
 
                 DBTransaction<T> redoTransaction;
-                if (last_transaction.changed_property == DBTransaction<T>.ITEM_ADDED)
+                if (last_transaction.Changed_property == DBTransaction<T>.ItemAddConstKey)
                 {
                     // get item from last transaction
                     transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
                     transactedItem.PropertyChangedExtended -= DataBaseItem_PropertyChanged;
                     if (transactedItem == null)
                     {
-                        throw new DBCannotRedoException(string.Format("Failed to find item with ID {1} to redo property {0}", last_transaction.changed_property, last_transaction.Item_ID));
+                        throw new DBCannotRedoException(string.Format("Failed to find item with ID {1} to redo property {0}", last_transaction.Changed_property, last_transaction.Item_ID));
                     }
 
                     this.Remove(transactedItem);
                     redoTransaction = new DBTransaction<T>
                     {
-                        changed_property = DBTransaction<T>.ITEM_REMOVED,
+                        Changed_property = DBTransaction<T>.ItemRemovedConstKey,
                         Transacted_item = transactedItem,
                         Item_ID = transactedItem.ID,
                         TransactionType = TransactionType.Redo
                     };
                 }
-                else if (last_transaction.changed_property == DBTransaction<T>.ITEM_REMOVED)
+                else if (last_transaction.Changed_property == DBTransaction<T>.ItemRemovedConstKey)
                 {
                     transactedItem = last_transaction.Transacted_item;
                     transactedItem.PropertyChangedExtended -= DataBaseItem_PropertyChanged;
@@ -441,7 +446,7 @@ namespace MiniDB
 
                     redoTransaction = new DBTransaction<T>
                     {
-                        changed_property = DBTransaction<T>.ITEM_ADDED,
+                        Changed_property = DBTransaction<T>.ItemAddConstKey,
                         Transacted_item = transactedItem,
                         Item_ID = transactedItem.ID,
                         TransactionType = TransactionType.Redo
@@ -453,7 +458,7 @@ namespace MiniDB
                     transactedItem.PropertyChangedExtended -= DataBaseItem_PropertyChanged;
                     if (transactedItem == null)
                     {
-                        throw new DBCannotRedoException(string.Format("Failed to load item with ID {0} to reset {1}", last_transaction.Transacted_item.ID, last_transaction.changed_property));
+                        throw new DBCannotRedoException(string.Format("Failed to load item with ID {0} to reset {1}", last_transaction.Transacted_item.ID, last_transaction.Changed_property));
                     }
 
                     SetProperty(last_transaction, transactedItem);
@@ -463,9 +468,9 @@ namespace MiniDB
                         TransactionType = TransactionType.Redo,
                         Item_ID = last_transaction.Item_ID,
                         Transacted_item = null,
-                        changed_property = last_transaction.changed_property,
-                        property_new = last_transaction.property_old,
-                        property_old = last_transaction.property_new
+                        Changed_property = last_transaction.Changed_property,
+                        Property_new = last_transaction.Property_old,
+                        Property_old = last_transaction.Property_new
                     };
                 }
 
@@ -568,7 +573,7 @@ namespace MiniDB
         #endregion
 
         #region private methods
-        protected virtual string readFile(string filename)
+        protected virtual string ReadFile(string filename)
         {
             if (System.IO.File.Exists(filename))
             {
@@ -578,7 +583,7 @@ namespace MiniDB
             return "";
         }
 
-        protected virtual DataBase<DBTransaction<T>> getTransactionsDB(string transactions_filename)
+        protected virtual DataBase<DBTransaction<T>> GetTransactionsDB(string transactions_filename)
         {
             return new DataBase<DBTransaction<T>>(transactions_filename, this.DBVersion, this.MinimumCompatibleVersion, true);
         }
@@ -587,7 +592,7 @@ namespace MiniDB
         {
             if (System.IO.File.Exists(file))
             {
-                var json = readFile(file);
+                var json = ReadFile(file);
                 if (json.Length > 0)
                 {
                     var adapted = JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
@@ -611,7 +616,7 @@ namespace MiniDB
         private static void SetProperty(DBTransaction<T> last_transaction, T transactedItem)
         {
             // redo with https://stackoverflow.com/a/13270302
-            var properties = last_transaction.changed_property.Split('.');
+            var properties = last_transaction.Changed_property.Split('.');
             object lastObject = transactedItem;
             System.Reflection.PropertyInfo currentProperty = null;
 
@@ -689,11 +694,11 @@ namespace MiniDB
             if (targetType.IsEnum)
             {
                 // need converter for int to enum
-                oldVal = Enum.ToObject(targetType, last_transaction.property_old);
+                oldVal = Enum.ToObject(targetType, last_transaction.Property_old);
             }
             else
             {
-                oldVal = Convert.ChangeType(last_transaction.property_old, targetType);
+                oldVal = Convert.ChangeType(last_transaction.Property_old, targetType);
             }
 
 
@@ -952,9 +957,9 @@ namespace MiniDB
                     TransactionType = TransactionType.Modify,
                     Item_ID = item.ID,
                     Transacted_item = null,
-                    property_old = e.OldValue,
-                    property_new = e.NewValue,
-                    changed_property = e.PropertyName
+                    Property_old = e.OldValue,
+                    Property_new = e.NewValue,
+                    Changed_property = e.PropertyName
                 };
                 Transactions_DB.Insert(0, transaction);
                 OnItemChanged(item);

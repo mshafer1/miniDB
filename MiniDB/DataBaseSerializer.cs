@@ -22,32 +22,45 @@ namespace MiniDB
     }
 
 
-    class DataBaseSerializer<T> : JsonConverter where T : DatabaseObject
+    internal class DataBaseSerializer<T> : JsonConverter where T : DatabaseObject
     {
-
         public override bool CanConvert(Type objectType)
         {
             return objectType == typeof(DataBase<T>) || objectType.IsSubclassOf(typeof(DataBase<T>));
         }
 
-        public override object ReadJson(
-            JsonReader reader, Type objectType,
-            object existingValue, JsonSerializer serializer)
+        /// <summary>
+        /// Use the reader and desired type to load a Database
+        /// </summary>
+        /// <param name="reader">the reader to use</param>
+        /// <param name="objectType">type of object</param>
+        /// <param name="existingValue">existing value</param>
+        /// <param name="serializer">serializer</param>
+        /// <returns></returns>
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             // N.B. null handling is missing
             var surrogate = serializer.Deserialize<DataBaseSurrogate<T>>(reader);
             var elements = surrogate.Collection;
             var db = new DataBase<T>() { DBVersion = surrogate.DBVersion };
             foreach (var el in elements)
+            {
                 db.Add(el);
+            }
             return db;
         }
 
-        public override void WriteJson(JsonWriter writer, object value,
-                                       JsonSerializer serializer)
+        /// <summary>
+        /// Write a serialization of the DB to the writer that is passed in
+        /// </summary>
+        /// <param name="writer">JsonWriter the writer to shove the json in</param>
+        /// <param name="value">the DataBase to write to json</param>
+        /// <param name="serializer">JsonSerializer to </param>
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             // N.B. null handling is missing
             var db = (DataBase<T>)value;
+
             // create the surrogate and serialize it instead 
             // of the collection itself
             var surrogate = new DataBaseSurrogate<T>()
@@ -62,5 +75,4 @@ namespace MiniDB
             serializer.Serialize(writer, surrogate);
         }
     }
-
 }

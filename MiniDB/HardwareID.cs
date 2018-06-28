@@ -1,23 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Management;
-
-using HardwareID;
-using System.Diagnostics;
 
 namespace MiniDB
 {
+    /// <summary>
+    /// System specific ID implementation for Database
+    /// </summary>
     public static class DBHardwareID
     {
-        //static string fastID() => HardwareID.HardwareID.FastID();
-        static string ID() => HardwareID.HardwareID.UniqueID();
-        static string ID(string seed) => HardwareID.HardwareID.UniqueID(seed);
+        /// <summary>
+        /// Get string value of ID with seed
+        /// </summary>
+        /// <returns>string ID field (hexadecimal formatted)</returns>
+        public static string ID() => HardwareID.HardwareID.UniqueID();
 
+        /// <summary>
+        /// Get string value of ID with seed
+        /// </summary>
+        /// <param name="seed">additional data to include in the hashing algorithm</param>
+        /// <returns>string ID field (hexadecimal formatted)</returns>
+        public static string ID(string seed) => HardwareID.HardwareID.UniqueID(seed);
+
+        /// <summary>
+        /// Get hardware ID as unigned 64-bit integer
+        /// </summary>
+        /// <returns>ID value</returns>
         public static UInt64 IDValueInt()
         {
             string id = ID();
@@ -26,6 +33,10 @@ namespace MiniDB
             return result;
         }
 
+        /// <summary>
+        /// Get hardware ID as byte array
+        /// </summary>
+        /// <returns>ID value as bytes</returns>
         public static byte[] IDValueBytes()
         {
             string id = ID();
@@ -33,6 +44,11 @@ namespace MiniDB
             return bytes;
         }
 
+        /// <summary>
+        /// Get hardware as Unigned 64 bit as byte array
+        /// </summary>
+        /// <param name="seed">Seed pass to ID method</param>
+        /// <returns>ID value</returns>
         public static UInt64 IDValueInt(string seed)
         {
             string id = ID(seed);
@@ -42,10 +58,10 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// 
+        /// Get hardware ID as byte array
         /// </summary>
-        /// <param name="seed"></param>
-        /// <returns></returns>
+        /// <param name="seed">Seed pass to ID method</param>
+        /// <returns>ID value</returns>
         public static byte[] IDValueBytes(string seed)
         {
             string id = ID(seed);

@@ -14,6 +14,9 @@ namespace MiniDB
 {
     public class EncryptedDataBase<T> : DataBase<T> where T : DatabaseObject
     {
+        /// <summary>
+        /// The private key used in the encryption/decryption
+        /// </summary>
         internal byte[] Key { get { return HardwareID; } }
         public EncryptedDataBase(string filename, float DBVersion, float MinimumCompatibleVersion) : base(filename, DBVersion, MinimumCompatibleVersion)
         {
@@ -58,7 +61,7 @@ namespace MiniDB
             using (System.IO.FileStream fileStream = new FileStream(this.Filename, FileMode.Open))
             {
                 var fileVersion = (short)fileStream.ReadByte();
-                switch(fileVersion)
+                switch (fileVersion)
                 {
                     case (12):
                     case (11):
@@ -93,7 +96,7 @@ namespace MiniDB
 
             var encryptor = RMCrypto.CreateEncryptor(Key, InitializationVector);
 
-            if(!System.IO.File.Exists(this.Filename))
+            if (!System.IO.File.Exists(this.Filename))
             {
                 File.Create(this.Filename).Close();
             }
@@ -122,6 +125,9 @@ namespace MiniDB
             }
         }
 
+        /// <summary>
+        /// 16 byte hardware specific ID - used in encrypting/decrypting the database
+        /// </summary>
         private static byte[] HardwareID { get { return DBHardwareID.IDValueBytes().Take(16).ToArray(); } }
     }
 }

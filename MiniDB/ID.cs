@@ -1,46 +1,78 @@
-﻿// must be disabled for unit testing
-#define ENABLE_SYSTEM_UNIQUE_PART
+﻿using System;
+using System.Diagnostics;
 using Newtonsoft.Json;
-using System;
-
 
 namespace MiniDB
 {
+    /// <summary>
+    /// A class to create and maintain (update) system/globally unique identifiers.
+    /// </summary>
     public class ID : IEquatable<ID>, IComparable<ID>
     {
-        [JsonProperty()]
-        public int id { get; private set; }
-#if ENABLE_SYSTEM_UNIQUE_PART
-        [JsonProperty()]
-        public ulong hardwareComponent { get; private set; }
-#endif
+        #region fields
+        /// <summary>
+        /// A radom number generator to create the next ID number from
+        /// </summary>
+        private static Random random = new Random();
 
+        /// <summary>
+        /// Gets or sets the numeric part of the ID
+        /// </summary>
+        [JsonProperty]
+        private int id;
+
+        /// <summary>
+        /// Gets or sets a hardware specific component to make collisions less likely when merging databases.
+        /// </summary>
+        [JsonProperty]
+        private ulong hardwareComponent;
+        #endregion
+
+        #region constructors
+        /// <summary>
+        /// Initalizes a new instance of <see cref="ID" /> class.
+        /// Fills the properties with default values then call Set on self
+        /// </summary>
         public ID()
         {
-#if ENABLE_SYSTEM_UNIQUE_PART
-            hardwareComponent = 0;
-#endif
-            id = 0;
-            Set();
+            this.hardwareComponent = 0;
+            this.id = 0;
+            this.Set();
         }
 
+        /// <summary>
+        /// Initalizes a new instance of <see cref="ID" /> class.
+        /// </summary>
+        /// <param name="id">The requested id</param>
+        /// <param name="hardwareComponent">The requested hardware component</param>
         public ID(int id, ulong hardwareComponent)
         {
-#if ENABLE_SYSTEM_UNIQUE_PART
             this.hardwareComponent = hardwareComponent;
-#endif
             this.Set();
             this.id = id;
         }
 
+        /// <summary>
+        /// Initalizes a new instance of <see cref="ID"/> class. Copying the passed in one
+        /// </summary>
+        /// <param name="other">the id to copy</param>
         public ID(ID other)
         {
             this.id = other.id;
-#if ENABLE_SYSTEM_UNIQUE_PART
             this.hardwareComponent = other.hardwareComponent;
-#endif
         }
+        #endregion
 
+        #region properties
+
+        #endregion
+
+        /// <summary>
+        /// Check if both hardware and system components are equal
+        /// </summary>
+        /// <param name="obj1">The first ID to compare</param>
+        /// <param name="obj2">The second ID to compare to the first one</param>
+        /// <returns>True if both components are equal</returns>
         public static bool operator ==(ID obj1, ID obj2)
         {
             bool result = false;
@@ -48,7 +80,6 @@ namespace MiniDB
             {
                 result = true;
             }
-
             else if (ReferenceEquals(obj1, null))
             {
                 result = false;
@@ -59,19 +90,18 @@ namespace MiniDB
             }
             else
             {
-                result = obj1.id == obj2.id 
-                    &&
-#if ENABLE_SYSTEM_UNIQUE_PART
-                    obj1.hardwareComponent == obj2.hardwareComponent
-#else
-                    true
-#endif
-                    ;
+                result = obj1.id == obj2.id && obj1.hardwareComponent == obj2.hardwareComponent;
             }
 
             return result;
         }
 
+        /// <summary>
+        /// Check if either hardware component or id component is not equal
+        /// </summary>
+        /// <param name="obj1">The first ID to compare</param>
+        /// <param name="obj2">the second ID to compare the first against.</param>
+        /// <returns>Return true if one or more of the components are different</returns>
         public static bool operator !=(ID obj1, ID obj2)
         {
             bool result = false;
@@ -79,7 +109,6 @@ namespace MiniDB
             {
                 result = false;
             }
-
             else if (ReferenceEquals(obj1, null))
             {
                 result = true;
@@ -90,90 +119,99 @@ namespace MiniDB
             }
             else
             {
-                result = obj1.id != obj2.id ||
-#if ENABLE_SYSTEM_UNIQUE_PART
-                    obj1.hardwareComponent != obj2.hardwareComponent
-#else
-                    false
-#endif
-                    ;
+                result = obj1.id != obj2.id || obj1.hardwareComponent != obj2.hardwareComponent;
             }
 
             return result;
         }
 
-        public override bool Equals(Object other)
+        /// <summary>
+        /// If other object is an ID, compare to it; else, false.
+        /// </summary>
+        /// <param name="other">The other object to compare to</param>
+        /// <returns>True if both components are equal</returns>
+        public override bool Equals(object other)
         {
             bool result = false;
             ID check = other as ID;
             if (check != null)
             {
-                result = this.id.Equals(check.id) &&
-#if ENABLE_SYSTEM_UNIQUE_PART
-                    this.hardwareComponent.Equals(check.hardwareComponent)
-#else
-                    true
-#endif
-                    ;
+                result = this.id.Equals(check.id) && this.hardwareComponent.Equals(check.hardwareComponent);
             }
+
             return result;
         }
 
+        /// <summary>
+        /// Determine if this ID is equal (completely by value) to the other id.
+        /// </summary>
+        /// <param name="other">The other id to compare to</param>
+        /// <returns>0 if both components are equal, else comparison of the hardware components if they are different, else comparison of the system components</returns>
         public bool Equals(ID other)
         {
-            return this.id.Equals(other.id) &&
-#if ENABLE_SYSTEM_UNIQUE_PART
-                    this.hardwareComponent.Equals(other.hardwareComponent)
-#else
-                    true
-#endif
-                    ; // use default comparison
+            // use default comparison
+            return this.id.Equals(other.id) && this.hardwareComponent.Equals(other.hardwareComponent);
         }
 
+        /// <summary>
+        /// Set the ID
+        ///     hardware component is determined based on the system,
+        ///     id field is determined from the input
+        /// </summary>
+        /// <param name="input">the integer to use for the system component</param>
+        /// <returns>The new object</returns>
         public ID Set(int input)
         {
-#if ENABLE_SYSTEM_UNIQUE_PART
             this.hardwareComponent = DBHardwareID.IDValueInt();
-#endif
-            id = input;
+            this.id = input;
             return this;
         }
 
+        /// <summary>
+        /// Set the ID
+        ///    hardware component is determined
+        ///    id fields is set to next random (to lower chances of collisions)
+        /// </summary>
+        /// <returns>The new object</returns>
         public ID Set()
         {
-#if ENABLE_SYSTEM_UNIQUE_PART
             this.hardwareComponent = DBHardwareID.IDValueInt();
-#endif
-            id = random.Next(0, int.MaxValue);
+            this.id = random.Next(0, int.MaxValue);
             return this;
         }
 
+        /// <summary>
+        /// Use system comparison for both parts of the ID - both the hardware and system parts of the ID must match to return 0
+        /// </summary>
+        /// <param name="other">The ID to compare to</param>
+        /// <returns>0 if the same, else a numeric representation of the comparison</returns>
         public int CompareTo(ID other)
         {
-            // keep default comparison
-            return this.id.CompareTo(other.id) +
-#if ENABLE_SYSTEM_UNIQUE_PART
-                    this.hardwareComponent.CompareTo(other.hardwareComponent)
-#else
-                    0
-#endif
-                    ;
-        }
-
-        public override string ToString()
-        {
-            if (IntPtr.Size == 4)
+            if (this.Equals(other))
             {
-                return
-#if ENABLE_SYSTEM_UNIQUE_PART
-                this.hardwareComponent.ToString() + ":" +
-#endif
-                    this.id.ToString();
+                return 0;
             }
-            else
-                return this.id.ToString();
+
+            int hardwarePart = this.hardwareComponent.CompareTo(other.hardwareComponent);
+            if (hardwarePart != 0)
+            {
+                return hardwarePart;
+            }
+
+            int systemPart = this.id.CompareTo(other.id);
+            if (systemPart != 0)
+            {
+                return systemPart;
+            }
+
+            Debug.Fail("Id's are apparently not equal, but both hardware and system parts are . . .");
+            return 0;
         }
 
-        private static Random random = new Random();
+        /// <summary>
+        /// Portray this ID as a string (HardwareComponent:idField)
+        /// </summary>
+        /// <returns>string formated as: {HardwareComponent:idField}</returns>
+        public override string ToString() => $"{this.hardwareComponent}:{this.id}";
     }
 }

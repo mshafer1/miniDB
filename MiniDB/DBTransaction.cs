@@ -10,12 +10,30 @@ namespace MiniDB
     // TODO: add resolve transaction - cannot be undone
     public enum TransactionType
     {
+        /// <summary>
+        /// An unkown transaction type (default)
+        /// </summary>
+        Unknown = -1,
+        /// <summary>
+        /// Adding an item
+        /// </summary>
         Add,
+        /// <summary>
+        /// Removing an item
+        /// </summary>
         Delete,
+        /// <summary>
+        /// Changing an item
+        /// </summary>
         Modify,
+        /// <summary>
+        /// An undo change
+        /// </summary>
         Undo,
+        /// <summary>
+        /// An redo change
+        /// </summary>
         Redo,
-        Unknown
     }
 
     public class DBTransaction<T> : DatabaseObject where T : DatabaseObject
@@ -42,8 +60,6 @@ namespace MiniDB
             // needed? - keep until collision detecting is implemented
             nextAvailableID++;
         }
-
-       
 
         #region transacted object properties
         public ID Item_ID { get; set; }

@@ -223,155 +223,164 @@ namespace MiniDB
                 this.CollectionChanged -= this.DataBase_CollectionChanged;
                 bool registerItem = true;
                 DBTransaction<T> undoTransaction;
-                if (last_transaction.TransactionType == TransactionType.Modify)
+                try
                 {
-                    // get item from last transaction
-                    transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
-                    if (transactedItem == null)
+                    if (last_transaction.TransactionType == TransactionType.Modify)
                     {
-                        throw new DBCannotUndoException(string.Format("Failed to find item with ID {1} to undo property {0}", last_transaction.changed_property, last_transaction.Item_ID));
-                    }
-
-                    transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
-
-                    SetProperty(last_transaction, transactedItem);
-
-                    // Create Undo transaction                        
-                    undoTransaction = new DBTransaction<T>()
-                    {
-                        TransactionType = TransactionType.Undo,
-                        Item_ID = transactedItem.ID,
-                        Transacted_item = null,
-                        property_old = last_transaction.property_new,
-                        property_new = last_transaction.property_old,
-                        changed_property = last_transaction.changed_property
-                    };
-                }
-                else if (last_transaction.TransactionType == TransactionType.Add)
-                {
-                    transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
-                    if (transactedItem == null)
-                    {
-                        throw new DBCannotUndoException(string.Format("Failed to find item with ID {0} to remove", last_transaction.Item_ID));
-                    }
-
-                    transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
-                    registerItem = false;
-                    if (last_transaction.Transacted_item == null)
-                    {
-                        throw new DBCannotUndoException();
-                    }
-
-                    this.Remove(transactedItem);
-                    undoTransaction = new DBTransaction<T>()
-                    {
-                        TransactionType = TransactionType.Undo,
-                        Item_ID = transactedItem.ID,
-                        Transacted_item = transactedItem,
-                        property_old = null,
-                        property_new = null,
-                        changed_property = DBTransaction<T>.ITEM_REMOVED
-                    };
-                }
-                else if (last_transaction.TransactionType == TransactionType.Delete)
-                {
-                    if (last_transaction.Transacted_item == null)
-                    {
-                        throw new DBCannotUndoException();
-                    }
-
-                    transactedItem = last_transaction.Transacted_item;
-                    if (transactedItem == null)
-                    {
-                        throw new DBCannotUndoException(string.Format("Failed to find item to re-add", last_transaction.changed_property, last_transaction.Item_ID));
-                    }
-
-                    transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
-
-                    this.Add(transactedItem);
-
-                    undoTransaction = new DBTransaction<T>()
-                    {
-                        TransactionType = TransactionType.Undo,
-                        Item_ID = transactedItem.ID,
-                        Transacted_item = last_transaction.Transacted_item,
-                        property_old = null,
-                        property_new = null,
-                        changed_property = DBTransaction<T>.ITEM_ADDED
-                    };
-                }
-                else if (last_transaction.TransactionType == TransactionType.Redo)
-                {
-                    // TODOne: if it was a REDO - there is more involved
-                    if (last_transaction.changed_property == DBTransaction<T>.ITEM_REMOVED)
-                    {
-                        transactedItem = last_transaction.Transacted_item;
-                        this.Add(transactedItem);
-                        undoTransaction = new DBTransaction<T>
-                        {
-                            Item_ID = transactedItem.ID,
-                            changed_property = DBTransaction<T>.ITEM_ADDED,
-                            TransactionType = TransactionType.Undo
-                        };
-                    }
-                    else if (last_transaction.changed_property == DBTransaction<T>.ITEM_ADDED)
-                    {
-                        transactedItem = last_transaction.Transacted_item;
-                        if (transactedItem == null)
-                        {
-                            throw new DBCannotUndoException(string.Format("Failed to find item with ID {1} to redo property {0}", last_transaction.changed_property, last_transaction.Item_ID));
-                        }
-
-                        transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
-                        this.Remove(transactedItem);
-                        registerItem = false;
-                        undoTransaction = new DBTransaction<T>
-                        {
-                            changed_property = DBTransaction<T>.ITEM_REMOVED,
-                            Item_ID = transactedItem.ID,
-                            Transacted_item = transactedItem,
-                            TransactionType = TransactionType.Undo
-                        };
-                    }
-                    else
-                    {
+                        // get item from last transaction
                         transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
                         if (transactedItem == null)
                         {
-                            throw new DBCannotUndoException(string.Format("Failed to load item with ID {0} to reset {1}", last_transaction.Transacted_item.ID, last_transaction.changed_property));
+                            throw new DBCannotUndoException(string.Format("Failed to find item with ID {1} to undo property {0}", last_transaction.changed_property, last_transaction.Item_ID));
                         }
 
                         transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
 
                         SetProperty(last_transaction, transactedItem);
 
+                        // Create Undo transaction                        
                         undoTransaction = new DBTransaction<T>()
                         {
                             TransactionType = TransactionType.Undo,
-                            Item_ID = last_transaction.Item_ID,
+                            Item_ID = transactedItem.ID,
                             Transacted_item = null,
-                            changed_property = last_transaction.changed_property,
+                            property_old = last_transaction.property_new,
                             property_new = last_transaction.property_old,
-                            property_old = last_transaction.property_new
+                            changed_property = last_transaction.changed_property
                         };
                     }
+                    else if (last_transaction.TransactionType == TransactionType.Add)
+                    {
+                        transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
+                        if (transactedItem == null)
+                        {
+                            throw new DBCannotUndoException(string.Format("Failed to find item with ID {0} to remove", last_transaction.Item_ID));
+                        }
+
+                        transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
+                        registerItem = false;
+                        if (last_transaction.Transacted_item == null)
+                        {
+                            throw new DBCannotUndoException();
+                        }
+
+                        this.Remove(transactedItem);
+                        undoTransaction = new DBTransaction<T>()
+                        {
+                            TransactionType = TransactionType.Undo,
+                            Item_ID = transactedItem.ID,
+                            Transacted_item = transactedItem,
+                            property_old = null,
+                            property_new = null,
+                            changed_property = DBTransaction<T>.ITEM_REMOVED
+                        };
+                    }
+                    else if (last_transaction.TransactionType == TransactionType.Delete)
+                    {
+                        if (last_transaction.Transacted_item == null)
+                        {
+                            throw new DBCannotUndoException();
+                        }
+
+                        transactedItem = last_transaction.Transacted_item;
+                        if (transactedItem == null)
+                        {
+                            throw new DBCannotUndoException(string.Format("Failed to find item to re-add", last_transaction.changed_property, last_transaction.Item_ID));
+                        }
+
+                        transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
+
+                        this.Add(transactedItem);
+
+                        undoTransaction = new DBTransaction<T>()
+                        {
+                            TransactionType = TransactionType.Undo,
+                            Item_ID = transactedItem.ID,
+                            Transacted_item = last_transaction.Transacted_item,
+                            property_old = null,
+                            property_new = null,
+                            changed_property = DBTransaction<T>.ITEM_ADDED
+                        };
+                    }
+                    else if (last_transaction.TransactionType == TransactionType.Redo)
+                    {
+                        // TODOne: if it was a REDO - there is more involved
+                        if (last_transaction.changed_property == DBTransaction<T>.ITEM_REMOVED)
+                        {
+                            transactedItem = last_transaction.Transacted_item;
+                            this.Add(transactedItem);
+                            undoTransaction = new DBTransaction<T>
+                            {
+                                Item_ID = transactedItem.ID,
+                                changed_property = DBTransaction<T>.ITEM_ADDED,
+                                TransactionType = TransactionType.Undo
+                            };
+                        }
+                        else if (last_transaction.changed_property == DBTransaction<T>.ITEM_ADDED)
+                        {
+                            transactedItem = last_transaction.Transacted_item;
+                            if (transactedItem == null)
+                            {
+                                throw new DBCannotUndoException(string.Format("Failed to find item with ID {1} to redo property {0}", last_transaction.changed_property, last_transaction.Item_ID));
+                            }
+
+                            transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
+                            this.Remove(transactedItem);
+                            registerItem = false;
+                            undoTransaction = new DBTransaction<T>
+                            {
+                                changed_property = DBTransaction<T>.ITEM_REMOVED,
+                                Item_ID = transactedItem.ID,
+                                Transacted_item = transactedItem,
+                                TransactionType = TransactionType.Undo
+                            };
+                        }
+                        else
+                        {
+                            transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
+                            if (transactedItem == null)
+                            {
+                                throw new DBCannotUndoException(string.Format("Failed to load item with ID {0} to reset {1}", last_transaction.Transacted_item.ID, last_transaction.changed_property));
+                            }
+
+                            transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
+
+                            SetProperty(last_transaction, transactedItem);
+
+                            undoTransaction = new DBTransaction<T>()
+                            {
+                                TransactionType = TransactionType.Undo,
+                                Item_ID = last_transaction.Item_ID,
+                                Transacted_item = null,
+                                changed_property = last_transaction.changed_property,
+                                property_new = last_transaction.property_old,
+                                property_old = last_transaction.property_new
+                            };
+                        }
+                    }
+                    else
+                    {
+                        throw new DBCannotUndoException();
+                    }
+
+                    this.OnItemChanged(transactedItem.ID);
+                    // store Undo transaction at start
+                    last_transaction.Active = false;
+                    this.Transactions_DB.Insert(0, undoTransaction);
                 }
-                else
+                finally
                 {
-                    throw new DBCannotUndoException();
+                    // reregister changed handler
+                    if (registerItem)
+                    {
+                        transactedItem.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+                    }
+
+                    this.CollectionChanged += this.DataBase_CollectionChanged;
+
+                    // update the DB on disk
+                    _cacheDB();
                 }
-
-                this.OnItemChanged(transactedItem.ID);
-                // store Undo transaction
-                last_transaction.Active = false;
-                Transactions_DB.Insert(0, undoTransaction);
-
-                // reregister changed handler
-                if (registerItem)
-                    transactedItem.PropertyChangedExtended += DataBaseItem_PropertyChanged;
-                this.CollectionChanged += DataBase_CollectionChanged;
-                // update the DB
-                _cacheDB();
             }
             PublicOnPropertyChanged(nameof(CanUndo));
             PublicOnPropertyChanged(nameof(CanRedo));

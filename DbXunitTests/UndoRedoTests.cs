@@ -58,7 +58,7 @@ namespace DbXunitTests
             using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
             {
                 Assert.False(File.Exists(this.filename));
-               this.Sleep(1);
+               this.Sleep(.300);
                 db.Add(entry);
                 Assert.True(File.Exists(this.filename));
                 Assert.True(File.Exists(this.transactionsFile));
@@ -67,7 +67,7 @@ namespace DbXunitTests
                 Assert.False(db.CanRedo);
                 var edit_time = File.GetLastWriteTime(this.filename);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Undo();
                 Assert.True(File.Exists(this.filename));
                 Assert.True(File.Exists(this.transactionsFile));
@@ -77,7 +77,7 @@ namespace DbXunitTests
                 Assert.True(db.CanRedo);
                 edit_time = File.GetLastWriteTime(this.filename);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Redo();
                 Assert.True(db.CanUndo);
                 Assert.False(db.CanRedo);
@@ -101,22 +101,22 @@ namespace DbXunitTests
             {
                 Assert.False(File.Exists(this.filename));
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Add(entry);
                 Assert.True(File.Exists(this.filename));
                 Assert.True(File.Exists(this.transactionsFile));
                 var edit_time = File.GetLastWriteTime(this.filename);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 entry.FirstName = "John";
                 Assert.Equal(edit_time, File.GetLastWriteTime(this.filename)); // should not update on no change
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 entry.FirstName = "Johnny";
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename)); // should update on edit
                 edit_time = File.GetLastWriteTime(this.filename);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 var x = db.First(y => y.Name == "Johnny Doe");
                 x.FirstName = "John";
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename)); // should update on edit
@@ -144,20 +144,20 @@ namespace DbXunitTests
                 Assert.Equal(edit_time, File.GetLastWriteTime(this.filename)); // should not update on no change
                 Assert.True(db.CanUndo); // should be able to undo adding
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 entry.FirstName = "Johnny";
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
                 edit_time = File.GetLastWriteTime(this.filename);
                 Assert.True(db.CanUndo); // should be able to undo rename
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Undo();
                 Assert.Equal("John", entry.FirstName); // should be able to revert
                 Assert.True(db.CanUndo); // should still be able to undo add
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
                 edit_time = File.GetLastWriteTime(this.filename);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Undo(); // re-remove camper
                 Assert.Empty(db); // should now be empty
                 Assert.False(db.CanUndo, "Should not be able to undo empty db"); // should not be able to undo when empty
@@ -165,32 +165,32 @@ namespace DbXunitTests
                 Assert.Throws<MiniDB.DBCannotUndoException>(() => db.Undo());
                 edit_time = File.GetLastWriteTime(this.filename);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Add(entry);
                 var entry2 = new ExampleStoredItem("Jane", "Doe");
                 db.Add(entry2);
                 Assert.True(db.CanUndo);
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Undo();
                 Assert.Single(db);
                 Assert.True(db.CanUndo);
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
                 Assert.Contains(db, x => x.ID == entry.ID);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Add(entry2); // add camper
                 Assert.True(db.CanUndo);
                 Assert.Equal(2, db.Count);
                 edit_time = File.GetLastWriteTime(this.filename);
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Remove(entry2); // remove camper
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
                 Assert.Contains(db, x => x.ID == entry.ID);
                 Assert.DoesNotContain(db, x => x.ID == entry2.ID);
                 edit_time = File.GetLastWriteTime(this.filename);
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Undo(); // undo remove
                 Assert.Contains(db, x => x.ID == entry.ID);
                 Assert.Equal(2, db.Count);
@@ -219,13 +219,13 @@ namespace DbXunitTests
                 Assert.Equal(edit_time, File.GetLastWriteTime(this.filename)); // should not update on no change
                 Assert.True(db.CanUndo); // should be able to undo adding
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 entry.Age = 5;
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
                 edit_time = File.GetLastWriteTime(this.filename);
                 Assert.True(db.CanUndo); // should be able to undo rename
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Undo();
                 Assert.Equal(3, entry.Age); // should be able to revert
                 Assert.True(db.CanUndo); // should still be able to undo add
@@ -261,13 +261,13 @@ namespace DbXunitTests
                 Assert.True(db.CanUndo); // should be able to undo adding
                 Assert.False(db.CanRedo, "should not be able to redo unless having run undo first");
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 entry.FirstName = "Johnny";
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
                 edit_time = File.GetLastWriteTime(this.filename);
                 Assert.True(db.CanUndo); // should be able to undo rename
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Undo(); // udo name change
                 Assert.NotEqual("Johnny", entry.FirstName);
                 Assert.True(db.CanUndo); // should still be able to undo add
@@ -275,7 +275,7 @@ namespace DbXunitTests
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
                 edit_time = File.GetLastWriteTime(this.filename);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Redo(); // redo name change
                 Assert.Equal("Johnny", entry.FirstName);
                 Assert.True(db.CanUndo); // should still be able to undo add
@@ -301,7 +301,7 @@ namespace DbXunitTests
                 Assert.Single(db);
                 Assert.True(db.CanRedo);
                 edit_time = File.GetLastWriteTime(this.filename);
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Redo(); // redo add
                 Assert.False(db.CanRedo, "should not be able to redo if all undo's have been undone");
                 Assert.Equal(2, db.Count);
@@ -316,7 +316,7 @@ namespace DbXunitTests
                 Assert.True(db.CanRedo);
                 Assert.True(db.CanUndo);
                 edit_time = File.GetLastWriteTime(this.filename);
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Redo();
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
                 Assert.Single(db); // redo remove    
@@ -361,7 +361,7 @@ namespace DbXunitTests
                 Assert.False(db.CanRedo);
                 Assert.Equal("John", entry.FirstName);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 db.Undo(); // undo name change
                 Assert.Equal("Joh", entry.FirstName);
                 Assert.True(db.CanUndo); // should still be able to undo add
@@ -441,7 +441,7 @@ namespace DbXunitTests
                 db.Add(entry);
                 var edit_time = File.GetLastWriteTime(this.filename);
 
-                this.Sleep(1);
+                this.Sleep(.300);
                 entry.Address.FirstLine = "PO Box";
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename));
                 Assert.True(db.CanUndo);
@@ -481,7 +481,7 @@ namespace DbXunitTests
         /// Run an asynchronous Task.Delay for the specified number of seconds and wait for it to finish
         /// </summary>
         /// <param name="seconds">The decimal number of seconds to wait (delay only supports millisecond precision)</param>
-        private void Sleep(float seconds)
+        private void Sleep(double seconds)
         {
             var t = Task.Run(async delegate
             {

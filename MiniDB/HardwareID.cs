@@ -41,6 +41,11 @@ namespace MiniDB
             return result;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="seed"></param>
+        /// <returns></returns>
         public static byte[] IDValueBytes(string seed)
         {
             string id = ID(seed);

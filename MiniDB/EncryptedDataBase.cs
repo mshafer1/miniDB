@@ -66,7 +66,7 @@ namespace MiniDB
         /// </summary>
         /// <param name="transactions_filename">the filename/path that the db is stored in</param>
         /// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
-        protected override DataBase<DBTransaction<T>> GetTransactionsDB(string transactions_filename)
+        protected override DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename)
         {
             return new EncryptedDataBase<DBTransaction<T>>(transactions_filename, this.DBVersion, this.MinimumCompatibleVersion, true);
         }
@@ -76,7 +76,7 @@ namespace MiniDB
         /// </summary>
         /// <param name="filename">The filename or path to read</param>
         /// <returns>Json searlized <see cref="DataBase{T}" /> from file.</returns>
-        protected override string ReadFile(string filename)
+        protected override string _readFile(string filename)
         {
             if (System.IO.File.Exists(filename))
             {

@@ -95,7 +95,7 @@ namespace MiniDB
                 }
 
                 string transactionFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-                this.Transactions_DB = this.GetTransactionsDB(transactionFilename);
+                this.Transactions_DB = this._getTransactionsDB(transactionFilename);
                 this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
 
                 this.LoadFile(filename, true);
@@ -546,7 +546,7 @@ namespace MiniDB
         /// </summary>
         /// <param name="filename">filename or path to read</param>
         /// <returns>db as string to deserialize</returns>
-        protected virtual string ReadFile(string filename)
+        protected virtual string _readFile(string filename)
         {
             if (System.IO.File.Exists(filename))
             {
@@ -562,172 +562,9 @@ namespace MiniDB
         /// </summary>
         /// <param name="transactions_filename">file or path to where transactions DB should be stored</param>
         /// <returns>new DB of DBTransaction of T</returns>
-        protected virtual DataBase<DBTransaction<T>> GetTransactionsDB(string transactions_filename)
+        protected virtual DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename)
         {
             return new DataBase<DBTransaction<T>>(transactions_filename, this.DBVersion, this.MinimumCompatibleVersion, true);
-        }
-
-        /// <summary>
-        /// Raise the PublicPropertyChanged event
-        /// </summary>
-        /// <param name="propertyName">property that changed</param>
-        protected virtual void PublicOnPropertyChanged(string propertyName)
-        {
-            this.PublicPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        /// <summary>
-        /// When the transaction stored in the Transactions_DB  is changed, cache it
-        /// </summary>
-        /// <param name="sender">this.transactions_db is expected</param>
-        /// <param name="e">event args (ignored)</param>
-        protected void DataBase_TransactionsChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            // called on primary db
-            lock (Locker)
-            {
-                this.Transactions_DB._cacheDB();
-            }
-        }
-
-        /// <summary>
-        /// When the collection is changed, cache the db and log the adds/removes/changes that occured in the transactions db to be able to undo/redo later
-        /// </summary>
-        /// <param name="sender">database that changed (should be this)</param>
-        /// <param name="e">How the collection changed</param>
-        protected void DataBase_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            lock (Locker)
-            {
-                this._cacheDB();
-                
-                // cache transactions
-                TransactionType transactionType;
-                DBTransaction<T> transaction;
-                System.Collections.IList changed = null;
-                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-                {
-                    transactionType = TransactionType.Add;
-                    foreach (T item in e.NewItems)
-                    {
-                        // register for property change
-                        item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
-                
-                        // create add transaction
-                        transaction = new DBTransaction<T>()
-                        {
-                            TransactionType = transactionType,
-                            Item_ID = (item as T).ID,
-                            Transacted_item = item as T
-                        };
-                        this.Transactions_DB.Insert(0, transaction);
-                    }
-
-                    changed = e.NewItems;
-                }
-                else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
-                {
-                    transactionType = TransactionType.Modify;
-                    foreach (T item in e.NewItems)
-                    {
-                        // register for property change
-                        item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
-
-                        // create modify transaction
-                        transaction = new DBTransaction<T>()
-                        {
-                            TransactionType = transactionType,
-                            Item_ID = (item as T).ID,
-                            Transacted_item = item as T
-                        };
-                        this.Transactions_DB.Insert(0, transaction);
-                    }
-                }
-                else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
-                {
-                    // removing the item - mark a delete transaction
-                    transactionType = TransactionType.Delete;
-                    foreach (var item in e.OldItems)
-                    {
-                        transaction = new DBTransaction<T>()
-                        {
-                            TransactionType = transactionType,
-                            Item_ID = (item as T).ID,
-                            Transacted_item = item as T
-                        };
-                        this.Transactions_DB.Insert(0, transaction);
-                    }
-                }
-                else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
-                {
-                    // reset the entire collection
-                    this.Transactions_DB.Clear();
-                }
-                else
-                {
-                    // not sure, but if anything was added or modified, we want to log it.
-                    if (e.NewItems != null)
-                    {
-                        transactionType = TransactionType.Unknown;
-                        foreach (var item in this)
-                        {
-                            transaction = new DBTransaction<T>()
-                            {
-                                TransactionType = transactionType,
-                                Item_ID = (item as T).ID,
-                                Transacted_item = item as T
-                            };
-                            this.Transactions_DB.Insert(0, transaction);
-                        }
-                    }
-                }
-            }
-
-            this.PublicOnPropertyChanged(nameof(this.CanUndo));
-            this.PublicOnPropertyChanged(nameof(this.CanRedo));
-        }
-
-        /// <summary>
-        /// When a property is changed on an item int the db, store the transaction information, and cache the db
-        /// </summary>
-        /// <param name="sender">the DB object (T) that was changed</param>
-        /// <param name="e">PropertyChangedExtendedEventArgs to store transaction from</param>
-        protected void DataBaseItem_PropertyChanged(object sender, PropertyChangedExtendedEventArgs e)
-        {
-            lock (Locker)
-            {
-                var item = sender as T;
-                if (item == null)
-                {
-                    throw new Exception("Sender must be dbObject");
-                }
-
-                this._cacheDB();
-                
-                // if not an undoable change, alert property changes and leave
-                if (!e.UndoableChange)
-                {
-                    this.OnItemChanged(item);
-                    this.PublicOnPropertyChanged(nameof(this.CanUndo));
-                    this.PublicOnPropertyChanged(nameof(this.CanRedo));
-                    return;
-                }
-
-                // else, store a modify with information about how to undo
-                var transaction = new DBTransaction<T>()
-                {
-                    TransactionType = TransactionType.Modify,
-                    Item_ID = item.ID,
-                    Transacted_item = null,
-                    Property_old = e.OldValue,
-                    Property_new = e.NewValue,
-                    Changed_property = e.PropertyName
-                };
-                this.Transactions_DB.Insert(0, transaction);
-                this.OnItemChanged(item);
-                this.PublicOnPropertyChanged(nameof(this.CanUndo));
-                this.PublicOnPropertyChanged(nameof(this.CanRedo));
-            }
         }
 
         /// <summary>
@@ -740,24 +577,6 @@ namespace MiniDB
                 var json = this.SerializeData;
                 System.IO.File.WriteAllText(this.Filename, json);
             }
-        }
-
-        /// <summary>
-        /// Raise the ItemChanged event, passing in the itemChanged's id to handlers
-        /// </summary>
-        /// <param name="itemChanged">the object of type T (databaseObject) that changed.</param>
-        protected virtual void OnItemChanged(T itemChanged)
-        {
-            this.ItemChanged?.Invoke(this, itemChanged?.ID);
-        }
-
-        /// <summary>
-        /// Raise the ItemChanged event, passing in the id to handlers
-        /// </summary>
-        /// <param name="id">the id of the changed item</param>
-        protected virtual void OnItemChanged(ID id)
-        {
-            this.ItemChanged?.Invoke(this, id);
         }
 
         /// <summary>
@@ -872,6 +691,187 @@ namespace MiniDB
         }
 
         /// <summary>
+        /// Raise the PublicPropertyChanged event
+        /// </summary>
+        /// <param name="propertyName">property that changed</param>
+        private void PublicOnPropertyChanged(string propertyName)
+        {
+            this.PublicPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        /// <summary>
+        /// When the transaction stored in the Transactions_DB  is changed, cache it
+        /// </summary>
+        /// <param name="sender">this.transactions_db is expected</param>
+        /// <param name="e">event args (ignored)</param>
+        private void DataBase_TransactionsChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            // called on primary db
+            lock (Locker)
+            {
+                this.Transactions_DB._cacheDB();
+            }
+        }
+
+        /// <summary>
+        /// When the collection is changed, cache the db and log the adds/removes/changes that occured in the transactions db to be able to undo/redo later
+        /// </summary>
+        /// <param name="sender">database that changed (should be this)</param>
+        /// <param name="e">How the collection changed</param>
+        private void DataBase_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            lock (Locker)
+            {
+                this._cacheDB();
+
+                // cache transactions
+                TransactionType transactionType;
+                DBTransaction<T> transaction;
+                System.Collections.IList changed = null;
+                if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                {
+                    transactionType = TransactionType.Add;
+                    foreach (T item in e.NewItems)
+                    {
+                        // register for property change
+                        item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+
+                        // create add transaction
+                        transaction = new DBTransaction<T>()
+                        {
+                            TransactionType = transactionType,
+                            Item_ID = (item as T).ID,
+                            Transacted_item = item as T
+                        };
+                        this.Transactions_DB.Insert(0, transaction);
+                    }
+
+                    changed = e.NewItems;
+                }
+                else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
+                {
+                    transactionType = TransactionType.Modify;
+                    foreach (T item in e.NewItems)
+                    {
+                        // register for property change
+                        item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+
+                        // create modify transaction
+                        transaction = new DBTransaction<T>()
+                        {
+                            TransactionType = transactionType,
+                            Item_ID = (item as T).ID,
+                            Transacted_item = item as T
+                        };
+                        this.Transactions_DB.Insert(0, transaction);
+                    }
+                }
+                else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
+                {
+                    // removing the item - mark a delete transaction
+                    transactionType = TransactionType.Delete;
+                    foreach (var item in e.OldItems)
+                    {
+                        transaction = new DBTransaction<T>()
+                        {
+                            TransactionType = transactionType,
+                            Item_ID = (item as T).ID,
+                            Transacted_item = item as T
+                        };
+                        this.Transactions_DB.Insert(0, transaction);
+                    }
+                }
+                else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+                {
+                    // reset the entire collection
+                    this.Transactions_DB.Clear();
+                }
+                else
+                {
+                    // not sure, but if anything was added or modified, we want to log it.
+                    if (e.NewItems != null)
+                    {
+                        transactionType = TransactionType.Unknown;
+                        foreach (var item in this)
+                        {
+                            transaction = new DBTransaction<T>()
+                            {
+                                TransactionType = transactionType,
+                                Item_ID = (item as T).ID,
+                                Transacted_item = item as T
+                            };
+                            this.Transactions_DB.Insert(0, transaction);
+                        }
+                    }
+                }
+            }
+
+            this.PublicOnPropertyChanged(nameof(this.CanUndo));
+            this.PublicOnPropertyChanged(nameof(this.CanRedo));
+        }
+
+        /// <summary>
+        /// When a property is changed on an item int the db, store the transaction information, and cache the db
+        /// </summary>
+        /// <param name="sender">the DB object (T) that was changed</param>
+        /// <param name="e">PropertyChangedExtendedEventArgs to store transaction from</param>
+        private void DataBaseItem_PropertyChanged(object sender, PropertyChangedExtendedEventArgs e)
+        {
+            lock (Locker)
+            {
+                var item = sender as T;
+                if (item == null)
+                {
+                    throw new Exception("Sender must be dbObject");
+                }
+
+                this._cacheDB();
+
+                // if not an undoable change, alert property changes and leave
+                if (!e.UndoableChange)
+                {
+                    this.OnItemChanged(item);
+                    this.PublicOnPropertyChanged(nameof(this.CanUndo));
+                    this.PublicOnPropertyChanged(nameof(this.CanRedo));
+                    return;
+                }
+
+                // else, store a modify with information about how to undo
+                var transaction = new DBTransaction<T>()
+                {
+                    TransactionType = TransactionType.Modify,
+                    Item_ID = item.ID,
+                    Transacted_item = null,
+                    Property_old = e.OldValue,
+                    Property_new = e.NewValue,
+                    Changed_property = e.PropertyName
+                };
+                this.Transactions_DB.Insert(0, transaction);
+                this.OnItemChanged(item);
+                this.PublicOnPropertyChanged(nameof(this.CanUndo));
+                this.PublicOnPropertyChanged(nameof(this.CanRedo));
+            }
+        }
+
+        /// <summary>
+        /// Raise the ItemChanged event, passing in the itemChanged's id to handlers
+        /// </summary>
+        /// <param name="itemChanged">the object of type T (databaseObject) that changed.</param>
+        private void OnItemChanged(T itemChanged)
+        {
+            this.ItemChanged?.Invoke(this, itemChanged?.ID);
+        }
+
+        /// <summary>
+        /// Raise the ItemChanged event, passing in the id to handlers
+        /// </summary>
+        /// <param name="id">the id of the changed item</param>
+        private void OnItemChanged(ID id)
+        {
+            this.ItemChanged?.Invoke(this, id);
+        }
+
+        /// <summary>
         /// Count recent transactions that match the provided TransactionType
         /// </summary>
         /// <param name="transactionType">transaction type to count</param>
@@ -962,7 +962,7 @@ namespace MiniDB
         {
             if (System.IO.File.Exists(file))
             {
-                var json = this.ReadFile(file);
+                var json = this._readFile(file);
                 if (json.Length > 0)
                 {
                     var adapted = JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());

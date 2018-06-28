@@ -30,7 +30,7 @@ namespace MiniDB
 
         #region constructors
         /// <summary>
-        /// Initalizes a new instance of <see cref="ID" /> class.
+        /// Initializes a new instance of the <see cref="ID" /> class.
         /// Fills the properties with default values then call Set on self
         /// </summary>
         public ID()
@@ -41,7 +41,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initalizes a new instance of <see cref="ID" /> class.
+        /// Initializes a new instance of the <see cref="ID" /> class.
         /// </summary>
         /// <param name="id">The requested id</param>
         /// <param name="hardwareComponent">The requested hardware component</param>
@@ -53,7 +53,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initalizes a new instance of <see cref="ID"/> class. Copying the passed in one
+        /// Initializes a new instance of the <see cref="ID"/> class. Copying the passed in one
         /// </summary>
         /// <param name="other">the id to copy</param>
         public ID(ID other)

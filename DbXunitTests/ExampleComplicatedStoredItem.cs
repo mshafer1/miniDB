@@ -13,6 +13,7 @@ namespace DbXunitTests
     {
         #region constructors
         /// <summary>
+        /// Initializes a new instance of the <see cref="ExampleComplicatedStoredItem" /> class.
         /// Create the object with a nested tracked object (Address)
         /// Address defaults to blank
         /// </summary>
@@ -100,7 +101,7 @@ namespace DbXunitTests
     public class AddressClass : MiniDB.DatabaseObject
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="AddressClass"/>
+        /// Initializes a new instance of the <see cref="AddressClass"/> class.
         /// </summary>
         public AddressClass()
         {

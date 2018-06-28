@@ -105,7 +105,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="{T}"/> class.
+        /// Initializes a new instance of the <see cref="DataBase{T}" /> class.
         /// Default constructor (allow Newtonsoft to create object without parameters
         /// </summary>
         [JsonConstructor]
@@ -114,7 +114,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="{T}"/> class.
+        /// Initializes a new instance of the <see cref="DataBase{T}" /> class.
         /// </summary>
         /// <param name="filename">the filename (or path) to cache this collection in</param>
         /// <param name="databaseVersion">the current version of the database</param>
@@ -130,13 +130,33 @@ namespace MiniDB
 
         #region destructors
         /// <summary>
-        /// Finalizes an instance of the <see cref="DataBase"/> class.
+        /// Finalizes an instance of the <see cref="DataBase{T}"/> class.
         /// double check that this gets disposed of properly
         /// </summary>
         ~DataBase()
         {
             this.Dispose();
         }
+        #endregion
+
+        #region events/delegates
+        /// <summary>
+        /// Delegate to specify what handlers of ItemChanged shoud look like
+        /// </summary>
+        /// <param name="sender">Istance of T that chaged</param>
+        /// <param name="id">Database ID for T object</param>
+        public delegate void TChangedEventHandler(object sender, ID id);
+
+        /// <summary>
+        /// Public event raised when an item is changed
+        /// </summary>
+        public event TChangedEventHandler ItemChanged;
+
+        /// <summary>
+        /// Public event for when a DB property has changed
+        /// </summary>
+        public event PropertyChangedEventHandler PublicPropertyChanged;
+
         #endregion
 
         #region properties
@@ -162,9 +182,9 @@ namespace MiniDB
             {
                 // TODOne: this should be number of immediate redo's is less than number of next immediate undo's
                 //  bool result = true;
-                var redos_count = this.countRecentTransactions(TransactionType.Redo);
+                var redos_count = this.CountRecentTransactions(TransactionType.Redo);
                 Func<DBTransaction<T>, bool> matcher = x => x.TransactionType == TransactionType.Undo && x.Active == true;
-                var undos_count = this.countRecentTransactions(matcher, this.Transactions_DB.Skip(redos_count * 2));
+                var undos_count = this.CountRecentTransactions(matcher, this.Transactions_DB.Skip(redos_count * 2));
                 return undos_count > 0;
             }
         }
@@ -181,12 +201,42 @@ namespace MiniDB
         protected string Filename { get; private set; }
 
         /// <summary>
+        /// Gets Json serialized value of this as string
+        /// </summary>
+        protected string SerializeData
+        {
+            get
+            {
+                lock (Locker)
+                {
+                    // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
+                    return JsonConvert.SerializeObject(this, new DataBaseSerializer<T>());
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the databse for caching transactions for undo/redo.
         /// </summary>
         private DataBase<DBTransaction<T>> Transactions_DB { get; set; }
         #endregion
 
-        #region public methods        
+        #region public methods   
+        /// <summary>
+        /// Helper method determining if there is a conflict between changes to two different db's based on both db's changing the same item (determined by ID).
+        /// </summary>
+        /// <param name="db1">first db</param>
+        /// <param name="db2">second db</param>
+        /// <returns>true if conflict</returns>
+        public static bool ConflictIfSameItemChangedById(DataBase<T> db1, DataBase<T> db2)
+        {
+            bool result = false;
+            
+            // any transaction in db1 has the same item db as any tranasction in db2
+            result = db1.Transactions_DB.Any(x => db2.Transactions_DB.Any(y => x.Item_ID == y.Item_ID));
+            return result;
+        }
+
         /// <summary>
         /// Clear the mutex when a using statement leaves scope (or destructor is called)
         /// </summary>
@@ -400,17 +450,15 @@ namespace MiniDB
 
             DBTransaction<T> last_transaction = this.GetLastTransaction(TransactionType.Redo, x => x.Active == true);
             T transactedItem;
+            
             // get the mutex
             lock (Locker)
             {
-
                 // deregister Changed handler
-
-                this.CollectionChanged -= DataBase_CollectionChanged;
+                this.CollectionChanged -= this.DataBase_CollectionChanged;
 
                 if (last_transaction.TransactionType != TransactionType.Undo)
                 {
-
                     throw new DBCannotRedoException();
                 }
 
@@ -419,7 +467,7 @@ namespace MiniDB
                 {
                     // get item from last transaction
                     transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
-                    transactedItem.PropertyChangedExtended -= DataBaseItem_PropertyChanged;
+                    transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
                     if (transactedItem == null)
                     {
                         throw new DBCannotRedoException(string.Format("Failed to find item with ID {1} to redo property {0}", last_transaction.Changed_property, last_transaction.Item_ID));
@@ -437,11 +485,12 @@ namespace MiniDB
                 else if (last_transaction.Changed_property == DBTransaction<T>.ItemRemovedConstKey)
                 {
                     transactedItem = last_transaction.Transacted_item;
-                    transactedItem.PropertyChangedExtended -= DataBaseItem_PropertyChanged;
+                    transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
                     if (transactedItem == null)
                     {
                         throw new DBCannotRedoException(string.Format("Failed to load item with ID {0} to re-add", last_transaction.Transacted_item.ID));
                     }
+
                     this.Add(transactedItem);
 
                     redoTransaction = new DBTransaction<T>
@@ -455,7 +504,7 @@ namespace MiniDB
                 else
                 {
                     transactedItem = this.FirstOrDefault(x => x.ID == last_transaction.Item_ID);
-                    transactedItem.PropertyChangedExtended -= DataBaseItem_PropertyChanged;
+                    transactedItem.PropertyChangedExtended -= this.DataBaseItem_PropertyChanged;
                     if (transactedItem == null)
                     {
                         throw new DBCannotRedoException(string.Format("Failed to load item with ID {0} to reset {1}", last_transaction.Transacted_item.ID, last_transaction.Changed_property));
@@ -475,104 +524,28 @@ namespace MiniDB
                 }
 
                 // store Redo transaction            
-                Transactions_DB.Insert(0, redoTransaction);
+                this.Transactions_DB.Insert(0, redoTransaction);
                 last_transaction.Active = false;
+
                 // reregister changed handler
-                transactedItem.PropertyChangedExtended += DataBaseItem_PropertyChanged;
-                this.CollectionChanged += DataBase_CollectionChanged;
+                transactedItem.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+                this.CollectionChanged += this.DataBase_CollectionChanged;
 
-                _cacheDB();
+                this._cacheDB();
             }
+
             this.OnItemChanged(transactedItem.ID);
-            PublicOnPropertyChanged(nameof(CanRedo));
-            PublicOnPropertyChanged(nameof(CanUndo));
-            // update the DB
+            this.PublicOnPropertyChanged(nameof(this.CanRedo));
+            this.PublicOnPropertyChanged(nameof(this.CanUndo));
         }
-
-        //public static DataBase<T> mergeDBs(DataBase<T> primary, DataBase<T> secondary, Func<DataBase<T>, DataBase<T>, bool> Conflict, Func<T, T, T> resolve)
-        //{
-        //    if (!Conflict(primary, secondary))
-        //    {
-        //        primary.CollectionChanged -= primary.DataBase_CollectionChanged;
-        //        //foreach(T item in secondary)
-        //        //{
-        //        //    primary.Add(item);
-        //        //    item.PropertyChangedExtended += primary.DataBase_PropertyChanged;
-        //        //}
-        //        primary.CollectionChanged += primary.DataBase_CollectionChanged;
-        //    }
-
-        //    return primary;
-        //}
-
-        public static bool conflict_if_same_item_changed_by_id(DataBase<T> db1, DataBase<T> db2)
-        {
-            bool result = false;
-            // any transaction in db1 has the same item db as any tranasction in db2
-            result = db1.Transactions_DB.Any(x => db2.Transactions_DB.Any(y => x.Item_ID == y.Item_ID));
-            return result;
-        }
-
-        //private static void enactTransaction(DataBase<T> db, DBTransaction<T> transaction)
-        //{
-        //    db.CollectionChanged -= db.DataBase_CollectionChanged;
-        //    DBTransaction<T> new_transaction;
-        //    TransactionType transactionType;
-        //    switch (transaction.TransactionType)
-        //    {
-        //        case (TransactionType.Add):
-        //            var added_item = transaction.Transacted_item;
-        //            db.Add(added_item);
-        //            new_transaction = new DBTransaction<T>(transaction)
-        //            {
-        //                // ID may be updated to keep it unique in the db
-        //                Item_ID = added_item.ID,
-        //                Transacted_item = added_item
-        //            };
-        //            break;
-        //        case (TransactionType.Delete):
-        //            var transacted_item = db.FirstOrDefault(x => x.ID == transaction.Item_ID);
-        //            if (transacted_item == null)
-        //            {
-        //                throw new DBException(string.Format("Cannot find item to remove with ID: {0}", transaction.Item_ID));
-        //            }
-        //            db.Remove(transacted_item);
-        //            new_transaction = new DBTransaction<T>(transaction)
-        //            {
-        //                Transacted_item = transacted_item
-        //            };
-        //            break;
-        //        case (TransactionType.Modify):
-        //        case (TransactionType.Redo):
-        //        case (TransactionType.Undo):
-        //            var transactedItem = db.FirstOrDefault(x => x.ID == transaction.Item_ID);
-        //            if (transactedItem == null)
-        //            {
-        //                throw new DBException(string.Format("Cannot find item to alter with ID: {0}", transaction.Item_ID));
-        //            }
-
-        //            PropertyInfo prop = transactedItem.GetType().GetProperty(transaction.changed_property, BindingFlags.Public | BindingFlags.Instance);
-        //            if (prop != null && prop.CanWrite)
-        //            {
-        //                prop.SetValue(transactedItem, transaction.property_new, null);
-        //            }
-        //            else
-        //            {
-        //                throw new DBException(string.Format("Failed to set {0} property on item {1}", transaction.changed_property, transaction.Item_ID));
-        //            }
-        //            break;
-        //        case (TransactionType.Unknown):
-        //            throw new DBException("Don't know how to enact an unknown transaction");
-        //    }
-
-        //    db.CollectionChanged += db.DataBase_CollectionChanged;
-        //}
-
-        public delegate void TChangedEventHandler(object sender, ID id);
-        public event TChangedEventHandler ItemChanged;
         #endregion
 
         #region private methods
+        /// <summary>
+        /// Load in json from file
+        /// </summary>
+        /// <param name="filename">filename or path to read</param>
+        /// <returns>db as string to deserialize</returns>
         protected virtual string ReadFile(string filename)
         {
             if (System.IO.File.Exists(filename))
@@ -580,261 +553,34 @@ namespace MiniDB
                 var json = System.IO.File.ReadAllText(filename);
                 return json;
             }
-            return "";
+
+            return string.Empty;
         }
 
+        /// <summary>
+        /// Get the transaction DB setup
+        /// </summary>
+        /// <param name="transactions_filename">file or path to where transactions DB should be stored</param>
+        /// <returns>new DB of DBTransaction of T</returns>
         protected virtual DataBase<DBTransaction<T>> GetTransactionsDB(string transactions_filename)
         {
             return new DataBase<DBTransaction<T>>(transactions_filename, this.DBVersion, this.MinimumCompatibleVersion, true);
         }
 
-        private void LoadFile(string file, bool registerItemsForPropertyChange)
-        {
-            if (System.IO.File.Exists(file))
-            {
-                var json = ReadFile(file);
-                if (json.Length > 0)
-                {
-                    var adapted = JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
-                    if (adapted.DBVersion >= MinimumCompatibleVersion)
-                    {
-                        foreach (var item in adapted)
-                        {
-                            base.Add(item);
-                            if (registerItemsForPropertyChange)
-                                item.PropertyChangedExtended += DataBaseItem_PropertyChanged;
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception($"DB version {adapted.DBVersion} too old. Oldest supported db version is {MinimumCompatibleVersion}");
-                    }
-                }
-            }
-        }
-
-        private static void SetProperty(DBTransaction<T> last_transaction, T transactedItem)
-        {
-            // redo with https://stackoverflow.com/a/13270302
-            var properties = last_transaction.Changed_property.Split('.');
-            object lastObject = transactedItem;
-            System.Reflection.PropertyInfo currentProperty = null;
-
-            foreach (var attribute in properties)
-            {
-                // have currentObject lag behind since it should reflect the object the last property is on
-                if (currentProperty != null)
-                {
-                    lastObject = currentProperty.GetValue(lastObject);
-                }
-                //get the property information based on the type
-                if (!attribute.Contains("["))
-                {
-                    currentProperty = lastObject.GetType().GetProperty(attribute, BindingFlags.Public | BindingFlags.Instance);
-                }
-                else
-                {
-                    if (!attribute.Contains("]"))
-                    {
-                        throw new DBCannotUndoException($"Property name {attribute} contains unmatched '['");
-                    }
-                    if (attribute.IndexOf('[') != 0)
-                    {
-                        var propertyName = attribute.Substring(0, attribute.IndexOf('['));
-                        currentProperty = lastObject.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance); // get the dictionary property
-                        lastObject = currentProperty.GetValue(lastObject); // get the dictionary object
-                        if (lastObject == null)
-                        {
-                            throw new DBCannotUndoException($"Cannot access property {propertyName} on {lastObject}");
-                        }
-                    }
-
-                    Type t = lastObject.GetType();
-                    if (!t.IsGenericType || t.GetGenericTypeDefinition() != typeof(Dictionary<,>))
-                    {
-                        throw new DBCannotUndoException($"Property {lastObject} is not a dictionary, but was used with indexers");
-                    }
-                    var r = new Regex(@"\[.+\]");
-                    Match m = r.Match(attribute);
-                    if (!m.Success)
-                    {
-                        // possible??
-                        throw new DBCannotUndoException($"Cannot undo property: {attribute}");
-                    }
-                    var keyType = t.GetGenericArguments()[0];
-                    var valueType = t.GetGenericArguments()[1];
-
-                    // store key without square brackets
-                    var key = m.Value.Substring(1);
-                    key = key.Substring(0, key.Length - 1);
-                    var keyObject = Convert.ChangeType(key, keyType);
-
-                    //currentProperty = Convert.ChangeType(lastObject, keyType);
-                    var p1 = t.GetProperty("Item"); // get indexer property
-                    lastObject = p1.GetValue(lastObject, new object[] { keyObject });
-                    currentProperty = null;
-                }
-            }
-
-            if (currentProperty == null)
-            {
-                throw new DBCannotUndoException($"Cannot access property {properties.First()} on {lastObject}");
-            }
-
-            //find the property type
-            Type propertyType = currentProperty.PropertyType;
-
-            //Convert.ChangeType does not handle conversion to nullable types
-            //if the property type is nullable, we need to get the underlying type of the property
-            var targetType = IsNullableType(propertyType) ? Nullable.GetUnderlyingType(propertyType) : propertyType;
-
-            //Returns an System.Object with the specified System.Type and whose value is
-            //equivalent to the specified object.
-            object oldVal = null;
-            if (targetType.IsEnum)
-            {
-                // need converter for int to enum
-                oldVal = Enum.ToObject(targetType, last_transaction.Property_old);
-            }
-            else
-            {
-                oldVal = Convert.ChangeType(last_transaction.Property_old, targetType);
-            }
-
-
-            //Set the value of the property
-            currentProperty.SetValue(lastObject, oldVal, null);
-        }
-
-        private static bool IsNullableType(Type type)
-        {
-            return type.IsGenericType && type.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
-        }
-
-        private DBTransaction<T> GetLastTransaction(TransactionType notTransactionType, Func<DBTransaction<T>, bool> matcher)
-        {
-            DBTransaction<T> last_transaction = null;
-            IEnumerable<DBTransaction<T>> temp_list = Transactions_DB;
-            do
-            {
-                bool first_matches = false;
-                // is first in list active?
-                if (temp_list != null & temp_list.Count() > 0)
-                {
-                    first_matches = matcher(temp_list.First());
-                }
-
-                if (temp_list == null || temp_list.Count() == 0)
-                {
-                    // ran out of options
-                    throw new DBCannotUndoException("Cannot find transaction");
-                }
-                if (temp_list.FirstOrDefault()?.TransactionType == notTransactionType)
-                {
-                    // transaction type to skip past
-                    var count = this.countRecentTransactions(notTransactionType, temp_list);
-                    temp_list = temp_list.Skip(count * 2);
-                }
-                else if (first_matches)
-                {
-                    last_transaction = temp_list.FirstOrDefault();
-                }
-                else
-                {
-                    temp_list = temp_list.Skip(1);
-                }
-            } while (last_transaction == null || last_transaction.TransactionType == notTransactionType);
-            return last_transaction;
-        }
-
-        private DBTransaction<T> GetLastTransaction(List<TransactionType> notTransactionTypes)
-        {
-            DBTransaction<T> last_transaction = null;
-            IEnumerable<DBTransaction<T>> temp_list = Transactions_DB;
-            do
-            {
-                if (temp_list == null || temp_list.Count() == 0)
-                {
-                    throw new DBCannotUndoException("Cannot find transaction");
-                }
-                var first_transaction = temp_list.FirstOrDefault().TransactionType;
-                if (notTransactionTypes.Contains(first_transaction))
-                {
-                    var count = this.countRecentTransactions(notTransactionTypes, temp_list);
-                    temp_list = temp_list.Skip(count * 2);
-                }
-                else
-                {
-                    last_transaction = temp_list.FirstOrDefault();
-                }
-            } while (last_transaction == null || notTransactionTypes.Contains(last_transaction.TransactionType));
-            return last_transaction;
-        }
-
-        public event PropertyChangedEventHandler PublicPropertyChanged;
+        /// <summary>
+        /// Raise the PublicPropertyChanged event
+        /// </summary>
+        /// <param name="propertyName">property that changed</param>
         protected virtual void PublicOnPropertyChanged(string propertyName)
         {
-            PublicPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            this.PublicPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private int countRecentTransactions(TransactionType transactionType, IEnumerable<DBTransaction<T>> list = null)
-        {
-            if (list == null)
-            {
-                list = this.Transactions_DB;
-            }
-            var first = list.FirstOrDefault() as DBTransaction<T>;
-            if (first == null)
-            {
-                return 0;
-            }
-            int count = (first.TransactionType == transactionType) ?
-                list.Select((item, index) => new { item, index })
-                    .Where(x => (x.item.TransactionType != transactionType)) // find non matches
-                    .Select(x => x.index)                                    // select the index
-                    .FirstOrDefault()                                        // return first index
-                : 0;
-            return count;
-        }
-
-        private int countRecentTransactions(Func<DBTransaction<T>, bool> predicate, IEnumerable<DBTransaction<T>> list = null)
-        {
-            if (list == null)
-            {
-                list = this.Transactions_DB;
-            }
-            var first = list.FirstOrDefault() as DBTransaction<T>;
-            if (first == null)
-            {
-                return 0;
-            }
-            int count = (predicate(first)) ?
-                list.Select((item, index) => new { item, index })
-                    .Where(x => !predicate(x.item)) // find non matching
-                    .Select(x => x.index)           // select its index
-                    .FirstOrDefault()               // get first value (index of first non-match)
-                : 0;
-            return count;
-        }
-
-        private int countRecentTransactions(List<TransactionType> transactionTypes, IEnumerable<DBTransaction<T>> list = null)
-        {
-            if (list == null)
-            {
-                list = this.Transactions_DB;
-            }
-            var first = list.FirstOrDefault() as DBTransaction<T>;
-            if (first == null)
-            {
-                return 0;
-            }
-            int count = (transactionTypes.Contains(first.TransactionType)) ?
-                list.Select((item, index) => new { item, index })
-                    .Where(x => !transactionTypes.Contains(x.item.TransactionType)).Select(x => x.index).FirstOrDefault()
-                : 0;
-            return count;
-        }
-
+        /// <summary>
+        /// When the transaction stored in the Transactions_DB  is changed, cache it
+        /// </summary>
+        /// <param name="sender">this.transactions_db is expected</param>
+        /// <param name="e">event args (ignored)</param>
         protected void DataBase_TransactionsChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             // called on primary db
@@ -844,12 +590,17 @@ namespace MiniDB
             }
         }
 
+        /// <summary>
+        /// When the collection is changed, cache the db and log the adds/removes/changes that occured in the transactions db to be able to undo/redo later
+        /// </summary>
+        /// <param name="sender">database that changed (should be this)</param>
+        /// <param name="e">How the collection changed</param>
         protected void DataBase_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            
             lock (Locker)
             {
-                _cacheDB();
+                this._cacheDB();
+                
                 // cache transactions
                 TransactionType transactionType;
                 DBTransaction<T> transaction;
@@ -860,16 +611,18 @@ namespace MiniDB
                     foreach (T item in e.NewItems)
                     {
                         // register for property change
-                        item.PropertyChangedExtended += DataBaseItem_PropertyChanged;
+                        item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+                
                         // create add transaction
                         transaction = new DBTransaction<T>()
                         {
                             TransactionType = transactionType,
                             Item_ID = (item as T).ID,
-                            Transacted_item = (item as T)
+                            Transacted_item = item as T
                         };
-                        Transactions_DB.Insert(0, transaction);
+                        this.Transactions_DB.Insert(0, transaction);
                     }
+
                     changed = e.NewItems;
                 }
                 else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Replace)
@@ -878,15 +631,16 @@ namespace MiniDB
                     foreach (T item in e.NewItems)
                     {
                         // register for property change
-                        item.PropertyChangedExtended += DataBaseItem_PropertyChanged;
+                        item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+
                         // create modify transaction
                         transaction = new DBTransaction<T>()
                         {
                             TransactionType = transactionType,
                             Item_ID = (item as T).ID,
-                            Transacted_item = (item as T)
+                            Transacted_item = item as T
                         };
-                        Transactions_DB.Insert(0, transaction);
+                        this.Transactions_DB.Insert(0, transaction);
                     }
                 }
                 else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
@@ -899,9 +653,9 @@ namespace MiniDB
                         {
                             TransactionType = transactionType,
                             Item_ID = (item as T).ID,
-                            Transacted_item = (item as T)
+                            Transacted_item = item as T
                         };
-                        Transactions_DB.Insert(0, transaction);
+                        this.Transactions_DB.Insert(0, transaction);
                     }
                 }
                 else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
@@ -921,18 +675,23 @@ namespace MiniDB
                             {
                                 TransactionType = transactionType,
                                 Item_ID = (item as T).ID,
-                                Transacted_item = (item as T)
+                                Transacted_item = item as T
                             };
-                            Transactions_DB.Insert(0, transaction);
+                            this.Transactions_DB.Insert(0, transaction);
                         }
                     }
                 }
-
             }
-            PublicOnPropertyChanged(nameof(CanUndo));
-            PublicOnPropertyChanged(nameof(CanRedo));
+
+            this.PublicOnPropertyChanged(nameof(this.CanUndo));
+            this.PublicOnPropertyChanged(nameof(this.CanRedo));
         }
 
+        /// <summary>
+        /// When a property is changed on an item int the db, store the transaction information, and cache the db
+        /// </summary>
+        /// <param name="sender">the DB object (T) that was changed</param>
+        /// <param name="e">PropertyChangedExtendedEventArgs to store transaction from</param>
         protected void DataBaseItem_PropertyChanged(object sender, PropertyChangedExtendedEventArgs e)
         {
             lock (Locker)
@@ -942,15 +701,18 @@ namespace MiniDB
                 {
                     throw new Exception("Sender must be dbObject");
                 }
-                _cacheDB();
+
+                this._cacheDB();
+                
                 // if not an undoable change, alert property changes and leave
                 if (!e.UndoableChange)
                 {
-                    OnItemChanged(item);
-                    PublicOnPropertyChanged(nameof(CanUndo));
-                    PublicOnPropertyChanged(nameof(CanRedo));
+                    this.OnItemChanged(item);
+                    this.PublicOnPropertyChanged(nameof(this.CanUndo));
+                    this.PublicOnPropertyChanged(nameof(this.CanRedo));
                     return;
                 }
+
                 // else, store a modify with information about how to undo
                 var transaction = new DBTransaction<T>()
                 {
@@ -961,41 +723,342 @@ namespace MiniDB
                     Property_new = e.NewValue,
                     Changed_property = e.PropertyName
                 };
-                Transactions_DB.Insert(0, transaction);
-                OnItemChanged(item);
-                PublicOnPropertyChanged(nameof(CanUndo));
-                PublicOnPropertyChanged(nameof(CanRedo));
+                this.Transactions_DB.Insert(0, transaction);
+                this.OnItemChanged(item);
+                this.PublicOnPropertyChanged(nameof(this.CanUndo));
+                this.PublicOnPropertyChanged(nameof(this.CanRedo));
             }
         }
 
+        /// <summary>
+        /// Store the database to disk in <see cref="Filename"/>.
+        /// </summary>
         protected virtual void _cacheDB()
         {
             lock (Locker)
             {
-                var json = serializeData;
-                System.IO.File.WriteAllText(Filename, json);
+                var json = this.SerializeData;
+                System.IO.File.WriteAllText(this.Filename, json);
             }
         }
 
-        protected string serializeData
+        /// <summary>
+        /// Raise the ItemChanged event, passing in the itemChanged's id to handlers
+        /// </summary>
+        /// <param name="itemChanged">the object of type T (databaseObject) that changed.</param>
+        protected virtual void OnItemChanged(T itemChanged)
         {
-            get
+            this.ItemChanged?.Invoke(this, itemChanged?.ID);
+        }
+
+        /// <summary>
+        /// Raise the ItemChanged event, passing in the id to handlers
+        /// </summary>
+        /// <param name="id">the id of the changed item</param>
+        protected virtual void OnItemChanged(ID id)
+        {
+            this.ItemChanged?.Invoke(this, id);
+        }
+
+        /// <summary>
+        /// Use reflection to set reverse the last transaction on the transacted item
+        /// </summary>
+        /// <param name="last_transaction">what happened that we're changing back</param>
+        /// <param name="transactedItem">the item to act on</param>
+        private static void SetProperty(DBTransaction<T> last_transaction, T transactedItem)
+        {
+            // redo with https://stackoverflow.com/a/13270302
+            var properties = last_transaction.Changed_property.Split('.');
+            object lastObject = transactedItem;
+            System.Reflection.PropertyInfo currentProperty = null;
+
+            foreach (var attribute in properties)
             {
-                lock (Locker)
+                // have currentObject lag behind since it should reflect the object the last property is on
+                if (currentProperty != null)
                 {
-                    // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
-                    return JsonConvert.SerializeObject(this, new DataBaseSerializer<T>());
+                    lastObject = currentProperty.GetValue(lastObject);
+                }
+
+                // get the property information based on the type
+                if (!attribute.Contains("["))
+                {
+                    currentProperty = lastObject.GetType().GetProperty(attribute, BindingFlags.Public | BindingFlags.Instance);
+                }
+                else
+                {
+                    if (!attribute.Contains("]"))
+                    {
+                        throw new DBCannotUndoException($"Property name {attribute} contains unmatched '['");
+                    }
+
+                    if (attribute.IndexOf('[') != 0)
+                    {
+                        var propertyName = attribute.Substring(0, attribute.IndexOf('['));
+                        currentProperty = lastObject.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance); // get the dictionary property
+                        lastObject = currentProperty.GetValue(lastObject); // get the dictionary object
+                        if (lastObject == null)
+                        {
+                            throw new DBCannotUndoException($"Cannot access property {propertyName} on {lastObject}");
+                        }
+                    }
+
+                    Type t = lastObject.GetType();
+                    if (!t.IsGenericType || t.GetGenericTypeDefinition() != typeof(Dictionary<,>))
+                    {
+                        throw new DBCannotUndoException($"Property {lastObject} is not a dictionary, but was used with indexers");
+                    }
+
+                    var r = new Regex(@"\[.+\]");
+                    Match m = r.Match(attribute);
+                    if (!m.Success)
+                    {
+                        // possible??
+                        throw new DBCannotUndoException($"Cannot undo property: {attribute}");
+                    }
+
+                    var keyType = t.GetGenericArguments()[0];
+                    var valueType = t.GetGenericArguments()[1];
+
+                    // store key without square brackets
+                    var key = m.Value.Substring(1);
+                    key = key.Substring(0, key.Length - 1);
+                    var keyObject = Convert.ChangeType(key, keyType);
+
+                    // currentProperty = Convert.ChangeType(lastObject, keyType);
+                    var p1 = t.GetProperty("Item"); // get indexer property
+                    lastObject = p1.GetValue(lastObject, new object[] { keyObject });
+                    currentProperty = null;
+                }
+            }
+
+            if (currentProperty == null)
+            {
+                throw new DBCannotUndoException($"Cannot access property {properties.First()} on {lastObject}");
+            }
+
+            // find the property type
+            Type propertyType = currentProperty.PropertyType;
+
+            // Convert.ChangeType does not handle conversion to nullable types
+            //  if the property type is nullable, we need to get the underlying type of the property
+            var targetType = IsNullableType(propertyType) ? Nullable.GetUnderlyingType(propertyType) : propertyType;
+
+            // Returns an System.Object with the specified System.Type and whose value is
+            //   equivalent to the specified object.
+            object oldVal = null;
+            if (targetType.IsEnum)
+            {
+                // need converter for int to enum
+                oldVal = Enum.ToObject(targetType, last_transaction.Property_old);
+            }
+            else
+            {
+                oldVal = Convert.ChangeType(last_transaction.Property_old, targetType);
+            }
+
+            // Set the value of the property
+            currentProperty.SetValue(lastObject, oldVal, null);
+        }
+
+        /// <summary>
+        /// Determine if the objece is a nullable type
+        /// </summary>
+        /// <param name="type">the type in question</param>
+        /// <returns>true if nullable</returns>
+        private static bool IsNullableType(Type type)
+        {
+            return type.IsGenericType && type.GetGenericTypeDefinition().Equals(typeof(Nullable<>));
+        }
+
+        /// <summary>
+        /// Count recent transactions that match the provided TransactionType
+        /// </summary>
+        /// <param name="transactionType">transaction type to count</param>
+        /// <param name="list">(optional) the list to search (defaults to this)</param>
+        /// <returns>the count of matches</returns>
+        private int CountRecentTransactions(TransactionType transactionType, IEnumerable<DBTransaction<T>> list = null)
+        {
+            if (list == null)
+            {
+                list = this.Transactions_DB;
+            }
+
+            var first = list.FirstOrDefault() as DBTransaction<T>;
+            if (first == null)
+            {
+                return 0;
+            }
+
+            int count = (first.TransactionType == transactionType) ?
+                list.Select((item, index) => new { item, index })
+                    .Where(x => (x.item.TransactionType != transactionType)) // find non matches
+                    .Select(x => x.index)                                    // select the index
+                    .FirstOrDefault()                                        // return first index
+                : 0;
+            return count;
+        }
+
+        /// <summary>
+        /// Count recent transactions that match the predicate
+        /// </summary>
+        /// <param name="predicate">function that takes a transaction and returns if it matches or not</param>
+        /// <param name="list">(optional) the list to search (defaults to this)</param>
+        /// <returns>the count of matches</returns>
+        private int CountRecentTransactions(Func<DBTransaction<T>, bool> predicate, IEnumerable<DBTransaction<T>> list = null)
+        {
+            if (list == null)
+            {
+                list = this.Transactions_DB;
+            }
+
+            var first = list.FirstOrDefault() as DBTransaction<T>;
+            if (first == null)
+            {
+                return 0;
+            }
+
+            int count = predicate(first) ?
+                list.Select((item, index) => new { item, index })
+                    .Where(x => !predicate(x.item)) // find non matching
+                    .Select(x => x.index)           // select its index
+                    .FirstOrDefault()               // get first value (index of first non-match)
+                : 0;
+            return count;
+        }
+
+        /// <summary>
+        /// Count the number of transactions at the start of the transactions db that are of a type in transactionTypes
+        /// </summary>
+        /// <param name="transactionTypes">transaction types to count</param>
+        /// <param name="list">(optional) list of transactions to count in (uses this if not provided).</param>
+        /// <returns>the count of transactions</returns>
+        private int CountRecentTransactions(List<TransactionType> transactionTypes, IEnumerable<DBTransaction<T>> list = null)
+        {
+            if (list == null)
+            {
+                list = this.Transactions_DB;
+            }
+
+            var first = list.FirstOrDefault() as DBTransaction<T>;
+            if (first == null)
+            {
+                return 0;
+            }
+
+            int count = transactionTypes.Contains(first.TransactionType) ?
+                list.Select((item, index) => new { item, index })
+                    .Where(x => !transactionTypes.Contains(x.item.TransactionType)).Select(x => x.index).FirstOrDefault()
+                : 0;
+            return count;
+        }
+
+        /// <summary>
+        /// Read in the file
+        /// </summary>
+        /// <param name="file">filename or path to load</param>
+        /// <param name="registerItemsForPropertyChange">If true, DataBaseItem_PropertyChanged is registered for each item's property changed extended</param>
+        private void LoadFile(string file, bool registerItemsForPropertyChange)
+        {
+            if (System.IO.File.Exists(file))
+            {
+                var json = this.ReadFile(file);
+                if (json.Length > 0)
+                {
+                    var adapted = JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
+                    if (adapted.DBVersion >= this.MinimumCompatibleVersion)
+                    {
+                        foreach (var item in adapted)
+                        {
+                            this.Add(item);
+                            if (registerItemsForPropertyChange)
+                            {
+                                item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception($"DB version {adapted.DBVersion} too old. Oldest supported db version is {MinimumCompatibleVersion}");
+                    }
                 }
             }
         }
 
-        protected virtual void OnItemChanged(T itemChanged)
+        /// <summary>
+        /// Get last transaction skipping all transaction with a type in notTransactionType and matches matcher
+        /// </summary>
+        /// <param name="notTransactionType">List of transaction types to skip</param>
+        /// <param name="matcher">ethod to determine a match</param>
+        /// <returns>last transaction skipping all transaction with a type in notTransactionType and matches matcher</returns>
+        private DBTransaction<T> GetLastTransaction(TransactionType notTransactionType, Func<DBTransaction<T>, bool> matcher)
         {
-            ItemChanged?.Invoke(this, itemChanged?.ID);
+            DBTransaction<T> last_transaction = null;
+            IEnumerable<DBTransaction<T>> temp_list = this.Transactions_DB;
+            do
+            {
+                bool first_matches = false;
+              
+                // is first in list active?
+                if (temp_list != null & temp_list.Count() > 0)
+                {
+                    first_matches = matcher(temp_list.First());
+                }
+
+                if (temp_list == null || temp_list.Count() == 0)
+                {
+                    // ran out of options
+                    throw new DBCannotUndoException("Cannot find transaction");
+                }
+
+                if (temp_list.FirstOrDefault()?.TransactionType == notTransactionType)
+                {
+                    // transaction type to skip past
+                    var count = this.CountRecentTransactions(notTransactionType, temp_list);
+                    temp_list = temp_list.Skip(count * 2);
+                }
+                else if (first_matches)
+                {
+                    last_transaction = temp_list.FirstOrDefault();
+                }
+                else
+                {
+                    temp_list = temp_list.Skip(1);
+                }
+            }
+            while (last_transaction == null || last_transaction.TransactionType == notTransactionType);
+            return last_transaction;
         }
-        protected virtual void OnItemChanged(ID id)
+
+        /// <summary>
+        /// Get the latest transaction that is not in notTransationTypes
+        /// </summary>
+        /// <param name="notTransactionTypes">List of transaction types to skip</param>
+        /// <returns> the latest transaction that is not in notTransationTypes</returns>
+        private DBTransaction<T> GetLastTransaction(List<TransactionType> notTransactionTypes)
         {
-            ItemChanged?.Invoke(this, id);
+            DBTransaction<T> last_transaction = null;
+            IEnumerable<DBTransaction<T>> temp_list = this.Transactions_DB;
+            do
+            {
+                if (temp_list == null || temp_list.Count() == 0)
+                {
+                    throw new DBCannotUndoException("Cannot find transaction");
+                }
+
+                var first_transaction = temp_list.FirstOrDefault().TransactionType;
+                if (notTransactionTypes.Contains(first_transaction))
+                {
+                    var count = this.CountRecentTransactions(notTransactionTypes, temp_list);
+                    temp_list = temp_list.Skip(count * 2);
+                }
+                else
+                {
+                    last_transaction = temp_list.FirstOrDefault();
+                }
+            }
+            while (last_transaction == null || notTransactionTypes.Contains(last_transaction.TransactionType));
+            return last_transaction;
         }
         #endregion
     }

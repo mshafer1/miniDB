@@ -15,7 +15,7 @@ namespace MiniDB
     {
         #region constructors
         /// <summary>
-        /// Initializes a new instance of <see cref="PropertyChangedExtendedEventArgs"/> class.
+        /// Initializes a new instance of the <see cref="PropertyChangedExtendedEventArgs"/> class.
         /// </summary>
         /// <param name="propertyName">The changed property</param>
         /// <param name="oldValue">The old value</param>

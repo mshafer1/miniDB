@@ -12,7 +12,7 @@ namespace DbXunitTests
     internal class ExampleStoredItem : MiniDB.DatabaseObject
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="ExampleStoredItem" /> class.
+        /// Initializes a new instance of the <see cref="ExampleStoredItem" /> class.
         /// Age defaults to 0
         /// </summary>
         /// <param name="firstName">First name to store</param>

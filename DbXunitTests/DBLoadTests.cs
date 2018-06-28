@@ -31,7 +31,7 @@ namespace DbXunitTests
         private readonly string transactionsFile;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBLoadTests" /> class.
+        /// Initializes a new instance of the <see cref="DBLoadTests" /> class.
         /// Setup up filenames and make sure the system is clean.
         /// </summary>
         public DBLoadTests()

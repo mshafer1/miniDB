@@ -1,29 +1,46 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace MiniDB
 {
-    //from https://stackoverflow.com/a/14384830/8100990
-    // possible alternative https://stackoverflow.com/a/22486943/8100990
-    
-    // intermediate class that can be serialized by JSON.net
-    // and contains the same data as Database<T> - allows for DBVersion to be serialized
-    class DataBaseSurrogate<T> where T : DatabaseObject
+    // from https://stackoverflow.com/a/14384830/8100990
+    //   possible alternative https://stackoverflow.com/a/22486943/8100990
+
+    /// <summary>
+    /// intermediate class that can be serialized by JSON.net
+    /// </summary>
+    /// <typeparam name="T">and contains the same data as <see cref="DataBase{T}"/> - allows for DBVersion to be serialized</typeparam>
+    internal class DataBaseSurrogate<T> where T : DatabaseObject
     {
         // the collection of T elements
+
+        /// <summary>
+        /// Gets or sets the collection to cache
+        /// Represent the Database data as an ObservableCollection of T (Database base class)
+        /// </summary>
         public ObservableCollection<T> Collection { get; set; }
+        
         // the properties of DataBase to serialize
+
+        /// <summary>
+        /// Gets or sets the DBVersion
+        /// Make sure DBVersion gets included in serialization
+        /// </summary>
         public float DBVersion { get; set; }
     }
 
-
+    /// <summary>
+    /// Class to serialize database to json with db version number
+    /// </summary>
+    /// <typeparam name="T">The type of object stored in the Database</typeparam>
     internal class DataBaseSerializer<T> : JsonConverter where T : DatabaseObject
     {
+        /// <summary>
+        /// Verify if JsonConverter can be used to convert this object from Json
+        /// </summary>
+        /// <param name="objectType">The type of the object that is in question</param>
+        /// <returns>True if able to case object to Database of T</returns>
         public override bool CanConvert(Type objectType)
         {
             return objectType == typeof(DataBase<T>) || objectType.IsSubclassOf(typeof(DataBase<T>));
@@ -35,8 +52,8 @@ namespace MiniDB
         /// <param name="reader">the reader to use</param>
         /// <param name="objectType">type of object</param>
         /// <param name="existingValue">existing value</param>
-        /// <param name="serializer">serializer</param>
-        /// <returns></returns>
+        /// <param name="serializer">serializer to use</param>
+        /// <returns>Database object</returns>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             // N.B. null handling is missing
@@ -47,6 +64,7 @@ namespace MiniDB
             {
                 db.Add(el);
             }
+
             return db;
         }
 

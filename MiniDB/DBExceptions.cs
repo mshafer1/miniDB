@@ -12,14 +12,14 @@ namespace MiniDB
     public class DBException : Exception
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCreationException" /> class.
+        /// Initializes a new instance of the <see cref="DBException" /> class.
         /// </summary>
         public DBException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCreationException" /> class.
+        /// Initializes a new instance of the <see cref="DBException" /> class.
         /// </summary>
         /// <param name="message">Why it can't create a database</param>
         public DBException(string message)
@@ -28,7 +28,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCreationException" /> class.
+        /// Initializes a new instance of the <see cref="DBException" /> class.
         /// </summary>
         /// <param name="message">Why it can't create a database</param>
         /// <param name="inner">The exception that is getting wrapped</param>
@@ -44,14 +44,14 @@ namespace MiniDB
     public class DBCreationException : DBException
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCreationException" /> class.
+        /// Initializes a new instance of the <see cref="DBCreationException" /> class.
         /// </summary>
         public DBCreationException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCreationException" /> class.
+        /// Initializes a new instance of the <see cref="DBCreationException" /> class.
         /// </summary>
         /// <param name="message">Why it can't create a database</param>
         public DBCreationException(string message)
@@ -60,7 +60,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCreationException" /> class.
+        /// Initializes a new instance of the <see cref="DBCreationException" /> class.
         /// </summary>
         /// <param name="message">Why it can't create a database</param>
         /// <param name="inner">The exception that is getting wrapped</param>
@@ -76,14 +76,14 @@ namespace MiniDB
     public class DBCannotUndoException : DBException
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCannotUndoException" /> class.
+        /// Initializes a new instance of the <see cref="DBCannotUndoException" /> class.
         /// </summary>
         public DBCannotUndoException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCannotUndoException" /> class.
+        /// Initializes a new instance of the <see cref="DBCannotUndoException" /> class.
         /// </summary>
         /// <param name="message">Why it can't undo</param>
         public DBCannotUndoException(string message)
@@ -92,7 +92,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCannotUndoException" /> class.
+        /// Initializes a new instance of the <see cref="DBCannotUndoException" /> class.
         /// </summary>
         /// <param name="message">Why it can't undo</param>
         /// <param name="inner">The exception that is getting wrapped</param>
@@ -108,14 +108,14 @@ namespace MiniDB
     public class DBCannotRedoException : DBException
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCannotRedoException" /> class.
+        /// Initializes a new instance of the <see cref="DBCannotRedoException" /> class.
         /// </summary>
         public DBCannotRedoException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCannotRedoException" /> class.
+        /// Initializes a new instance of the <see cref="DBCannotRedoException" /> class.
         /// </summary>
         /// <param name="message">Why it can't redo</param>
         public DBCannotRedoException(string message)
@@ -124,7 +124,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBCannotRedoException" /> class.
+        /// Initializes a new instance of the <see cref="DBCannotRedoException" /> class.
         /// </summary>
         /// <param name="message">Why it can't redo</param>
         /// <param name="inner">The exception that is getting wrapped</param>

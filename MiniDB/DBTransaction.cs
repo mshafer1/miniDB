@@ -42,7 +42,7 @@ namespace MiniDB
     /// <summary>
     /// Transaction class to save information about changes to the Database of type T.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">DatabaseObject type that is stored in DB</typeparam>
     public class DBTransaction<T> : DatabaseObject where T : DatabaseObject
     {
         /// <summary>
@@ -61,7 +61,7 @@ namespace MiniDB
         private static int nextAvailableID = 0;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBTransaction{T}" /> class.
+        /// Initializes a new instance of the <see cref="DBTransaction{T}" /> class.
         /// </summary>
         public DBTransaction() : base()
         {
@@ -72,7 +72,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="DBTransaction{T}" /> class.
+        /// Initializes a new instance of the <see cref="DBTransaction{T}" /> class.
         ///   Copy constructor by value
         /// </summary>
         /// <param name="inTransaction">The transaction to copy</param>

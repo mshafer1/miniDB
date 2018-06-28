@@ -18,9 +18,9 @@ namespace MiniDB
         /// Create instance of database - if file exists, load collection from it; else, create new empty collection
         /// </summary>
         /// <param name="filename">The filename or path to store the collection in</param>
-        /// <param name="dbVersion">The current version of the database (stored only to one decimal place and max value of 25.5 - if unsure what to use, put 0.1 for now</param>
+        /// <param name="dataBaseVersion">The current version of the database (stored only to one decimal place and max value of 25.5 - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0.1 for now</param>
-        public EncryptedDataBase(string filename, float dbVersion, float minimumCompatibleVersion) : base(filename, dbVersion, minimumCompatibleVersion)
+        public EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion) : base(filename, dataBaseVersion, minimumCompatibleVersion)
         {
             // NOOP
         }
@@ -30,10 +30,10 @@ namespace MiniDB
         /// Create instance of database - if file exists, load collection from it; else, create new empty collection
         /// </summary>
         /// <param name="filename">The filename or path to store the collection in</param>
-        /// <param name="dbVersion">The current version of the database (stored only to one decimal place and max value of 25.5 - if unsure what to use, put 0.1 for now</param>
+        /// <param name="dataBaseVersion">The current version of the database (stored only to one decimal place and max value of 25.5 - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0.1 for now</param>
         /// <param name="base_case">Parameter to force calling the base case</param>
-        private EncryptedDataBase(string filename, float dbVersion, float minimumCompatibleVersion, bool base_case) : base(filename, dbVersion, minimumCompatibleVersion, base_case)
+        private EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion, bool base_case) : base(filename, dataBaseVersion, minimumCompatibleVersion, base_case)
         {
             // NOOP
         }
@@ -178,7 +178,7 @@ namespace MiniDB
                     // Create a StreamWriter for easy writing to the filestream
                     using (StreamWriter streamWriter = new StreamWriter(cryptStream))
                     {
-                        streamWriter.WriteLine(this.serializeData);
+                        streamWriter.WriteLine(this.SerializeData);
                     }
                 }
             }

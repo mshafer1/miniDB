@@ -11,7 +11,7 @@
     <!-- <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl> -->
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial publish - see Github initial publish branch ( https://github.com/mshafer1/minidb/changes/initial-publish ) for details.</releaseNotes>
+    <releaseNotes>Initial publish - see Github initial publish branch ( https://github.com/mshafer1/minidb/commits/initial-publish ) for details.</releaseNotes>
     <copyright>Copyright 2018</copyright>
     <tags>DB Database Persistent-collection</tags>
   </metadata>

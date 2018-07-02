@@ -53,6 +53,7 @@ namespace DbXunitTests
         [Fact]
         public void DBModelUndoRedoAddTest()
         {
+            Console.WriteLine("Test: DBModelUndoRedoAddTest");
             var entry = new ExampleStoredItem("John", "Doe");
 
             using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
@@ -96,6 +97,7 @@ namespace DbXunitTests
         [Fact]
         public void DBModelRegistersAddedItemsForPropertyChangedEventsTest()
         {
+            Console.WriteLine("Test: DBModelRegistersAddedItemsForPropertyChangedEventsTest");
             var entry = new ExampleStoredItem("John", "Doe");
             using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
             {
@@ -129,6 +131,7 @@ namespace DbXunitTests
         [Fact]
         public void DBUndoBasicChange_Name()
         {
+            Console.WriteLine("Test: DBUndoBasicChange_Name");
             string path = Directory.GetCurrentDirectory();
             Console.WriteLine(path);
             var entry = new ExampleStoredItem("John", "Doe");
@@ -203,6 +206,7 @@ namespace DbXunitTests
         [Fact]
         public void DBUndoBasicChange_Age()
         {
+            Console.WriteLine("Test: DBUndoBasicChange_Age");
             string path = Directory.GetCurrentDirectory();
             Console.WriteLine(path);
             var entry = new ExampleStoredItem("John", "Doe");
@@ -246,6 +250,7 @@ namespace DbXunitTests
         [Fact]
         public void DBRedoUndoBasicChange()
         {
+            Console.WriteLine("Test: DBRedoUndoBasicChange");
             var entry = new ExampleStoredItem("John", "Doe");
 
             using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
@@ -335,6 +340,7 @@ namespace DbXunitTests
         [Fact]
         public void DBRedoUndoSmallStack()
         {
+            Console.WriteLine("Test: DBRedoUndoSmallStack");
             var entry = new ExampleStoredItem(string.Empty, string.Empty);
 
             using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
@@ -431,6 +437,7 @@ namespace DbXunitTests
         [Fact]
         public void DBRedoUndoNestedChange()
         {
+            Console.WriteLine("Test: DBRedoUndoNestedChange");
             var entry = new ExampleComplicatedStoredItem("John", "Doe");
 
             using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1))

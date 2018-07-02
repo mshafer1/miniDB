@@ -59,6 +59,7 @@ namespace DbXunitTests
         [Fact]
         public void TestNormalDBCanReload()
         {
+            Console.WriteLine($"Test reloading normal DB");
             this.TestDBType(file => new MiniDB.DataBase<ExampleComplicatedStoredItem>(file, 1.0f, 1));
         }
 
@@ -68,6 +69,7 @@ namespace DbXunitTests
         [Fact]
         public void TestEncryptedDBCanReload()
         {
+            Console.WriteLine($"Test reloading encrypted DB");
             this.TestDBType(file => new MiniDB.EncryptedDataBase<ExampleComplicatedStoredItem>(file, 1, 1));
         }
 
@@ -77,6 +79,7 @@ namespace DbXunitTests
         [Fact]
         public void TestCannotReloadSameDBTypeWithSameFile()
         {
+            Console.WriteLine($"Test Cannot reload same DB type with same file");
             using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1))
             {
                 Assert.Throws<MiniDB.DBCreationException>(() => new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1));
@@ -89,6 +92,7 @@ namespace DbXunitTests
         [Fact]
         public void TestCanReloadSameDBTypeWithDifferentFile()
         {
+            Console.WriteLine($"Test Can reload same DB type with different file");
             using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1))
             {
                 new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename2, 1, 1); // should not throw
@@ -102,6 +106,7 @@ namespace DbXunitTests
         [Fact]
         public void TestCanUseUsingToReloadSameDBTypeWithSameFile()
         {
+            Console.WriteLine($"Test Can work in using statement");
             using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1))
             {
                 // NO-OP
@@ -122,7 +127,6 @@ namespace DbXunitTests
         private void TestDBType(Func<string, MiniDB.DataBase<ExampleComplicatedStoredItem>> createDB)
         {
             MiniDB.ID id;
-            Console.WriteLine($"Successfully reloaded 0 times");
             Debug.WriteLine($"Successfully reloaded 0 times");
             using (var db = createDB(this.filename))
             {
@@ -133,14 +137,12 @@ namespace DbXunitTests
                 entry.Age = 1;
             }
 
-            Console.WriteLine($"Successfully created");
             Debug.WriteLine($"Successfully created");
             for (int i = 1; i <= 10; i++)
             {
                 using (var db = createDB(this.filename))
                 {
                     Debug.WriteLine($"Successfully reloaded {i} times");
-                    Console.WriteLine($"Successfully reloaded {i} times");
                     Assert.Single(db);
                     var entry = db.FirstOrDefault();
                     Assert.Equal(entry.ID, id);

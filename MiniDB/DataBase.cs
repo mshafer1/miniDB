@@ -242,7 +242,7 @@ namespace MiniDB
         /// </summary>
         public void Dispose()
         {
-            if (this.mut != null)
+            if (this.mut != null && this.mut.WaitOne(TimeSpan.FromSeconds(5), false))
             {
                 this.mut.ReleaseMutex();
                 this.mut.Close();

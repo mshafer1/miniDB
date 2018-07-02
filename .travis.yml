@@ -1,5 +1,5 @@
 language: csharp
-solution: MiniDatabse.sln
+solution: MiniDatabase.sln
 script:
-  - xbuild /p:Configuration=Release MiniDatabse.sln
+  - xbuild /p:Configuration=Release MiniDatabase.sln
   - mono ./testrunner/xunit.runners.1.9.2/tools/xunit.console.clr4.exe ./DbXunitTests/bin/Release/DbXunitTests.dll

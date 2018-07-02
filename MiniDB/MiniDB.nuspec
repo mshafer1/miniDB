@@ -8,11 +8,14 @@
     <owners>$author$</owners>
     <licenseUrl>https://github.com/mshafer1/minidb/blob/initial-publish/LICENSE</licenseUrl>
     <projectUrl>https://github.com/mshafer1/minidb/</projectUrl>
-    <!-- <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl> -->
+    <iconUrl>https://raw.githubusercontent.com/mshafer1/miniDB/initial-publish/logo.png?raw=true</iconUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>Initial publish - see Github initial publish branch ( https://github.com/mshafer1/minidb/commits/initial-publish ) for details.</releaseNotes>
     <copyright>Copyright 2018</copyright>
     <tags>DB Database Persistent-collection</tags>
   </metadata>
+  <files>
+    <file src="bin\Release\HardwareID.dll" target="lib\net461"/>
+  </files>
 </package>

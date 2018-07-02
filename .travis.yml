@@ -1,0 +1,5 @@
+language: csharp
+solution: MiniDatabse.sln
+script:
+  - xbuild /p:Configuration=Release MiniDatabse.sln
+  - mono ./testrunner/xunit.runners.1.9.2/tools/xunit.console.clr4.exe ./DbXunitTests/bin/Release/DbXunitTests.dll

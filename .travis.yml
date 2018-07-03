@@ -1,4 +1,6 @@
 language: csharp
+os:
+  - linux
 solution: MiniDatabase.sln
 install:
   - nuget restore MiniDatabase.sln

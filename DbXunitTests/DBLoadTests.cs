@@ -36,7 +36,7 @@ namespace DbXunitTests
         /// </summary>
         public DBLoadTests()
         {
-            this.filename = "TestDB.json";
+            this.filename = "TestDB_Loading.json";
             this.filename2 = "SecondDB_" + this.filename;
             this.transactionsFile = "transactions_" + this.filename + ".data";
 

@@ -29,7 +29,7 @@ namespace DbXunitTests
         /// </summary>
         public UndoRedoTests()
         {
-            this.filename = "TestDB.json";
+            this.filename = "TestDB_UndoRedo.json";
             this.transactionsFile = "transactions_" + this.filename + ".data";
 
             // make sure it is clean

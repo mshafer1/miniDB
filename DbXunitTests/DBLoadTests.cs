@@ -44,6 +44,11 @@ namespace DbXunitTests
             this.Cleanup();
         }
 
+        ~DBLoadTests()
+        {
+            this.Cleanup();
+        }
+
         /// <summary>
         /// In beteen each test, cleanup.
         /// </summary>

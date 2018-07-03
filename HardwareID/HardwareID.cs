@@ -67,16 +67,30 @@ namespace HardwareID
         private static string PhysicalMemory => Get();
 
         /// <summary>
+        /// The system name (used on Unix)
+        /// </summary>
+        private static string UName => Get();
+
+        /// <summary>
         /// Gets the base string used for creating IDs
         /// </summary>
         private static string _data
         {
             get
             {
-                return $@"OSName >> {OSName}
+                if(Environment.OSVersion.ToString().StartsWith("Microsoft"))
+                {
+                    // on Windows.
+                    return $@"OSName >> {OSName}
 OSManufacturer >> {OSManufacturer}
 SystemModel >> {SystemModel}
 PhysicalMemory >> {PhysicalMemory}";
+                }
+                else
+                {
+                    // on Unix.
+                    return $@"Uname >> {UName}";
+                }
             }
         }
         #endregion
@@ -108,25 +122,42 @@ PhysicalMemory >> {PhysicalMemory}";
         /// </summary>
         private static void GetSystemInfo()
         {
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.FileName = "systeminfo";
-            p.Start();
-            string output = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
-
-            // split the output based on the system's new line charecter(s) - don't use any empty splits
-            foreach (var line in output.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
+            if (Environment.OSVersion.ToString().StartsWith("Microsoft"))
             {
-                var workingLine = line.Trim();
-                var match = systemInfoFields.FirstOrDefault(x => workingLine.StartsWith(x.Key));
-                if (!match.Equals(default(KeyValuePair<string, string>)))
+                // on Windows.
+
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = "systeminfo";
+                p.Start();
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+
+                // split the output based on the system's new line charecter(s) - don't use any empty splits
+                foreach (var line in output.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                 {
-                    var rest = workingLine.Substring(match.Key.Length).Trim();
-                    data[match.Value] = rest;
+                    var workingLine = line.Trim();
+                    var match = systemInfoFields.FirstOrDefault(x => workingLine.StartsWith(x.Key));
+                    if (!match.Equals(default(KeyValuePair<string, string>)))
+                    {
+                        var rest = workingLine.Substring(match.Key.Length).Trim();
+                        data[match.Value] = rest;
+                    }
                 }
+            }
+            else
+            {
+                Process p = new Process();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = "uname -v";
+                p.Start();
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                data[nameof(UName)] = output;
             }
         }
 

@@ -44,6 +44,11 @@ namespace DbXunitTests
             this.Cleanup();
         }
 
+        ~DBLoadTests()
+        {
+            this.Cleanup();
+        }
+
         /// <summary>
         /// In beteen each test, cleanup.
         /// </summary>
@@ -73,18 +78,18 @@ namespace DbXunitTests
             this.TestDBType(file => new MiniDB.EncryptedDataBase<ExampleComplicatedStoredItem>(file, 1, 1));
         }
 
-        /// <summary>
-        /// Test that re-opening a db of the same type in the same file fails (mutex should prevent it).
-        /// </summary>
-        [Fact]
-        public void TestCannotReloadSameDBTypeWithSameFile()
-        {
-            Console.WriteLine($"Test Cannot reload same DB type with same file");
-            using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1))
-            {
-                Assert.Throws<MiniDB.DBCreationException>(() => new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1));
-            }
-        }
+        ///// <summary>
+        ///// Test that re-opening a db of the same type in the same file fails (mutex should prevent it).
+        ///// </summary>
+        //[Fact]
+        //public void TestCannotReloadSameDBTypeWithSameFile()
+        //{
+        //    Console.WriteLine($"Test Cannot reload same DB type with same file");
+        //    using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1))
+        //    {
+        //        Assert.Throws<MiniDB.DBCreationException>(() => new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1));
+        //    }
+        //}
 
         /// <summary>
         /// Test that a db can have two copies initialized if they use two different files

@@ -43,6 +43,11 @@ namespace DbXunitTests
             this.Cleanup();
         }
 
+        ~UndoRedoTests()
+        {
+            this.Cleanup();
+        }
+
         #region test_methods
 
         /// <summary>

@@ -12,13 +12,13 @@ namespace MiniDB
     /// <typeparam name="T">Class with DatabaseObject base to make a persistent, encrypted, observable collection of</typeparam>
     public class EncryptedDataBase<T> : DataBase<T> where T : DatabaseObject
     {
-        #region constructors
+       #region constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="EncryptedDataBase{T}" /> class.
         /// Create instance of database - if file exists, load collection from it; else, create new empty collection
         /// </summary>
         /// <param name="filename">The filename or path to store the collection in</param>
-        /// <param name="dataBaseVersion">The current version of the database (stored only to one decimal place and max value of 25.5 - if unsure what to use, put 0.1 for now</param>
+        /// <param name="dataBaseVersion">The current version of the database - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0.1 for now</param>
         public EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion) : base(filename, dataBaseVersion, minimumCompatibleVersion)
         {
@@ -30,7 +30,7 @@ namespace MiniDB
         /// Create instance of database - if file exists, load collection from it; else, create new empty collection
         /// </summary>
         /// <param name="filename">The filename or path to store the collection in</param>
-        /// <param name="dataBaseVersion">The current version of the database (stored only to one decimal place and max value of 25.5 - if unsure what to use, put 0.1 for now</param>
+        /// <param name="dataBaseVersion">The current version of the database - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0.1 for now</param>
         /// <param name="base_case">Parameter to force calling the base case</param>
         private EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion, bool base_case) : base(filename, dataBaseVersion, minimumCompatibleVersion, base_case)
@@ -40,6 +40,7 @@ namespace MiniDB
         #endregion
 
         #region properties
+
         /// <summary>
         /// Gets the private key used in the encryption/decryption
         /// </summary>
@@ -50,6 +51,11 @@ namespace MiniDB
                 return HardwareID;
             }
         }
+
+        /// <summary>
+        /// Gets the version number to track how data is encrypted (stored only to one decimal place in one byte so max value of 25.5, and 12.3 is reserved for non-encrypted db's)
+        /// </summary>
+        protected virtual float EncryptionVersion { get; } = 1.0f;
 
         /// <summary>
         /// Gets a 16 byte hardware specific ID - used in encrypting/decrypting the database
@@ -102,11 +108,11 @@ namespace MiniDB
 
         #region helper methods
         /// <summary>
-        /// Helper method to load in the file, decrypt the binary blob, and return valid data
+        /// Helper method to load in the file, decrypt the binary blob, and return valid data - if overriding this class, will need to extend this method to handle custom versions
         /// </summary>
         /// <param name="filename">the file or path to load</param>
         /// <returns>DB JSON representation from binary blob in file</returns>
-        private string DecryptFile(string filename)
+        protected virtual string DecryptFile(string filename)
         {
             // Create a new instance of the RijndaelManaged class  
             //  and decrypt the stream.  
@@ -116,11 +122,9 @@ namespace MiniDB
             {
                 var fileVersion = (short)fileStream.ReadByte();
 
-                // TODO: implement overidable call back for migrating versions in both this db and in the base db.
+                // TODO: implement overidable call back for migrating encryption versions in this db.
                 switch (fileVersion)
                 {
-                    case 12:
-                    case 11:
                     case 10:
                         fileStream.Read(initializationVector, 0, initializationVector.Length);
                         fileStream.Seek(initializationVector.Length + 1, SeekOrigin.Begin); // + 1 for version byte
@@ -164,7 +168,7 @@ namespace MiniDB
             using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Truncate))
             {
                 // write file version
-                fileStream.WriteByte((byte)(this.DBVersion * 10));
+                fileStream.WriteByte((byte)(this.EncryptionVersion * 10));
 
                 // write Initilization Vector
                 fileStream.Write(initializationVector, 0, initializationVector.Length);

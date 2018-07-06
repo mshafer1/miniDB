@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -78,7 +77,7 @@ namespace HardwareID
         {
             get
             {
-                if(Environment.OSVersion.ToString().StartsWith("Microsoft"))
+                if (Environment.OSVersion.ToString().StartsWith("Microsoft"))
                 {
                     // on Windows.
                     return $@"OSName >> {OSName}
@@ -124,8 +123,7 @@ PhysicalMemory >> {PhysicalMemory}";
         {
             if (Environment.OSVersion.ToString().StartsWith("Microsoft"))
             {
-                // on Windows.
-
+                // on Windows
                 Process p = new Process();
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.CreateNoWindow = true;

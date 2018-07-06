@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MiniDB
 {
@@ -52,16 +53,26 @@ namespace MiniDB
         /// </summary>
         /// <param name="filename">The filename or path to store the collection in</param>
         /// <param name="databaseVersion">The current version of the database (stored only to one decimal place and max value of 25.5 - if unsure what to use, put 0.1 for now</param>
-        /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0.1 for now</param>
-        public DataBase(string filename, float databaseVersion, float minimumCompatibleVersion) : base()
+        /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0 for now</param>
+        /// <param name="migrate_db">Method to migrate db's that are loaded that are at least the minimum compatible version, but not the current version.</param>
+        public DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, Func<DBMigrationParameters, JToken> migrate_db = null) : base()
         {
             this.DBVersion = databaseVersion;
             this.MinimumCompatibleVersion = minimumCompatibleVersion;
+            this.Migrator = migrate_db;
+
             lock (Locker)
             {
+                Type t = typeof(T);
+                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(DBTransaction<>))
+                {
+                    // prevent recursion - not inside mutex yet, so don't need to release if thrown
+                    throw new DBCreationException("Cannot create databse of DBTransaction<T>");
+                }
+
                 filename = Path.GetFullPath(filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
                 string mutex_file_path = filename;
-                mutex_file_path = mutex_file_path.Replace("\\", "_");
+                mutex_file_path = mutex_file_path.Replace("\\", "_").Replace("/", "_");
                 string mutex_name = string.Format(@"{0}<{1}>:{2}", nameof(DataBase<T>), typeof(T).Name, mutex_file_path); // from https://stackoverflow.com/a/2534867
                 string global_lock_mutex_name = @"Global\" + mutex_name;
 
@@ -71,7 +82,7 @@ namespace MiniDB
                 {
                     this.mut = System.Threading.Mutex.OpenExisting(global_lock_mutex_name);
 
-                    // mutex already exists
+                    // mutex already exists - not inside mutex yet, so don't need to release if thrown
                     throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name);
                 }
                 catch (WaitHandleCannotBeOpenedException)
@@ -82,17 +93,11 @@ namespace MiniDB
                 // acquire the lock from the mutex - this is release in dispose
                 if (!this.mut.WaitOne(TimeSpan.FromSeconds(5), false))
                 {
+                    // did not get mutex, so don't need to release if thrown
                     throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name);
                 }
 
                 this.Filename = filename;
-
-                // TODO: I doubt this works, . . .
-                if (typeof(T) == typeof(DBTransaction<T>))
-                {
-                    // prevent recursion
-                    return;
-                }
 
                 string transactionFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
                 this.Transactions_DB = this._getTransactionsDB(transactionFilename);
@@ -156,7 +161,6 @@ namespace MiniDB
         /// Public event for when a DB property has changed
         /// </summary>
         public event PropertyChangedEventHandler PublicPropertyChanged;
-
         #endregion
 
         #region properties
@@ -190,7 +194,9 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Gets the current DB Version - while this is a float, the current implementation of storing and reloading this only supports one decimal point. Max value of 25.5.
+        /// Gets the current DB Version
+        /// - Any DB newer than this value is considered too new to handle.
+        /// - has internal set method so that Serializer can access it.
         /// </summary>
         [JsonProperty]
         public float DBVersion { get; internal set; }
@@ -199,6 +205,11 @@ namespace MiniDB
         /// Gets the filename/path that is used to cache the collection in
         /// </summary>
         protected string Filename { get; private set; }
+
+        /// <summary>
+        /// Gets the method that is used to migrate old versions of the db
+        /// </summary>
+        protected Func<DBMigrationParameters, JToken> Migrator { get; }
 
         /// <summary>
         /// Gets Json serialized value of this as string
@@ -231,7 +242,7 @@ namespace MiniDB
         public static bool ConflictIfSameItemChangedById(DataBase<T> db1, DataBase<T> db2)
         {
             bool result = false;
-            
+
             // any transaction in db1 has the same item db as any tranasction in db2
             result = db1.Transactions_DB.Any(x => db2.Transactions_DB.Any(y => x.Item_ID == y.Item_ID));
             return result;
@@ -256,6 +267,7 @@ namespace MiniDB
         /// </summary>
         public void Undo()
         {
+            // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
             if (!this.CanUndo)
             {
                 throw new DBCannotUndoException("Cannot undo at this time");
@@ -443,6 +455,7 @@ namespace MiniDB
         /// </summary>
         public void Redo()
         {
+            // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
             if (!this.CanRedo)
             {
                 throw new DBCannotRedoException("Cannot redo at this time");
@@ -450,7 +463,7 @@ namespace MiniDB
 
             DBTransaction<T> last_transaction = this.GetLastTransaction(TransactionType.Redo, x => x.Active == true);
             T transactedItem;
-            
+
             // get the mutex
             lock (Locker)
             {
@@ -586,7 +599,9 @@ namespace MiniDB
         /// <param name="transactedItem">the item to act on</param>
         private static void SetProperty(DBTransaction<T> last_transaction, T transactedItem)
         {
-            // redo with https://stackoverflow.com/a/13270302
+            // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
+
+            // TODO: redo with https://stackoverflow.com/a/13270302
             var properties = last_transaction.Changed_property.Split('.');
             object lastObject = transactedItem;
             System.Reflection.PropertyInfo currentProperty = null;
@@ -817,40 +832,43 @@ namespace MiniDB
         /// <param name="e">PropertyChangedExtendedEventArgs to store transaction from</param>
         private void DataBaseItem_PropertyChanged(object sender, PropertyChangedExtendedEventArgs e)
         {
-            lock (Locker)
+            this.ReleaseMutexOnError(() =>
             {
-                var item = sender as T;
-                if (item == null)
+                lock (Locker)
                 {
-                    throw new Exception("Sender must be dbObject");
-                }
+                    var item = sender as T;
+                    if (item == null)
+                    {
+                        throw new Exception("Sender must be dbObject");
+                    }
 
-                this._cacheDB();
+                    this._cacheDB();
 
-                // if not an undoable change, alert property changes and leave
-                if (!e.UndoableChange)
-                {
+                    // if not an undoable change, alert property changes and leave
+                    if (!e.UndoableChange)
+                    {
+                        this.OnItemChanged(item);
+                        this.PublicOnPropertyChanged(nameof(this.CanUndo));
+                        this.PublicOnPropertyChanged(nameof(this.CanRedo));
+                        return;
+                    }
+
+                    // else, store a modify with information about how to undo
+                    var transaction = new DBTransaction<T>()
+                    {
+                        TransactionType = TransactionType.Modify,
+                        Item_ID = item.ID,
+                        Transacted_item = null,
+                        Property_old = e.OldValue,
+                        Property_new = e.NewValue,
+                        Changed_property = e.PropertyName
+                    };
+                    this.Transactions_DB.Insert(0, transaction);
                     this.OnItemChanged(item);
                     this.PublicOnPropertyChanged(nameof(this.CanUndo));
                     this.PublicOnPropertyChanged(nameof(this.CanRedo));
-                    return;
                 }
-
-                // else, store a modify with information about how to undo
-                var transaction = new DBTransaction<T>()
-                {
-                    TransactionType = TransactionType.Modify,
-                    Item_ID = item.ID,
-                    Transacted_item = null,
-                    Property_old = e.OldValue,
-                    Property_new = e.NewValue,
-                    Changed_property = e.PropertyName
-                };
-                this.Transactions_DB.Insert(0, transaction);
-                this.OnItemChanged(item);
-                this.PublicOnPropertyChanged(nameof(this.CanUndo));
-                this.PublicOnPropertyChanged(nameof(this.CanRedo));
-            }
+            });
         }
 
         /// <summary>
@@ -935,22 +953,25 @@ namespace MiniDB
         /// <returns>the count of transactions</returns>
         private int CountRecentTransactions(List<TransactionType> transactionTypes, IEnumerable<DBTransaction<T>> list = null)
         {
-            if (list == null)
+            return this.ReleaseMutexOnError<int>(() =>
             {
-                list = this.Transactions_DB;
-            }
+                if (list == null)
+                {
+                    list = this.Transactions_DB;
+                }
 
-            var first = list.FirstOrDefault() as DBTransaction<T>;
-            if (first == null)
-            {
-                return 0;
-            }
+                var first = list.FirstOrDefault() as DBTransaction<T>;
+                if (first == null)
+                {
+                    return 0;
+                }
 
-            int count = transactionTypes.Contains(first.TransactionType) ?
-                list.Select((item, index) => new { item, index })
-                    .Where(x => !transactionTypes.Contains(x.item.TransactionType)).Select(x => x.index).FirstOrDefault()
-                : 0;
-            return count;
+                int count = transactionTypes.Contains(first.TransactionType) ?
+                    list.Select((item, index) => new { item, index })
+                        .Where(x => !transactionTypes.Contains(x.item.TransactionType)).Select(x => x.index).FirstOrDefault()
+                    : 0;
+                return count;
+            });
         }
 
         /// <summary>
@@ -960,29 +981,49 @@ namespace MiniDB
         /// <param name="registerItemsForPropertyChange">If true, DataBaseItem_PropertyChanged is registered for each item's property changed extended</param>
         private void LoadFile(string file, bool registerItemsForPropertyChange)
         {
-            if (System.IO.File.Exists(file))
+            this.ReleaseMutexOnError(() =>
             {
-                var json = this._readFile(file);
-                if (json.Length > 0)
+                if (System.IO.File.Exists(file))
                 {
-                    var adapted = JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
-                    if (adapted.DBVersion >= this.MinimumCompatibleVersion)
+                    var json = this._readFile(file);
+
+                    if (json.Length > 0)
                     {
-                        foreach (var item in adapted)
+                        var adapted = JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
+                        if (adapted.DBVersion > this.DBVersion)
                         {
-                            this.Add(item);
-                            if (registerItemsForPropertyChange)
+                            throw new DBCreationException($"Cannot load db of version {adapted.DBVersion}. Current version is only {this.DBVersion}");
+                        }
+
+                        // if not the current version, try to update.
+                        if (adapted.DBVersion != this.DBVersion && adapted.DBVersion >= this.MinimumCompatibleVersion)
+                        {
+                            var raw = JObject.Parse(json);
+                            raw["Collection"] = this.Migrator?.Invoke(new DBMigrationParameters() { OldVersion = adapted.DBVersion, TargetVersion = this.DBVersion, Collection = raw["Collection"] }) ?? raw["Collection"];
+                            json = JsonConvert.SerializeObject(raw);
+                            adapted = JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
+                        }
+
+                        // if new enough, and not too new,
+                        if (adapted.DBVersion >= this.MinimumCompatibleVersion && adapted.DBVersion <= this.DBVersion)
+                        {
+                            // parse and load
+                            foreach (var item in adapted)
                             {
-                                item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+                                this.Add(item);
+                                if (registerItemsForPropertyChange)
+                                {
+                                    item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        throw new Exception($"DB version {adapted.DBVersion} too old. Oldest supported db version is {MinimumCompatibleVersion}");
+                        else
+                        {
+                            throw new DBCreationException($"DB version {adapted.DBVersion} too old. Oldest supported db version is {MinimumCompatibleVersion}");
+                        }
                     }
                 }
-            }
+            });
         }
 
         /// <summary>
@@ -993,41 +1034,44 @@ namespace MiniDB
         /// <returns>last transaction skipping all transaction with a type in notTransactionType and matches matcher</returns>
         private DBTransaction<T> GetLastTransaction(TransactionType notTransactionType, Func<DBTransaction<T>, bool> matcher)
         {
-            DBTransaction<T> last_transaction = null;
-            IEnumerable<DBTransaction<T>> temp_list = this.Transactions_DB;
-            do
+            return this.ReleaseMutexOnError<DBTransaction<T>>(() =>
             {
-                bool first_matches = false;
-              
-                // is first in list active?
-                if (temp_list != null & temp_list.Count() > 0)
+                DBTransaction<T> last_transaction = null;
+                IEnumerable<DBTransaction<T>> temp_list = this.Transactions_DB;
+                do
                 {
-                    first_matches = matcher(temp_list.First());
-                }
+                    bool first_matches = false;
 
-                if (temp_list == null || temp_list.Count() == 0)
-                {
-                    // ran out of options
-                    throw new DBCannotUndoException("Cannot find transaction");
-                }
+                    // is first in list active?
+                    if (temp_list != null & temp_list.Count() > 0)
+                    {
+                        first_matches = matcher(temp_list.First());
+                    }
 
-                if (temp_list.FirstOrDefault()?.TransactionType == notTransactionType)
-                {
-                    // transaction type to skip past
-                    var count = this.CountRecentTransactions(notTransactionType, temp_list);
-                    temp_list = temp_list.Skip(count * 2);
+                    if (temp_list == null || temp_list.Count() == 0)
+                    {
+                        // ran out of options
+                        throw new DBCannotUndoException("Cannot find transaction");
+                    }
+
+                    if (temp_list.FirstOrDefault()?.TransactionType == notTransactionType)
+                    {
+                        // transaction type to skip past
+                        var count = this.CountRecentTransactions(notTransactionType, temp_list);
+                        temp_list = temp_list.Skip(count * 2);
+                    }
+                    else if (first_matches)
+                    {
+                        last_transaction = temp_list.FirstOrDefault();
+                    }
+                    else
+                    {
+                        temp_list = temp_list.Skip(1);
+                    }
                 }
-                else if (first_matches)
-                {
-                    last_transaction = temp_list.FirstOrDefault();
-                }
-                else
-                {
-                    temp_list = temp_list.Skip(1);
-                }
-            }
-            while (last_transaction == null || last_transaction.TransactionType == notTransactionType);
-            return last_transaction;
+                while (last_transaction == null || last_transaction.TransactionType == notTransactionType);
+                return last_transaction;
+            });
         }
 
         /// <summary>
@@ -1037,29 +1081,90 @@ namespace MiniDB
         /// <returns> the latest transaction that is not in notTransationTypes</returns>
         private DBTransaction<T> GetLastTransaction(List<TransactionType> notTransactionTypes)
         {
-            DBTransaction<T> last_transaction = null;
-            IEnumerable<DBTransaction<T>> temp_list = this.Transactions_DB;
-            do
+            return this.ReleaseMutexOnError<DBTransaction<T>>(() =>
             {
-                if (temp_list == null || temp_list.Count() == 0)
+                DBTransaction<T> last_transaction = null;
+                IEnumerable<DBTransaction<T>> temp_list = this.Transactions_DB;
+                do
                 {
-                    throw new DBCannotUndoException("Cannot find transaction");
-                }
+                    if (temp_list == null || temp_list.Count() == 0)
+                    {
+                        throw new DBCannotUndoException("Cannot find transaction");
+                    }
 
-                var first_transaction = temp_list.FirstOrDefault().TransactionType;
-                if (notTransactionTypes.Contains(first_transaction))
-                {
-                    var count = this.CountRecentTransactions(notTransactionTypes, temp_list);
-                    temp_list = temp_list.Skip(count * 2);
+                    var first_transaction = temp_list.FirstOrDefault().TransactionType;
+                    if (notTransactionTypes.Contains(first_transaction))
+                    {
+                        var count = this.CountRecentTransactions(notTransactionTypes, temp_list);
+                        temp_list = temp_list.Skip(count * 2);
+                    }
+                    else
+                    {
+                        last_transaction = temp_list.FirstOrDefault();
+                    }
                 }
-                else
-                {
-                    last_transaction = temp_list.FirstOrDefault();
-                }
+                while (last_transaction == null || notTransactionTypes.Contains(last_transaction.TransactionType));
+                return last_transaction;
+            });
+        }
+
+        /// <summary>
+        /// Invoked action and return its return value - if action throws an exception, release the mutex before re-raising
+        /// </summary>
+        /// <typeparam name="T2">The expected return type</typeparam>
+        /// <param name="action">The method to invoke</param>
+        /// <returns>The result of the action (if not error)</returns>
+        private T2 ReleaseMutexOnError<T2>(Func<T2> action)
+        {
+            try
+            {
+                return action.Invoke();
             }
-            while (last_transaction == null || notTransactionTypes.Contains(last_transaction.TransactionType));
-            return last_transaction;
+            catch
+            {
+                this.Dispose();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Special case - templates can't handle a void type parameter --
+        /// also <see cref="ReleaseMutexOnError{T2}(Func{T2})" />
+        /// </summary>
+        /// <param name="action">the action to perform</param>
+        private void ReleaseMutexOnError(Action action)
+        {
+            try
+            {
+                action.Invoke();
+            }
+            catch
+            {
+                this.Dispose();
+                throw;
+            }
         }
         #endregion
+
+        /// <summary>
+        /// The information provided to a migration method
+        /// </summary>
+        public struct DBMigrationParameters
+        {
+            /// <summary>
+            /// The version of DB that is loaded
+            /// </summary>
+            public float OldVersion;
+
+            /// <summary>
+            /// The version of DB that is known to this compile
+            /// </summary>
+            public float TargetVersion;
+
+            /// <summary>
+            /// The JSON that is being loaded from the old version
+            /// </summary>
+            public JToken Collection;
+        }
     }
 }

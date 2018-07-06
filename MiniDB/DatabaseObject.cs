@@ -28,8 +28,17 @@ namespace MiniDB
         /// </summary>
         public DatabaseObject()
         {
-            ID = new ID();
-            ID.Set();
+            this.ID = new ID();
+            this.ID.Set();
+        }
+
+        /// <summary>
+        /// /// Initializes a new instance of the <see cref="DatabaseObject" /> class.
+        /// </summary>
+        /// <param name="id">The id to be used for the DB</param>
+        public DatabaseObject(ID id)
+        {
+            this.ID = id;
         }
         #endregion
 

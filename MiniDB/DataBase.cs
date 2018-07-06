@@ -82,7 +82,8 @@ namespace MiniDB
                 {
                     this.mut = System.Threading.Mutex.OpenExisting(global_lock_mutex_name);
 
-                    // mutex already exists - not inside mutex yet, so don't need to release if thrown
+                    // mutex already exists
+                    this.mut.ReleaseMutex(); // release any hold I have on it.
                     throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name);
                 }
                 catch (WaitHandleCannotBeOpenedException)

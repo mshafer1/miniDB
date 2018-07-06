@@ -71,9 +71,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\packages\xunit.analyzers.0.7.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\MiniDB\MiniDB.csproj">
       <Project>{b8938b67-a209-408d-b617-d6ec4108a315}</Project>
       <Name>MiniDB</Name>

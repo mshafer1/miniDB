@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+
 using Newtonsoft.Json;
 
 namespace MiniDB
@@ -50,6 +52,28 @@ namespace MiniDB
             this.hardwareComponent = hardwareComponent;
             this.Set();
             this.id = id;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ID" /> class.
+        /// Attempt to parse ID from jToken
+        /// </summary>
+        /// <param name="jsonToken">The NewtonSoft object that contains a serialized ID to parse</param>
+        public ID(Newtonsoft.Json.Linq.JToken jsonToken)
+        {
+            this.Set();
+            try
+            {
+                jsonToken = jsonToken["ID"];
+            }
+            catch (KeyNotFoundException)
+            {
+                // NO-OP
+                // must already be pointing at the ID
+            }
+
+            this.id = System.Convert.ToInt32(jsonToken["id"].ToString());
+            this.hardwareComponent = Convert.ToUInt64(jsonToken["hardwareComponent"].ToString());
         }
 
         /// <summary>

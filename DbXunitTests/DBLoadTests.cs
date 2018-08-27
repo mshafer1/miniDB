@@ -44,11 +44,6 @@ namespace DbXunitTests
             this.Cleanup();
         }
 
-        ~DBLoadTests()
-        {
-            this.Cleanup();
-        }
-
         /// <summary>
         /// In beteen each test, cleanup.
         /// </summary>
@@ -111,7 +106,6 @@ namespace DbXunitTests
         [Fact]
         public void TestCanUseUsingToReloadSameDBTypeWithSameFile()
         {
-            Console.WriteLine($"Test Can work in using statement");
             using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1))
             {
                 // NO-OP
@@ -171,20 +165,13 @@ namespace DbXunitTests
         /// </summary>
         private void Cleanup()
         {
-            if (File.Exists(this.filename))
+            var filesToDelete = new List<string>()
             {
-                File.Delete(this.filename);
-            }
-
-            if (File.Exists(this.filename2))
-            {
-                File.Delete(this.filename2);
-            }
-
-            if (File.Exists(this.transactionsFile))
-            {
-                File.Delete(this.transactionsFile);
-            }
+                this.filename,
+                this.filename2,
+                this.transactionsFile
+            };
+            filesToDelete.Where(File.Exists).ToList().ForEach(File.Delete);
         }
 
         /// <summary>

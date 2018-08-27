@@ -62,8 +62,9 @@ namespace DbXunitTests
             using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
             {
                 Assert.False(File.Exists(this.filename));
-               this.Sleep(.300);
+                this.Sleep(.300);
                 db.Add(entry);
+                //this.Sleep(.300);
                 Assert.True(File.Exists(this.filename));
                 Assert.True(File.Exists(this.transactionsFile));
                 Assert.Single(db);

@@ -12,13 +12,13 @@ namespace HardwareID
     /// Get hardware specific (should be unique) ID based on system properties (RAM size, OS version, etc.)
     /// Values are cached from the system on first ask
     /// </summary>
-    public sealed class HardwareID
+    public static class HardwareID
     {
         #region constants
         /// <summary>
         /// Keys to parse from SystemInfo
         /// </summary>
-        private static readonly IReadOnlyDictionary<string, string> systemInfoFields = new Dictionary<string, string>()
+        private static readonly IReadOnlyDictionary<string, string> SystemInfoFields = new Dictionary<string, string>()
         {
             { "OS Name:",  nameof(OSName) },
             { "OS Manufacturer:", nameof(OSManufacturer) },
@@ -33,7 +33,7 @@ namespace HardwareID
         /// <summary>
         /// Cache the fields, for quick recapture
         /// </summary>
-        private static readonly Dictionary<string, string> data = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> Data = new Dictionary<string, string>();
         #endregion
 
         #region properties
@@ -139,11 +139,11 @@ PhysicalMemory >> {PhysicalMemory}";
                 foreach (var line in output.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                 {
                     var workingLine = line.Trim();
-                    var match = systemInfoFields.FirstOrDefault(x => workingLine.StartsWith(x.Key));
+                    var match = SystemInfoFields.FirstOrDefault(x => workingLine.StartsWith(x.Key));
                     if (!match.Equals(default(KeyValuePair<string, string>)))
                     {
                         var rest = workingLine.Substring(match.Key.Length).Trim();
-                        data[match.Value] = rest;
+                        Data[match.Value] = rest;
                     }
                 }
             }
@@ -158,7 +158,7 @@ PhysicalMemory >> {PhysicalMemory}";
                 p.Start();
                 string output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
-                data[nameof(UName)] = output;
+                Data[nameof(UName)] = output;
             }
         }
 
@@ -210,14 +210,14 @@ PhysicalMemory >> {PhysicalMemory}";
         /// <returns>the chached value</returns>
         private static string Get([CallerMemberName]string name = null)
         {
-            if (data.ContainsKey(name))
+            if (Data.ContainsKey(name))
             {
-                return data[name];
+                return Data[name];
             }
             else
             {
                 GetSystemInfo();
-                return data[name];
+                return Data[name];
             }
         }
 

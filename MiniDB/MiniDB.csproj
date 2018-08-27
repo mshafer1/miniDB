@@ -52,6 +52,7 @@
     <Compile Include="HardwareID.cs" />
     <Compile Include="ID.cs" />
     <Compile Include="INotifyPropertyChangedExtended.cs" />
+    <Compile Include="IStorageStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyChangedExtendedEventArgs.cs" />
   </ItemGroup>

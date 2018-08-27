@@ -13,18 +13,17 @@ namespace DbXunitTests
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ExampleStoredItem" /> class.
-        /// Age defaults to 0
         /// </summary>
-        /// <param name="firstName">First name to store</param>
-        /// <param name="lastName">Last name to store</param>
-        /// <param name="id">ID value to use</param>
+        /// <param name="firstName">Person's first name</param>
+        /// <param name="lastName">Person's last name</param>
+        /// <param name="id">ID in DB</param>
+        /// <param name="age">how old is the person</param>
         public ExampleStoredItem(string firstName, string lastName, MiniDB.ID id, int? age) : base(id)
         {
             this.FirstName = firstName;
             this.LastName = lastName;
             this.Age = age;
         }
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExampleStoredItem" /> class.
@@ -54,8 +53,6 @@ namespace DbXunitTests
         public ExampleStoredItem(string firstName, string lastName) : this(firstName, lastName, null, 0)
         {
         }
-
-        
 
         /// <summary>
         /// Gets or sets the first name

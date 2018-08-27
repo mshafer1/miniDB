@@ -15,7 +15,7 @@ namespace MiniDB
         /// <summary>
         /// A radom number generator to create the next ID number from
         /// </summary>
-        private static readonly Random random = new Random();
+        private static readonly Random Random = new Random();
 
         /// <summary>
         /// Gets or sets the numeric part of the ID
@@ -200,7 +200,7 @@ namespace MiniDB
         public ID Set()
         {
             this.hardwareComponent = DBHardwareID.IDValueInt();
-            this.id = random.Next(0, int.MaxValue);
+            this.id = Random.Next(0, int.MaxValue);
             return this;
         }
 

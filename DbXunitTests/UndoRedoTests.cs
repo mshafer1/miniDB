@@ -35,16 +35,20 @@ namespace DbXunitTests
         }
 
         /// <summary>
+        /// Finalizes an instance of the <see cref="UndoRedoTests" /> class.
+        /// Cleanup after all tests
+        /// </summary>
+        ~UndoRedoTests()
+        {
+            this.Cleanup();
+        }
+
+        /// <summary>
         /// Cleanup in between each test
         /// </summary>
         public void Dispose()
         {
             // clean up when finished
-            this.Cleanup();
-        }
-
-        ~UndoRedoTests()
-        {
             this.Cleanup();
         }
 
@@ -64,7 +68,7 @@ namespace DbXunitTests
                 Assert.False(File.Exists(this.filename));
                 this.Sleep(.300);
                 db.Add(entry);
-                //this.Sleep(.300);
+                this.Sleep(.300);
                 Assert.True(File.Exists(this.filename));
                 Assert.True(File.Exists(this.transactionsFile));
                 Assert.Single(db);

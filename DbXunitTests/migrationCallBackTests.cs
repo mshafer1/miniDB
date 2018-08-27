@@ -113,6 +113,7 @@ namespace DbXunitTests
             {
                 throw new Exception($"Cannot convert from {input.OldVersion} to {input.TargetVersion}");
             }
+
             if (input.OldVersion == 1.5)
             {
                 // iterate over items in loaded DB and perform the update
@@ -125,11 +126,12 @@ namespace DbXunitTests
                     child[nameof(ExampleStoredItem.FirstName)] = firstName;
                     child[nameof(ExampleStoredItem.LastName)] = lastName;
                 }
+
                 return input.Collection;
             }
-            // add more previous versions if needed
             else
             {
+                // add more previous versions if needed
                 throw new Exception($"Cannot convert from {input.OldVersion} to {input.TargetVersion}");
             }
         }

@@ -15,7 +15,7 @@ namespace MiniDB
         /// <summary>
         /// A radom number generator to create the next ID number from
         /// </summary>
-        private static Random random = new Random();
+        private static readonly Random random = new Random();
 
         /// <summary>
         /// Gets or sets the numeric part of the ID

@@ -14,16 +14,11 @@ namespace HardwareID
     /// </summary>
     public sealed class HardwareID
     {
-        #region properties
-        /// <summary>
-        /// Cache the fields, for quick recapture
-        /// </summary>
-        private static Dictionary<string, object> data = new Dictionary<string, object>();
-
+        #region constants
         /// <summary>
         /// Keys to parse from SystemInfo
         /// </summary>
-        private static Dictionary<string, string> systemInfoFields = new Dictionary<string, string>()
+        private static readonly IReadOnlyDictionary<string, string> systemInfoFields = new Dictionary<string, string>()
         {
             { "OS Name:",  nameof(OSName) },
             { "OS Manufacturer:", nameof(OSManufacturer) },
@@ -32,6 +27,13 @@ namespace HardwareID
             { "System Type:", nameof(SystemType) },
             { "Total Physical Memory:", nameof(PhysicalMemory) },
         };
+        #endregion
+
+        #region fields
+        /// <summary>
+        /// Cache the fields, for quick recapture
+        /// </summary>
+        private static readonly Dictionary<string, string> data = new Dictionary<string, string>();
         #endregion
 
         #region properties
@@ -163,6 +165,8 @@ PhysicalMemory >> {PhysicalMemory}";
         /// <summary>
         ///  Get hash of string (translated to bytes)
         /// hashing code from http://forum.codecall.net/topic/78149-c-tutorial-generating-a-unique-hardware-id/
+        /// Not using the builting s.GetHashCode as its implementation is differen in different versions of CLR,
+        ///   so we are using MD5 to keep consistency across platforms/compiles.
         /// </summary>
         /// <param name="s">the value to hash</param>
         /// <returns>Hexidecimal formatted hash string</returns>
@@ -185,18 +189,18 @@ PhysicalMemory >> {PhysicalMemory}";
         /// <returns>hexadecimal string representation of list</returns>
         private static string GetHexString(IList<byte> bt)
         {
-            string s = string.Empty;
+            var s = new StringBuilder();
             for (int i = 0; i < bt.Count; i++)
             {
                 byte b = bt[i];
-                s += b.ToString("X2"); // format into hexidecimal 0XFF;
+                s.Append(b.ToString("X2")); // format into hexidecimal 0xFF;
                 if ((i + 1) % 2 == 0 && (i + 1) < bt.Count)
                 {
-                    s += "-";
+                    s.Append("-");
                 }
             }
 
-            return s;
+            return s.ToString();
         }
 
         /// <summary>
@@ -204,8 +208,8 @@ PhysicalMemory >> {PhysicalMemory}";
         /// </summary>
         /// <param name="name">The name of the item to fetch (default: caller)</param>
         /// <returns>the chached value</returns>
-        private static dynamic Get([CallerMemberName]string name = null)
-        { // TODO changing this to dynamic may make structs not work correctly unless initialized 
+        private static string Get([CallerMemberName]string name = null)
+        {
             if (data.ContainsKey(name))
             {
                 return data[name];
@@ -217,40 +221,6 @@ PhysicalMemory >> {PhysicalMemory}";
             }
         }
 
-        /// <summary>
-        /// Store the value in data and raise a PropertyChangedExtended event
-        ///   if the new value is different, else return false.
-        /// </summary>
-        /// <typeparam name="T">The type of the value</typeparam>
-        /// <param name="value">The desired value to store in data</param>
-        /// <param name="name">The name to store the value under (default: caller)</param>
-        /// <returns>bool - successful or not</returns>
-        private bool Set<T>(T value, [CallerMemberName]string name = null)
-        {
-            T oldVal;
-            if (data.ContainsKey(name))
-            {
-                oldVal = (T)data[name];
-                if (oldVal == null && value == null)
-                {
-                    return false;
-                }
-
-                if (oldVal != null && oldVal.Equals(value))
-                {
-                    return false; // NO-OP
-                }
-
-                data[name] = value;
-            }
-            else
-            {
-                oldVal = default(T);
-                data.Add(name, value);
-            }
-
-            return true;
-        }
         #endregion
     }
 }

@@ -13,7 +13,7 @@ namespace MiniDB
     ///   PropertyChanged event (should be raised to update UI, but does not trigger a DB cache)
     ///   PropertyChangedExtended event (should be raised to update DB cache, also triggers PropertyChanged to update UI)
     /// </summary>
-    public abstract class DatabaseObject
+    public abstract class DatabaseObject : INotifyPropertyChanged
     {
         #region fields
         /// <summary>
@@ -38,7 +38,7 @@ namespace MiniDB
         /// <param name="id">The id to be used for the DB</param>
         public DatabaseObject(ID id)
         {
-            this.ID = id;
+            this.ID = id ?? new ID();
         }
         #endregion
 

@@ -88,8 +88,9 @@ namespace DbXunitTests
                 Assert.False(db.CanRedo);
                 Assert.True(File.Exists(this.filename));
                 Assert.True(File.Exists(this.transactionsFile));
-                Assert.Single(db);
                 Assert.NotEqual(edit_time, File.GetLastWriteTime(this.filename)); // should update on edit
+
+                Assert.Single(db);
                 Assert.Equal("John", db.First().FirstName);
                 Assert.Equal("Doe", db.First().LastName);
             }

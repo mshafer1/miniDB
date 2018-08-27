@@ -12,12 +12,12 @@ namespace DbXunitTests
     public class MigrationCallBackTests : IDisposable
     {
         /// <summary>
-        /// the expected base id value.
+        /// the expected base id value (providing a default that is not random for consistent test results).
         /// </summary>
         private const int ExpectedID = 1955653895;
 
         /// <summary>
-        /// the expected hardware component
+        /// the expected hardware component (providing a default that is not hardware dependent).
         /// </summary>
         private const ulong ExpectedHardware = 3621229645820015414;
 

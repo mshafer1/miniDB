@@ -59,13 +59,7 @@ namespace DbXunitTests
         /// <summary>
         /// Gets the full name of the stored person
         /// </summary>
-        public string Name
-        {
-            get
-            {
-                return $"{FirstName} {LastName}";
-            }
-        }
+        public string Name => $"{FirstName} {LastName}";
 
         /// <summary>
         /// Gets Nested property - this address is also tracked at a sub item level
@@ -76,7 +70,7 @@ namespace DbXunitTests
         #region private methods
 
         /// <summary>
-        /// When an address field is changed - raise an event on this object to
+        /// When an address field is changed - raise an event on this object too
         /// </summary>
         /// <param name="sender">the object that raissed the event - expected to be this address</param>
         /// <param name="e">the event args</param>

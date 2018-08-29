@@ -77,7 +77,7 @@ namespace MiniDB
                 string global_lock_mutex_name = @"Global\" + mutex_name;
 
                 // from https://stackoverflow.com/a/3111740
-                // try to get existing mutex from syste
+                // try to get existing mutex from system
                 try
                 {
                     this.mut = System.Threading.Mutex.OpenExisting(global_lock_mutex_name);
@@ -90,7 +90,7 @@ namespace MiniDB
                     this.mut = new System.Threading.Mutex(false, global_lock_mutex_name);
                 }
 
-                // acquire the lock from the mutex - this is release in dispose
+                // acquire the lock from the mutex - this is released in dispose
                 if (!this.mut.WaitOne(TimeSpan.FromSeconds(5), false))
                 {
                     // did not get mutex, so don't need to release if thrown
@@ -185,7 +185,6 @@ namespace MiniDB
             get
             {
                 // TODOne: this should be number of immediate redo's is less than number of next immediate undo's
-                //  bool result = true;
                 var redos_count = this.CountRecentTransactions(TransactionType.Redo);
                 Func<DBTransaction<T>, bool> matcher = x => x.TransactionType == TransactionType.Undo && x.Active == true;
                 var undos_count = this.CountRecentTransactions(matcher, this.Transactions_DB.Skip(redos_count * 2));

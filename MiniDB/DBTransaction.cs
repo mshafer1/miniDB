@@ -87,7 +87,7 @@ namespace MiniDB
             this.Property_new = inTransaction.Property_new;
             this.Property_old = inTransaction.Property_old;
             
-            // needed? - keep until collision detecting is implemented
+            //TODO: needed? - keep until collision detecting is implemented
             nextAvailableID++;
         }
 

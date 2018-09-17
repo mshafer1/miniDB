@@ -20,7 +20,7 @@ namespace MiniDB
         /// <param name="filename">The filename or path to store the collection in</param>
         /// <param name="dataBaseVersion">The current version of the database - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0.1 for now</param>
-        public EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion) : base(filename, dataBaseVersion, minimumCompatibleVersion)
+        public EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion) : base(filename, dataBaseVersion, minimumCompatibleVersion, null) // TODO: add storage strategy
         {
             // NOOP
         }
@@ -33,7 +33,7 @@ namespace MiniDB
         /// <param name="dataBaseVersion">The current version of the database - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0.1 for now</param>
         /// <param name="base_case">Parameter to force calling the base case</param>
-        private EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion, bool base_case) : base(filename, dataBaseVersion, minimumCompatibleVersion, base_case)
+        private EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion, bool base_case) : base(filename, dataBaseVersion, minimumCompatibleVersion, null, base_case) // TODO: add storage strategy
         {
             // NOOP
         }
@@ -67,43 +67,43 @@ namespace MiniDB
         #endregion
 
         #region overrides
-        /// <summary>
-        /// Decrypts and loads the transactions db
-        /// </summary>
-        /// <param name="transactions_filename">the filename/path that the db is stored in</param>
-        /// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
-        protected override DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename)
-        {
-            return new EncryptedDataBase<DBTransaction<T>>(transactions_filename, this.DBVersion, this.MinimumCompatibleVersion, true);
-        }
+        ///// <summary>
+        ///// Decrypts and loads the transactions db
+        ///// </summary>
+        ///// <param name="transactions_filename">the filename/path that the db is stored in</param>
+        ///// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
+        //protected override DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename)
+        //{
+        //    return new EncryptedDataBase<DBTransaction<T>>(transactions_filename, this.DBVersion, this.MinimumCompatibleVersion, true);
+        //}
 
-        /// <summary>
-        /// Overides the default ReadFile to decrypt the file on load
-        /// </summary>
-        /// <param name="filename">The filename or path to read</param>
-        /// <returns>Json searlized <see cref="DataBase{T}" /> from file.</returns>
-        protected override string _readFile(string filename)
-        {
-            if (System.IO.File.Exists(filename))
-            {
-                var json = this.DecryptFile(filename);
-                return json;
-            }
+        ///// <summary>
+        ///// Overides the default ReadFile to decrypt the file on load
+        ///// </summary>
+        ///// <param name="filename">The filename or path to read</param>
+        ///// <returns>Json searlized <see cref="DataBase{T}" /> from file.</returns>
+        //protected override string _readFile(string filename)
+        //{
+        //    if (System.IO.File.Exists(filename))
+        //    {
+        //        var json = this.DecryptFile(filename);
+        //        return json;
+        //    }
 
-            return string.Empty;
-        }
+        //    return string.Empty;
+        //}
 
-        /// <summary>
-        /// Override the base cacheDB method to store an encrypted version instead.
-        /// </summary>
-        protected override void _cacheDB()
-        {
-            lock (DataBase<T>.Locker)
-            {
-                // store local version
-                this.EncryptFile();
-            }
-        }
+        ///// <summary>
+        ///// Override the base cacheDB method to store an encrypted version instead.
+        ///// </summary>
+        //protected override void _cacheDB()
+        //{
+        //    lock (DataBase<T>.Locker)
+        //    {
+        //        // store local version
+        //        this.EncryptFile();
+        //    }
+        //}
         #endregion
 
         #region helper methods
@@ -147,46 +147,46 @@ namespace MiniDB
         /// <summary>
         /// Takes this database and stores it in the Filename as encrypted data
         /// </summary>
-        private void EncryptFile()
-        {
-            RijndaelManaged rindaelManagedCrypto = new RijndaelManaged();
+        //private void EncryptFile()
+        //{
+        //    RijndaelManaged rindaelManagedCrypto = new RijndaelManaged();
 
-            byte[] initializationVector = new byte[this.Key.Length];
+        //    byte[] initializationVector = new byte[this.Key.Length];
 
-            var r = new Random();
-            r.NextBytes(initializationVector); // fill the Initilization Vector with random Bytes
-            Debug.Assert(initializationVector.Length == this.Key.Length && this.Key.Length == 16, "Encryption algorithm uses both a 16 byte key and initialization vector");
+        //    var r = new Random();
+        //    r.NextBytes(initializationVector); // fill the Initilization Vector with random Bytes
+        //    Debug.Assert(initializationVector.Length == this.Key.Length && this.Key.Length == 16, "Encryption algorithm uses both a 16 byte key and initialization vector");
 
-            var encryptor = rindaelManagedCrypto.CreateEncryptor(this.Key, initializationVector);
+        //    var encryptor = rindaelManagedCrypto.CreateEncryptor(this.Key, initializationVector);
 
-            if (!System.IO.File.Exists(this.Filename))
-            {
-                File.Create(this.Filename).Close();
-            }
+        //    if (!System.IO.File.Exists(this.Filename))
+        //    {
+        //        File.Create(this.Filename).Close();
+        //    }
 
-            // overwrite old file
-            using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Truncate))
-            {
-                // write file version
-                fileStream.WriteByte((byte)(this.EncryptionVersion * 10));
+        //    // overwrite old file
+        //    using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Truncate))
+        //    {
+        //        // write file version
+        //        fileStream.WriteByte((byte)(this.EncryptionVersion * 10));
 
-                // write Initilization Vector
-                fileStream.Write(initializationVector, 0, initializationVector.Length);
-            }
+        //        // write Initilization Vector
+        //        fileStream.Write(initializationVector, 0, initializationVector.Length);
+        //    }
 
-            // re-open append mode, cryptStream needs a new fileStream
-            using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Append))
-            {
-                using (CryptoStream cryptStream = new CryptoStream(fileStream, encryptor, CryptoStreamMode.Write))
-                {
-                    // Create a StreamWriter for easy writing to the filestream
-                    using (StreamWriter streamWriter = new StreamWriter(cryptStream))
-                    {
-                        streamWriter.WriteLine(this.SerializeData);
-                    }
-                }
-            }
-        }
+        //    // re-open append mode, cryptStream needs a new fileStream
+        //    using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Append))
+        //    {
+        //        using (CryptoStream cryptStream = new CryptoStream(fileStream, encryptor, CryptoStreamMode.Write))
+        //        {
+        //            // Create a StreamWriter for easy writing to the filestream
+        //            using (StreamWriter streamWriter = new StreamWriter(cryptStream))
+        //            {
+        //                streamWriter.WriteLine(this.SerializeData);
+        //            }
+        //        }
+        //    }
+        //}
         #endregion
     }
 }

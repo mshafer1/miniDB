@@ -60,7 +60,7 @@ namespace DbXunitTests
         public void TestNormalDBCanReload()
         {
             Console.WriteLine($"Test reloading normal DB");
-            this.TestDBType(file => new MiniDB.DataBase<ExampleComplicatedStoredItem>(file, 1.0f, 1));
+            this.TestDBType(file => new MiniDB.DataBase<ExampleComplicatedStoredItem>(file, 1.0f, 1)); // TODO: add storage strategy
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace DbXunitTests
         public void TestEncryptedDBCanReload()
         {
             Console.WriteLine($"Test reloading encrypted DB");
-            this.TestDBType(file => new MiniDB.EncryptedDataBase<ExampleComplicatedStoredItem>(file, 1, 1));
+            this.TestDBType(file => new MiniDB.EncryptedDataBase<ExampleComplicatedStoredItem>(file, 1, 1)); // TODO: add storage strategy
         }
 
         /// <summary>

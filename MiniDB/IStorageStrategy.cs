@@ -29,6 +29,14 @@ namespace MiniDB
         /// <summary>
         /// Method to store in file;
         /// </summary>
-        void _cacheDB();
+        void _cacheDB(DataBase<T> db);
+
+        /// <summary>
+        /// Method to migrate files stored in this storage strategy
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="oldVersion"></param>
+        /// <param name="newVersion"></param>
+        void _migrate(string filename, float oldVersion, float newVersion);
     }
 }

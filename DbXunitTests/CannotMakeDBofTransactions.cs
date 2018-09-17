@@ -13,7 +13,7 @@ namespace DbXunitTests
         [Fact]
         public void TestCannotMakeDBofTransactions()
         {
-            Assert.Throws<MiniDB.DBCreationException>(() => { var x = new MiniDB.DataBase<MiniDB.DBTransaction<ExampleStoredItem>>("testDB", 1, 1); });
+            Assert.Throws<MiniDB.DBCreationException>(() => { var x = new MiniDB.DataBase<MiniDB.DBTransaction<ExampleStoredItem>>("testDB", 1, 1, null); }); // TODO: add storage strategy
         }
     }
 }

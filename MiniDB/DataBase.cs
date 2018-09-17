@@ -20,6 +20,8 @@ namespace MiniDB
     public class DataBase<T> : ObservableCollection<T>, IDisposable where T : DatabaseObject
     {
         #region fields
+        protected readonly IStorageStrategy<T> StorageStrategy;
+
         /// <summary>
         /// lock object - this is used to lock the current database from attempting to edit the data at the same time.
         /// </summary>
@@ -44,6 +46,8 @@ namespace MiniDB
         ///  - this allows for multiple instances of a DB, but only one of a given type accessing a given file
         /// </summary>
         private Mutex mut = null;
+
+        private readonly IStorageStrategy<T> defaultStorageStrategy = new JsonStorageStrategy<T>();
         #endregion
 
         #region constructors
@@ -55,11 +59,11 @@ namespace MiniDB
         /// <param name="databaseVersion">The current version of the database (stored only to one decimal place and max value of 25.5 - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0 for now</param>
         /// <param name="migrate_db">Method to migrate db's that are loaded that are at least the minimum compatible version, but not the current version.</param>
-        public DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, Func<DBMigrationParameters, JToken> migrate_db = null) : base()
+        public DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, IStorageStrategy<T> storageStrategy) : base()
         {
             this.DBVersion = databaseVersion;
             this.MinimumCompatibleVersion = minimumCompatibleVersion;
-            this.Migrator = migrate_db;
+            this.StorageStrategy = storageStrategy;
 
             lock (Locker)
             {
@@ -100,7 +104,7 @@ namespace MiniDB
                 this.Filename = filename;
 
                 string transactionFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-                this.Transactions_DB = this._getTransactionsDB(transactionFilename);
+                this.Transactions_DB = this.StorageStrategy._getTransactionsDB(transactionFilename); //this._getTransactionsDB(transactionFilename);
                 this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
 
                 this.LoadFile(filename, true);
@@ -125,7 +129,7 @@ namespace MiniDB
         /// <param name="databaseVersion">the current version of the database</param>
         /// <param name="minimumCompatibleVersion">the minimum version of a database that can be upgraded to the current version</param>
         /// <param name="base_case">used to seperate this constructor (used to create the transactions DB) from the base call</param>
-        protected DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, bool base_case) : base()
+        protected DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, IStorageStrategy<T> storageStrategy, bool base_case) : base()
         {
             this.DBVersion = databaseVersion;
             this.Filename = filename;
@@ -203,27 +207,25 @@ namespace MiniDB
         /// <summary>
         /// Gets the filename/path that is used to cache the collection in
         /// </summary>
-        protected string Filename { get; private set; }
+        public string Filename { get; }
 
         /// <summary>
         /// Gets the method that is used to migrate old versions of the db
         /// </summary>
         protected Func<DBMigrationParameters, JToken> Migrator { get; }
 
-        /// <summary>
-        /// Gets Json serialized value of this as string
-        /// </summary>
-        protected string SerializeData
-        {
-            get
-            {
-                lock (Locker)
-                {
-                    // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
-                    return JsonConvert.SerializeObject(this, new DataBaseSerializer<T>());
-                }
-            }
-        }
+        
+        //protected string SerializeData
+        //{
+        //    get
+        //    {
+        //        lock (Locker)
+        //        {
+        //            // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
+        //            return JsonConvert.SerializeObject(this, new DataBaseSerializer<T>());
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Gets or sets the databse for caching transactions for undo/redo.
@@ -553,41 +555,17 @@ namespace MiniDB
         #endregion
 
         #region private methods
-        /// <summary>
-        /// Load in json from file
-        /// </summary>
-        /// <param name="filename">filename or path to read</param>
-        /// <returns>db as string to deserialize</returns>
-        protected virtual string _readFile(string filename)
-        {
-            if (System.IO.File.Exists(filename))
-            {
-                var json = System.IO.File.ReadAllText(filename);
-                return json;
-            }
-
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// Get the transaction DB setup
-        /// </summary>
-        /// <param name="transactions_filename">file or path to where transactions DB should be stored</param>
-        /// <returns>new DB of DBTransaction of T</returns>
-        protected virtual DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename)
-        {
-            return new DataBase<DBTransaction<T>>(transactions_filename, this.DBVersion, this.MinimumCompatibleVersion, true);
-        }
 
         /// <summary>
         /// Store the database to disk in <see cref="Filename"/>.
         /// </summary>
-        protected virtual void _cacheDB()
+        private void _cacheDB()
         {
             lock (Locker)
             {
-                var json = this.SerializeData;
-                System.IO.File.WriteAllText(this.Filename, json);
+                //var json = this.SerializeData;
+                //System.IO.File.WriteAllText(this.Filename, json);
+                this.StorageStrategy._cacheDB(this);
             }
         }
 
@@ -982,47 +960,51 @@ namespace MiniDB
         {
             this.ReleaseMutexOnError(() =>
             {
-                if (System.IO.File.Exists(file))
+                var adapted = this.StorageStrategy._loadDB(file);
+                if (adapted == null)
                 {
-                    var json = this._readFile(file);
+                    return;
+                }
 
-                    if (json.Length > 0)
+                if (adapted.DBVersion > this.DBVersion)
+                {
+                    throw new DBCreationException($"Cannot load db of version {adapted.DBVersion}. Current version is only {this.DBVersion}");
+                }
+
+                // if not the current version, try to update.
+                if (adapted.DBVersion != this.DBVersion && adapted.DBVersion >= this.MinimumCompatibleVersion)
+                {
+                    this.StorageStrategy._migrate(this.Filename, adapted.DBVersion, this.DBVersion);
+                }
+
+                // if new enough, and not too new,
+                if (adapted.DBVersion >= this.MinimumCompatibleVersion && adapted.DBVersion <= this.DBVersion)
+                {
+                    // parse and load
+                    foreach (var item in adapted)
                     {
-                        var adapted = JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
-                        if (adapted.DBVersion > this.DBVersion)
+                        this.Add(item);
+                        if (registerItemsForPropertyChange)
                         {
-                            throw new DBCreationException($"Cannot load db of version {adapted.DBVersion}. Current version is only {this.DBVersion}");
-                        }
-
-                        // if not the current version, try to update.
-                        if (adapted.DBVersion != this.DBVersion && adapted.DBVersion >= this.MinimumCompatibleVersion)
-                        {
-                            var raw = JObject.Parse(json);
-                            raw["Collection"] = this.Migrator?.Invoke(new DBMigrationParameters() { OldVersion = adapted.DBVersion, TargetVersion = this.DBVersion, Collection = raw["Collection"] }) ?? raw["Collection"];
-                            json = JsonConvert.SerializeObject(raw);
-                            adapted = JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
-                        }
-
-                        // if new enough, and not too new,
-                        if (adapted.DBVersion >= this.MinimumCompatibleVersion && adapted.DBVersion <= this.DBVersion)
-                        {
-                            // parse and load
-                            foreach (var item in adapted)
-                            {
-                                this.Add(item);
-                                if (registerItemsForPropertyChange)
-                                {
-                                    item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            throw new DBCreationException($"DB version {adapted.DBVersion} too old. Oldest supported db version is {MinimumCompatibleVersion}");
+                            item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
                         }
                     }
+
+                }
+                else
+                {
+                    throw new DBCreationException($"DB version {adapted.DBVersion} too old. Oldest supported db version is {MinimumCompatibleVersion}");
                 }
             });
+            //    if (System.IO.File.Exists(file))
+            //    {
+            //        var json = this.StorageStrategy.(file);
+
+            //        if (json.Length > 0)
+            //        {
+            //            var adapted = this.StorageStrategy._loadDB(this.Filename); // JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
+
+            
         }
 
         /// <summary>

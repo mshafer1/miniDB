@@ -7,23 +7,43 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    static class JsonStorageStrategy<T> : IStorageStrategy<T> where T : DatabaseObject
+    class JsonStorageStrategy<T> : IStorageStrategy<T> where T : DatabaseObject
     {
-        public static void _cacheDB(DataBase<T> db)
+        private static JsonStorageStrategy<T> instance = null;
+        public static JsonStorageStrategy<T> Instance
         {
-            var json = this.SerializeData(db);
-            System.IO.File.WriteAllText(db.Filename, json);
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new JsonStorageStrategy<T>();
+                }
+                return instance;
+            }
         }
 
-        public static DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename)
+        private JsonStorageStrategy() { }
+
+        public DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename, float dbVersion, float minimumCompatibleVersion, IStorageStrategy<DatabaseObject> storageStrategy)
         {
-            throw new NotImplementedException();
+            var json = this._readFile(transactions_filename);
+            DataBase<DBTransaction<T>> result;
+            if (json.Length > 0)
+            {
+                result = JsonConvert.DeserializeObject<DataBase<DBTransaction<T>>>(json, new DataBaseSerializer<T>());
+                // TODO: migration call back
+            }
+            else
+            {
+                result = new DataBase<DBTransaction<T>>(transactions_filename, dbVersion, minimumCompatibleVersion, storageStrategy);
+            }
+            return result;
         }
 
-        public static DataBase<T> _loadDB(string filename)
+        public DataBase<T> _loadDB(string filename)
         {
             var json = this._readFile(filename);
-            if(json.Length > 0)
+            if (json.Length > 0)
             {
                 return JsonConvert.DeserializeObject<DataBase<T>>(json, new DataBaseSerializer<T>());
             }
@@ -33,12 +53,23 @@ namespace MiniDB
             }
         }
 
+        public void _cacheDB(DataBase<T> db)
+        {
+            var json = this.SerializeData(db);
+            System.IO.File.WriteAllText(db.Filename, json);
+        }
+
+        public void _migrate(string filename, float oldVersion, float newVersion)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Read in the file
         /// </summary>
         /// <param name="filename">the file (relative name or absolute path)</param>
         /// <returns>file contents</returns>
-        private static string _readFile(string filename)
+        private string _readFile(string filename)
         {
             if (System.IO.File.Exists(filename))
             {
@@ -52,15 +83,10 @@ namespace MiniDB
         /// <summary>
         /// Gets Json serialized value of this as string
         /// </summary>
-        private static string SerializeData(DataBase<T> db)
+        internal string SerializeData(DataBase<T> db)
         {
             // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
             return JsonConvert.SerializeObject(db, new DataBaseSerializer<T>());
-        }
-
-        public static void _migrate(string filename, float oldVersion, float newVersion)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -63,7 +63,7 @@ namespace DbXunitTests
             Console.WriteLine("Test: DBModelUndoRedoAddTest");
             var entry = new ExampleStoredItem("John", "Doe");
 
-            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
+            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1, MiniDB.DBStorageStrategies<ExampleStoredItem>.JSON))
             {
                 Assert.False(File.Exists(this.filename));
                 this.Sleep(.300);
@@ -108,7 +108,7 @@ namespace DbXunitTests
         {
             Console.WriteLine("Test: DBModelRegistersAddedItemsForPropertyChangedEventsTest");
             var entry = new ExampleStoredItem("John", "Doe");
-            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
+            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1, MiniDB.DBStorageStrategies<ExampleStoredItem>.JSON))
             {
                 Assert.False(File.Exists(this.filename));
 
@@ -145,7 +145,7 @@ namespace DbXunitTests
             Console.WriteLine(path);
             var entry = new ExampleStoredItem("John", "Doe");
 
-            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
+            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1, MiniDB.DBStorageStrategies<ExampleStoredItem>.JSON))
             {
                 Assert.False(File.Exists(this.filename));
                 Assert.False(db.CanUndo, "Should not be able to undo from new db"); // should not be able to undo 0 changes
@@ -221,7 +221,7 @@ namespace DbXunitTests
             var entry = new ExampleStoredItem("John", "Doe");
             entry.Age = 3;
 
-            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
+            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1, MiniDB.DBStorageStrategies<ExampleStoredItem>.JSON))
             {
                 Assert.False(File.Exists(this.filename));
                 Assert.False(db.CanUndo, "Should not be able to undo from new db"); // should not be able to undo 0 changes
@@ -262,7 +262,7 @@ namespace DbXunitTests
             Console.WriteLine("Test: DBRedoUndoBasicChange");
             var entry = new ExampleStoredItem("John", "Doe");
 
-            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
+            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1, MiniDB.DBStorageStrategies<ExampleStoredItem>.JSON))
             {
                 Assert.False(File.Exists(this.filename), "File needs to be removed first");
                 Assert.False(db.CanUndo, "Should not be able to undo empty db"); // should not be able to undo 0 changes
@@ -352,7 +352,7 @@ namespace DbXunitTests
             Console.WriteLine("Test: DBRedoUndoSmallStack");
             var entry = new ExampleStoredItem(string.Empty, string.Empty);
 
-            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1))
+            using (var db = new MiniDB.DataBase<ExampleStoredItem>(this.filename, 1, 1, MiniDB.DBStorageStrategies<ExampleStoredItem>.JSON))
             {
                 Assert.False(File.Exists(this.filename), "File needs to be removed first");
                 Assert.False(db.CanUndo, "Should not be able to undo empty db"); // should not be able to undo 0 changes
@@ -449,7 +449,7 @@ namespace DbXunitTests
             Console.WriteLine("Test: DBRedoUndoNestedChange");
             var entry = new ExampleComplicatedStoredItem("John", "Doe");
 
-            using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1))
+            using (var db = new MiniDB.DataBase<ExampleComplicatedStoredItem>(this.filename, 1, 1, MiniDB.DBStorageStrategies<ExampleComplicatedStoredItem>.JSON))
             {
                 Assert.False(File.Exists(this.filename), "File needs to be removed first");
                 Assert.False(db.CanUndo, "Should not be able to undo empty db"); // should not be able to undo 0 changes

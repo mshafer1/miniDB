@@ -46,8 +46,6 @@ namespace MiniDB
         ///  - this allows for multiple instances of a DB, but only one of a given type accessing a given file
         /// </summary>
         private Mutex mut = null;
-
-        private readonly IStorageStrategy<T> defaultStorageStrategy = new JsonStorageStrategy<T>();
         #endregion
 
         #region constructors
@@ -59,6 +57,7 @@ namespace MiniDB
         /// <param name="databaseVersion">The current version of the database (stored only to one decimal place and max value of 25.5 - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0 for now</param>
         /// <param name="migrate_db">Method to migrate db's that are loaded that are at least the minimum compatible version, but not the current version.</param>
+        /// <param name="storageStrategy">The storage strategy to use.</param>
         public DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, IStorageStrategy<T> storageStrategy) : base()
         {
             this.DBVersion = databaseVersion;
@@ -104,7 +103,7 @@ namespace MiniDB
                 this.Filename = filename;
 
                 string transactionFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-                this.Transactions_DB = this.StorageStrategy._getTransactionsDB(transactionFilename); //this._getTransactionsDB(transactionFilename);
+                this.Transactions_DB = this.StorageStrategy._getTransactionsDB(transactionFilename, this.DBVersion, this.MinimumCompatibleVersion, this.StorageStrategy); //this._getTransactionsDB(transactionFilename);
                 this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
 
                 this.LoadFile(filename, true);
@@ -129,11 +128,12 @@ namespace MiniDB
         /// <param name="databaseVersion">the current version of the database</param>
         /// <param name="minimumCompatibleVersion">the minimum version of a database that can be upgraded to the current version</param>
         /// <param name="base_case">used to seperate this constructor (used to create the transactions DB) from the base call</param>
-        protected DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, IStorageStrategy<T> storageStrategy, bool base_case) : base()
+        internal DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, IStorageStrategy<T> storageStrategy, bool base_case) : base()
         {
             this.DBVersion = databaseVersion;
             this.Filename = filename;
             this.LoadFile(filename, false);
+            this.StorageStrategy = storageStrategy;
         }
         #endregion
 

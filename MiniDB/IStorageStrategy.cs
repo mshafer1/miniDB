@@ -17,7 +17,7 @@ namespace MiniDB
         /// </summary>
         /// <param name="transactions_filename">the filename/path that the db is stored in</param>
         /// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
-        DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename);
+        DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename, float dbVersion, float minimumCompatibleVersion, IStorageStrategy<DatabaseObject> storageStrategy);
 
         /// <summary>
         /// load the DB

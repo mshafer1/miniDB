@@ -20,7 +20,7 @@ namespace MiniDB
         /// <param name="filename">The filename or path to store the collection in</param>
         /// <param name="dataBaseVersion">The current version of the database - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0.1 for now</param>
-        public EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion) : base(filename, dataBaseVersion, minimumCompatibleVersion, DBStorageStrategies<T>.Encrypted) // TODO: add storage strategy
+        public EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion) : base(filename, dataBaseVersion, minimumCompatibleVersion, null) // TODO: add storage strategy
         {
             // NOOP
         }
@@ -33,18 +33,38 @@ namespace MiniDB
         /// <param name="dataBaseVersion">The current version of the database - if unsure what to use, put 0.1 for now</param>
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0.1 for now</param>
         /// <param name="base_case">Parameter to force calling the base case</param>
-        private EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion, bool base_case) : base(filename, dataBaseVersion, minimumCompatibleVersion, DBStorageStrategies<T>.Encrypted, base_case) // TODO: add storage strategy
-        {
-            // NOOP
-        }
-
-        internal EncryptedDataBase() : base()
+        private EncryptedDataBase(string filename, float dataBaseVersion, float minimumCompatibleVersion, bool base_case) : base(filename, dataBaseVersion, minimumCompatibleVersion, null, base_case) // TODO: add storage strategy
         {
             // NOOP
         }
         #endregion
 
-        
+        #region properties
+
+        /// <summary>
+        /// Gets the private key used in the encryption/decryption
+        /// </summary>
+        internal byte[] Key
+        {
+            get
+            {
+                return HardwareID;
+            }
+        }
+
+        /// <summary>
+        /// Gets the version number to track how data is encrypted (stored only to one decimal place in one byte so max value of 25.5, and 12.3 is reserved for non-encrypted db's)
+        /// </summary>
+        protected virtual float EncryptionVersion { get; } = 1.0f;
+
+        /// <summary>
+        /// Gets a 16 byte hardware specific ID - used in encrypting/decrypting the database
+        /// </summary>
+        private static byte[] HardwareID
+        {
+            get => DBHardwareID.IDValueBytes().Take(16).ToArray();
+        }
+        #endregion
 
         #region overrides
         ///// <summary>
@@ -72,12 +92,101 @@ namespace MiniDB
 
         //    return string.Empty;
         //}
+
+        ///// <summary>
+        ///// Override the base cacheDB method to store an encrypted version instead.
+        ///// </summary>
+        //protected override void _cacheDB()
+        //{
+        //    lock (DataBase<T>.Locker)
+        //    {
+        //        // store local version
+        //        this.EncryptFile();
+        //    }
+        //}
         #endregion
 
         #region helper methods
-        
+        /// <summary>
+        /// Helper method to load in the file, decrypt the binary blob, and return valid data - if overriding this class, will need to extend this method to handle custom versions
+        /// </summary>
+        /// <param name="filename">the file or path to load</param>
+        /// <returns>DB JSON representation from binary blob in file</returns>
+        protected virtual string DecryptFile(string filename)
+        {
+            // Create a new instance of the RijndaelManaged class  
+            //  and decrypt the stream.  
+            RijndaelManaged rindaelManagedCrypto = new RijndaelManaged();
+            byte[] initializationVector = new byte[this.Key.Length];
+            using (System.IO.FileStream fileStream = new FileStream(this.Filename, FileMode.Open))
+            {
+                var fileVersion = (short)fileStream.ReadByte();
 
-        
+                // TODO: implement overidable call back for migrating encryption versions in this db.
+                switch (fileVersion)
+                {
+                    case 10:
+                        fileStream.Read(initializationVector, 0, initializationVector.Length);
+                        fileStream.Seek(initializationVector.Length + 1, SeekOrigin.Begin); // + 1 for version byte
+                        using (CryptoStream cryptoStream = new CryptoStream(fileStream, rindaelManagedCrypto.CreateDecryptor(this.Key, initializationVector), CryptoStreamMode.Read))
+                        {
+                            using (StreamReader sreader = new StreamReader(cryptoStream))
+                            {
+                                return sreader.ReadToEnd();
+                            }
+                        }
+
+                    case 123:
+                        throw new NotImplementedException($"Cannot decrypt DB of version: {fileVersion}\nLooks like you tried to decrypt a non-encrypted db.");
+                    default:
+                        throw new NotImplementedException($"Cannot decrypt DB of version: {fileVersion}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Takes this database and stores it in the Filename as encrypted data
+        /// </summary>
+        private void EncryptFile()
+        {
+            RijndaelManaged rindaelManagedCrypto = new RijndaelManaged();
+
+            byte[] initializationVector = new byte[this.Key.Length];
+
+            var r = new Random();
+            r.NextBytes(initializationVector); // fill the Initilization Vector with random Bytes
+            Debug.Assert(initializationVector.Length == this.Key.Length && this.Key.Length == 16, "Encryption algorithm uses both a 16 byte key and initialization vector");
+
+            var encryptor = rindaelManagedCrypto.CreateEncryptor(this.Key, initializationVector);
+
+            if (!System.IO.File.Exists(this.Filename))
+            {
+                File.Create(this.Filename).Close();
+            }
+
+            // overwrite old file
+            using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Truncate))
+            {
+                // write file version
+                fileStream.WriteByte((byte)(this.EncryptionVersion * 10));
+
+                // write Initilization Vector
+                fileStream.Write(initializationVector, 0, initializationVector.Length);
+            }
+
+            // re-open append mode, cryptStream needs a new fileStream
+            using (System.IO.FileStream fileStream = new System.IO.FileStream(this.Filename, FileMode.Append))
+            {
+                using (CryptoStream cryptStream = new CryptoStream(fileStream, encryptor, CryptoStreamMode.Write))
+                {
+                    // Create a StreamWriter for easy writing to the filestream
+                    using (StreamWriter streamWriter = new StreamWriter(cryptStream))
+                    {
+                        streamWriter.WriteLine(this.SerializeData);
+                    }
+                }
+            }
+        }
         #endregion
     }
 }

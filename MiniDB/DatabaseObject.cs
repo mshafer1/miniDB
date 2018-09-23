@@ -6,6 +6,13 @@ using Newtonsoft.Json;
 
 namespace MiniDB
 {
+
+    public interface IDatabaseObject
+    {
+
+    }
+
+
     /// <summary>
     /// Base Database Object
     /// Provides: 
@@ -13,7 +20,7 @@ namespace MiniDB
     ///   PropertyChanged event (should be raised to update UI, but does not trigger a DB cache)
     ///   PropertyChangedExtended event (should be raised to update DB cache, also triggers PropertyChanged to update UI)
     /// </summary>
-    public abstract class DatabaseObject : INotifyPropertyChanged
+    public abstract class DatabaseObject : IDatabaseObject, INotifyPropertyChanged
     {
         #region fields
         /// <summary>

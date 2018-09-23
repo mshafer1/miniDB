@@ -11,7 +11,7 @@ namespace MiniDB
     /// intermediate class that can be serialized by JSON.net
     /// </summary>
     /// <typeparam name="T">and contains the same data as <see cref="DataBase{T}"/> - allows for DBVersion to be serialized</typeparam>
-    internal class DataBaseSurrogate<T> where T : DatabaseObject
+    internal class DataBaseSurrogate<T> where T : IDatabaseObject
     {
         // the collection of T elements
 
@@ -34,7 +34,7 @@ namespace MiniDB
     /// Class to serialize database to json with db version number
     /// </summary>
     /// <typeparam name="T">The type of object stored in the Database</typeparam>
-    internal class DataBaseSerializer<T> : JsonConverter where T : DatabaseObject
+    internal class DataBaseSerializer<T> : JsonConverter where T : IDatabaseObject
     {
         /// <summary>
         /// Verify if JsonConverter can be used to convert this object from Json

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    class EncryptedStorageStrategy<T> : IStorageStrategy<T> where T : DatabaseObject
+    class EncryptedStorageStrategy<T> : IStorageStrategy<T> where T : IDatabaseObject
     {
         private static IStorageStrategy<T> instance = null;
         public static IStorageStrategy<T> Instance
@@ -60,18 +60,18 @@ namespace MiniDB
             this.EncryptFile(db);
         }
 
-        public DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename)
-        {
-            var json = this.DecryptFile(transactions_filename);
-            if (json.Length > 0)
-            {
-                return JsonConvert.DeserializeObject<DataBase<DBTransaction<T>>>(json, new DataBaseSerializer<T>());
-            }
-            else
-            {
-                return new DataBase<DBTransaction<T>>();
-            }
-        }
+        //public DataBase<DBTransaction<IDatabaseObject>> _getTransactionsDB(string transactions_filename)
+        //{
+        //    var json = this.DecryptFile(transactions_filename);
+        //    if (json.Length > 0)
+        //    {
+        //        return JsonConvert.DeserializeObject<DataBase<DBTransaction<T>>>(json, new DataBaseSerializer<T>());
+        //    }
+        //    else
+        //    {
+        //        return new DataBase<DBTransaction<T>>();
+        //    }
+        //}
 
         public DataBase<T> _loadDB(string filename)
         {
@@ -166,15 +166,23 @@ namespace MiniDB
                     // Create a StreamWriter for easy writing to the filestream
                     using (StreamWriter streamWriter = new StreamWriter(cryptStream))
                     {
-                        streamWriter.Write(JsonStorageStrategy<T>.Instance.SerializeData(db));
+                        streamWriter.Write(JsonStorageStrategy<T>.SerializeData(db));
                     }
                 }
             }
         }
 
-        public DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename, float dbVersion, float minimumCompatibleVersion, IStorageStrategy<DatabaseObject> storageStrategy)
+        DataBase<DBTransaction<IDatabaseObject>> IStorageStrategy<T>._getTransactionsDB(string transactions_filename, float dbVersion, float minimumCompatibleVersion, IStorageStrategy<DBTransaction<IDatabaseObject>> storageStrategy)
         {
-            throw new NotImplementedException();
+            var json = this.DecryptFile(transactions_filename);
+            if (json.Length > 0)
+            {
+                return JsonConvert.DeserializeObject<DataBase<DBTransaction<IDatabaseObject>>>(json, new DataBaseSerializer<T>());
+            }
+            else
+            {
+                return new DataBase<DBTransaction<IDatabaseObject>>();
+            }
         }
     }
 }

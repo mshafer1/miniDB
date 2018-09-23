@@ -47,7 +47,7 @@
     <Compile Include="DatabaseObject.cs" />
     <Compile Include="DataBaseSerializer.cs" />
     <Compile Include="DBExceptions.cs" />
-    <Compile Include="DBStorageStrategies.cs" />
+    <Compile Include="JsonDB.cs" />
     <Compile Include="DBTransaction.cs" />
     <Compile Include="EncryptedDataBase.cs" />
     <Compile Include="EncryptedStorageStrategy.cs" />

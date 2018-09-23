@@ -43,7 +43,7 @@ namespace MiniDB
     /// Transaction class to save information about changes to the Database of type T.
     /// </summary>
     /// <typeparam name="T">DatabaseObject type that is stored in DB</typeparam>
-    public class DBTransaction<T> : DatabaseObject where T : DatabaseObject
+    public class DBTransaction<T> : IDatabaseObject where T : IDatabaseObject
     {
         /// <summary>
         /// Key to use when removing items

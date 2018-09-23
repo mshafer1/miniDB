@@ -17,10 +17,11 @@ namespace MiniDB
     /// Database Template: template class for persisten observable collection with undo/redo
     /// </summary>
     /// <typeparam name="T">The class type to create an observable collection of (must by a child class of DatabaseObject)</typeparam>
-    public class DataBase<T> : ObservableCollection<T>, IDisposable where T : DatabaseObject
+    public class DataBase<T> : ObservableCollection<T>, IDisposable where T : IDatabaseObject
     {
         #region fields
-        protected readonly IStorageStrategy<T> StorageStrategy;
+        private readonly IStorageStrategy<IDatabaseObject> StorageStrategy;
+
 
         /// <summary>
         /// lock object - this is used to lock the current database from attempting to edit the data at the same time.
@@ -58,7 +59,7 @@ namespace MiniDB
         /// <param name="minimumCompatibleVersion">The mimum compatible version - if unsure what to use, put 0 for now</param>
         /// <param name="migrate_db">Method to migrate db's that are loaded that are at least the minimum compatible version, but not the current version.</param>
         /// <param name="storageStrategy">The storage strategy to use.</param>
-        public DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, IStorageStrategy<T> storageStrategy) : base()
+        public DataBase(string filename, float databaseVersion, float minimumCompatibleVersion, IStorageStrategy<IDatabaseObject> storageStrategy) : base()
         {
             this.DBVersion = databaseVersion;
             this.MinimumCompatibleVersion = minimumCompatibleVersion;

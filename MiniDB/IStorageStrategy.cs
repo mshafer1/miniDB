@@ -10,14 +10,14 @@ namespace MiniDB
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IStorageStrategy<T> where T : DatabaseObject
+    public interface IStorageStrategy<T> where T : IDatabaseObject
     {
         /// <summary>
         /// load the transactions db
         /// </summary>
         /// <param name="transactions_filename">the filename/path that the db is stored in</param>
         /// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
-        DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename, float dbVersion, float minimumCompatibleVersion, IStorageStrategy<DatabaseObject> storageStrategy);
+        DataBase<DBTransaction<IDatabaseObject>> _getTransactionsDB(string transactions_filename, float dbVersion, float minimumCompatibleVersion, IStorageStrategy<DBTransaction<IDatabaseObject>> storageStrategy);
 
         /// <summary>
         /// load the DB

@@ -231,7 +231,7 @@ namespace MiniDB
         /// <summary>
         /// Gets or sets the databse for caching transactions for undo/redo.
         /// </summary>
-        private DataBase<DBTransaction<T>> Transactions_DB { get; set; }
+        private DataBase<DBTransaction<IDatabaseObject>> Transactions_DB { get; set; }
         #endregion
 
         #region public methods   

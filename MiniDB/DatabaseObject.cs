@@ -7,9 +7,14 @@ using Newtonsoft.Json;
 namespace MiniDB
 {
 
-    public interface IDatabaseObject
+    public interface IDatabaseObject : INotifyPropertyChangedExtended
     {
+        ID ID
+        {
+            get;
+        }
 
+        void SetID();
     }
 
 

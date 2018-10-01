@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    class EncryptedStorageStrategy<T> : IStorageStrategy<T> where T : DatabaseObject
+    class EncryptedStorageStrategy<T> : IStorageStrategy<T> where T : IDatabaseObject
     {
         public void cacheTransactions(ObservableCollection<DBTransaction<T>> dBTransactions)
         {
             throw new NotImplementedException();
         }
 
-        public void _cacheDB(DataBase<T> db)
+        public void _cacheDB<T2>(DataBase<T2> db) where T2 : DatabaseObject
         {
             throw new NotImplementedException();
         }
@@ -24,12 +24,7 @@ namespace MiniDB
             throw new NotImplementedException();
         }
 
-        public DataBase<DBTransaction<T>> _getTransactionsDB(string transactions_filename)
-        {
-            throw new NotImplementedException();
-        }
-
-        public DataBase<T> _loadDB()
+        public DataBase<T2> _loadDB<T2>() where T2 : DatabaseObject
         {
             throw new NotImplementedException();
         }

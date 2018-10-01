@@ -17,7 +17,7 @@ namespace MiniDB
     /// Database Template: template class for persisten observable collection with undo/redo
     /// </summary>
     /// <typeparam name="T">The class type to create an observable collection of (must by a child class of DatabaseObject)</typeparam>
-    public class DataBase<T> : ObservableCollection<T>, IDisposable where T : IDatabaseObject
+    public class DataBase<T> : ObservableCollection<T>, IDisposable where T : DatabaseObject
     {
         #region fields
         private readonly IStorageStrategy<IDatabaseObject> StorageStrategy;
@@ -104,7 +104,7 @@ namespace MiniDB
                 this.Filename = filename;
 
                 string transactionFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-                this.Transactions_DB = this.StorageStrategy._getTransactionsDB(transactionFilename, this.DBVersion, this.MinimumCompatibleVersion, this.StorageStrategy); //this._getTransactionsDB(transactionFilename);
+                this.Transactions_DB = this.StorageStrategy._getTransactionsCollection(); //this._getTransactionsDB(transactionFilename);
                 this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
 
                 this.LoadFile(filename, true);
@@ -231,7 +231,7 @@ namespace MiniDB
         /// <summary>
         /// Gets or sets the databse for caching transactions for undo/redo.
         /// </summary>
-        private DataBase<DBTransaction<IDatabaseObject>> Transactions_DB { get; set; }
+        private ObservableCollection<DBTransaction<IDatabaseObject>> Transactions_DB { get; set; }
         #endregion
 
         #region public methods   
@@ -702,7 +702,7 @@ namespace MiniDB
             // called on primary db
             lock (Locker)
             {
-                this.Transactions_DB._cacheDB();
+                this.StorageStrategy.cacheTransactions(Transactions_DB);
             }
         }
 
@@ -975,7 +975,7 @@ namespace MiniDB
                 // if not the current version, try to update.
                 if (adapted.DBVersion != this.DBVersion && adapted.DBVersion >= this.MinimumCompatibleVersion)
                 {
-                    this.StorageStrategy._migrate(this.Filename, adapted.DBVersion, this.DBVersion);
+                    this.StorageStrategy._migrate(adapted.DBVersion, this.DBVersion);
                 }
 
                 // if new enough, and not too new,

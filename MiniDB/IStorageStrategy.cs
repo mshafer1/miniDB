@@ -26,12 +26,12 @@ namespace MiniDB
         /// load the DB
         /// </summary>
         /// <returns>An instance of <see cref="DataBase{T}" /> from file.</returns>
-        DataBase<T> _loadDB();
+        DataBase<T2> _loadDB<T2>() where T2 : DatabaseObject;
 
         /// <summary>
         /// Method to store in file;
         /// </summary>
-        void _cacheDB(DataBase<T> db);
+        void _cacheDB<T2>(DataBase<T2> db) where T2 : DatabaseObject;
 
         /// <summary>
         /// Method to migrate files stored in this storage strategy
@@ -39,5 +39,6 @@ namespace MiniDB
         /// <param name="oldVersion"></param>
         /// <param name="newVersion"></param>
         void _migrate(float oldVersion, float newVersion);
+        
     }
 }

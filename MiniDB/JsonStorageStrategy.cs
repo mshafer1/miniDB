@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    public class JsonStorageStrategy<T> : IStorageStrategy<T> where T : IDatabaseObject
+    public class JsonStorageStrategy<T> : IStorageStrategy<T>  where T : IDatabaseObject
     {
         //private readonly string dbFile;
         //private readonly string transaction_filename;

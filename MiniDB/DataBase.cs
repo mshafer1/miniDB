@@ -17,7 +17,7 @@ namespace MiniDB
     /// Database Template: template class for persisten observable collection with undo/redo
     /// </summary>
     /// <typeparam name="T">The class type to create an observable collection of (must by a child class of DatabaseObject)</typeparam>
-    public class DataBase<T> : ObservableCollection<T>, IDisposable where T : DatabaseObject
+    public class DataBase<T> : ObservableCollection<T>, IDisposable where T : IDatabaseObject
     {
         #region fields
         private readonly IStorageStrategy<IDatabaseObject> StorageStrategy;
@@ -278,7 +278,7 @@ namespace MiniDB
             // get last transaction
             DBTransaction<T> last_transaction = this.GetLastTransaction(TransactionType.Undo, x => x.Active == true);
 
-            T transactedItem = null;
+            T transactedItem = default(T);
 
             // get the mutex
             lock (Locker)

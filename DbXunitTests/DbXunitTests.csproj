@@ -59,13 +59,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DBLoadTests.cs" />
-    <Compile Include="ExampleComplicatedStoredItem.cs" />
-    <Compile Include="ExampleStoredItem.cs" />
-    <Compile Include="migrationCallBackTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CannotMakeDBofTransactions.cs" />
-    <Compile Include="UndoRedoTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

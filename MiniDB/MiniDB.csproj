@@ -44,7 +44,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataBase.cs" />
-    <Compile Include="IDatabaseObject.cs" />
+    <Compile Include="DBExceptions.cs" />
+    <Compile Include="DBJsonSerializer.cs" />
+    <Compile Include="DBOptions.cs" />
+    <Compile Include="DBSurrogate.cs" />
+    <Compile Include="DBTransaction.cs" />
+    <Compile Include="Interfaces\IDatabaseObject.cs" />
+    <Compile Include="Interfaces\IStorageStrategy.cs" />
+    <Compile Include="JsonDataBase.cs" />
+    <Compile Include="StorageStrategies\JsonStorageStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

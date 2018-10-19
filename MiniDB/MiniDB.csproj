@@ -49,9 +49,13 @@
     <Compile Include="DBOptions.cs" />
     <Compile Include="DBSurrogate.cs" />
     <Compile Include="DBTransaction.cs" />
+    <Compile Include="INotifyPropertyChangedExtended.cs" />
     <Compile Include="Interfaces\IDatabaseObject.cs" />
     <Compile Include="Interfaces\IStorageStrategy.cs" />
     <Compile Include="JsonDataBase.cs" />
+    <Compile Include="PropertyChangedExtendedEventArgs.cs" />
+    <Compile Include="Public Helper Objects\DBHardwareID.cs" />
+    <Compile Include="Public Helper Objects\ID.cs" />
     <Compile Include="StorageStrategies\JsonStorageStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

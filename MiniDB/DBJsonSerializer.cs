@@ -21,7 +21,7 @@ namespace MiniDB
         /// <returns>True if able to case object to Database of T</returns>
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(DataBase<T>) || objectType.IsSubclassOf(typeof(DataBase<T>));
+            return objectType == typeof(DataBase) || objectType.IsSubclassOf(typeof(DataBase));
         }
 
         /// <summary>
@@ -35,9 +35,9 @@ namespace MiniDB
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             // N.B. null handling is missing
-            var surrogate = serializer.Deserialize<DBSurrogate<T>>(reader);
+            var surrogate = serializer.Deserialize<DBSurrogate>(reader);
             var elements = surrogate.Collection;
-            var db = new DataBase<T>() { DBVersion = surrogate.DBVersion };
+            var db = new DataBase() { DBVersion = surrogate.DBVersion };
             foreach (var el in elements)
             {
                 db.Add(el);
@@ -55,13 +55,13 @@ namespace MiniDB
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             // N.B. null handling is missing
-            var db = (DataBase<T>)value;
+            var db = (DataBase)value;
 
             // create the surrogate and serialize it instead 
             // of the collection itself
-            var surrogate = new DBSurrogate<T>()
+            var surrogate = new DBSurrogate()
             {
-                Collection = new ObservableCollection<T>(db),
+                Collection = new ObservableCollection<IDatabaseObject>(db),
                 DBVersion = db.DBVersion
             };
 

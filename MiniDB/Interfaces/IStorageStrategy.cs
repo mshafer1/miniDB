@@ -18,20 +18,20 @@ namespace MiniDB
         /// </summary>
         /// <param name="transactions_filename">the filename/path that the db is stored in</param>
         /// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
-        ObservableCollection<DBTransaction<T>> _getTransactionsCollection();
+        ObservableCollection<DBTransaction> _getTransactionsCollection(string fileName);
 
-        void cacheTransactions(ObservableCollection<DBTransaction<T>> dBTransactions);
+        void cacheTransactions(ObservableCollection<DBTransaction> dBTransactions);
 
         /// <summary>
         /// load the DB
         /// </summary>
         /// <returns>An instance of <see cref="DataBase{T}" /> from file.</returns>
-        DataBase<T> _loadDB();
+        DataBase _loadDB(string fileName);
 
         /// <summary>
         /// Method to store in file;
         /// </summary>
-        void _cacheDB(DataBase<T> db);
+        void _cacheDB(DataBase db);
 
         /// <summary>
         /// Method to migrate files stored in this storage strategy

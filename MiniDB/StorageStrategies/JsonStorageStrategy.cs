@@ -9,22 +9,22 @@ namespace MiniDB
 {
     public class JsonStorageStrategy<T> : IStorageStrategy<T> where T : IDatabaseObject
     {
-        public void cacheTransactions(ObservableCollection<DBTransaction<T>> dBTransactions)
+        public void cacheTransactions(ObservableCollection<DBTransaction> dBTransactions)
         {
             throw new NotImplementedException();
         }
 
-        public void _cacheDB(DataBase<T> db)
+        public void _cacheDB(DataBase db)
         {
             throw new NotImplementedException();
         }
 
-        public ObservableCollection<DBTransaction<T>> _getTransactionsCollection()
+        public ObservableCollection<DBTransaction> _getTransactionsCollection(string fileName)
         {
             throw new NotImplementedException();
         }
 
-        public DataBase<T> _loadDB()
+        public DataBase _loadDB(string fileName)
         {
             throw new NotImplementedException();
         }

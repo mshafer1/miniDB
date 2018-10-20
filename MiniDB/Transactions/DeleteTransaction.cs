@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    class DeleteTransaction : WholeItemTransaction
+    class DeleteTransaction : BaseDBTransaction
     {
         public override DBTransactionType DBTransactionType => DBTransactionType.Delete;
     }

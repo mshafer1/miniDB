@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    public interface IDBTransaction
+    internal interface IDBTransaction
     {
         DBTransactionType DBTransactionType { get; }
     }

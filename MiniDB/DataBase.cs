@@ -1,15 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MiniDB
 {
@@ -282,10 +278,10 @@ namespace MiniDB
                 var item = sender as IDatabaseObject;
                 this.ReleaseMutexOnError(() =>
                 {
-                   if (item == null)
-                   {
-                       throw new Exception($"Sender must be of type: {nameof(IDatabaseObject)}");
-                   }
+                    if (item == null)
+                    {
+                        throw new Exception($"Sender must be of type: {nameof(IDatabaseObject)}");
+                    }
                 });
 
                 this._cacheDB();
@@ -316,6 +312,7 @@ namespace MiniDB
 
             // TODOne: register new items
             IList changed = null;
+            IDBTransaction dBTransaction;
 
             if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
             {
@@ -330,7 +327,11 @@ namespace MiniDB
 
                 changed = e.NewItems;
             }
-            // TODO: deregister old items
+            // TODO: store transaction of changed things
+            else
+            {
+                throw new NotImplementedException("I don't know how to log that type of change");
+            }
         }
 
         private void DataBase_TransactionsChanged(object sender, NotifyCollectionChangedEventArgs e)

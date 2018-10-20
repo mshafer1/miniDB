@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    class AddTransaction : WholeItemTransaction
+    class AddTransaction : BaseDBTransaction
     {
         public override DBTransactionType DBTransactionType => DBTransactionType.Add;
     }

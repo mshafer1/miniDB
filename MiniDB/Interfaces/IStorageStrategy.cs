@@ -11,14 +11,14 @@ namespace MiniDB
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IStorageStrategy<T> where T : IDatabaseObject
+    public interface IStorageStrategy
     {
         /// <summary>
         /// load the transactions db
         /// </summary>
         /// <param name="transactions_filename">the filename/path that the db is stored in</param>
         /// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
-        ObservableCollection<DBTransaction> _getTransactionsCollection(string fileName);
+        ObservableCollection<DBTransaction> _getTransactionsCollection(string filename);
 
         void cacheTransactions(ObservableCollection<DBTransaction> dBTransactions);
 
@@ -26,7 +26,7 @@ namespace MiniDB
         /// load the DB
         /// </summary>
         /// <returns>An instance of <see cref="DataBase{T}" /> from file.</returns>
-        DataBase _loadDB(string fileName);
+        DataBase _loadDB(string filename);
 
         /// <summary>
         /// Method to store in file;

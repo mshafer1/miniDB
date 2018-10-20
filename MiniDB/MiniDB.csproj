@@ -54,8 +54,11 @@
     <Compile Include="Interfaces\IStorageStrategy.cs" />
     <Compile Include="JsonDataBase.cs" />
     <Compile Include="PropertyChangedExtendedEventArgs.cs" />
+    <Compile Include="Public Helper Objects\BaseDBObject.cs" />
+    <Compile Include="Public Helper Objects\DataBaseSerializer.cs" />
     <Compile Include="Public Helper Objects\DBHardwareID.cs" />
     <Compile Include="Public Helper Objects\ID.cs" />
+    <Compile Include="StorageStrategies\EncryptedStorageStrategy.cs" />
     <Compile Include="StorageStrategies\JsonStorageStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

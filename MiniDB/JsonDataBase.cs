@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    class JsonDataBase
+    public class JsonDataBase : DataBase
     {
+        public JsonDataBase(string filename, float version, float minimumCompatibleVersion) : base(filename, version, minimumCompatibleVersion, new JsonStorageStrategy(version, minimumCompatibleVersion))
+        {
+        }
     }
 }

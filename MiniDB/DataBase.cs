@@ -21,11 +21,12 @@ namespace MiniDB
         /// </summary>
         protected static readonly object Locker = new object();
 
-        private readonly IStorageStrategy<IDatabaseObject> storageStrategy;
+        private readonly IStorageStrategy storageStrategy;
 
-        private readonly ObservableCollection<DBTransaction> Transactions_DB;
+        private ObservableCollection<DBTransaction> transactions_DB;
 
-
+        private readonly bool transactionsWriteable;
+        
         /// <summary>
         /// http://www.albahari.com/threading/part2.aspx#_Mutex
         /// Create mutex in constructor - name it so that only one instance of db class can be accessing file
@@ -37,25 +38,33 @@ namespace MiniDB
 
         #region Constructors
 
-        public DataBase(string filename, IStorageStrategy<IDatabaseObject> storageStrategy)
+        public DataBase(string filename, float version, float minimumCompatibleVersion, IStorageStrategy storageStrategy)
         {
             this.Filename = filename;
             this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
 
             this.storageStrategy = storageStrategy;
 
+            this.DBVersion = version;
+            this.MinimumCompatibleVersion = minimumCompatibleVersion;
+
             lock (Locker)
             {
                 this.getMutex();
 
-                string transactionFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-                this.Transactions_DB = this.storageStrategy._getTransactionsCollection(transactionFilename);
-                this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
-
-                this.LoadFile(filename, true);
-
-                this.CollectionChanged += this.DataBase_CollectionChanged;
+                this.transactionsWriteable = true;
+                this.ReleaseMutexOnError(() => this.Load(filename));
+                this.transactionsWriteable = false;
             }
+        }
+
+        internal DataBase(string filename, float version, float minimumCompatibleVersion)
+        {
+            this.Filename = filename;
+            this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
+
+            this.DBVersion = version;
+            this.MinimumCompatibleVersion = minimumCompatibleVersion;
         }
 
         /// <summary>
@@ -78,7 +87,13 @@ namespace MiniDB
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
+                    // clear mutex
+                    if (this.mut != null && this.mut.WaitOne(TimeSpan.FromSeconds(5), false))
+                    {
+                        this.mut.ReleaseMutex();
+                        this.mut.Close();
+                        this.mut = null;
+                    }
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -109,6 +124,25 @@ namespace MiniDB
         public string Filename { get; }
         public float DBVersion { get; internal set; }
         public float MinimumCompatibleVersion { get; }
+
+        private ObservableCollection<DBTransaction> Transactions_DB
+        {
+            get
+            {
+                return this.transactions_DB;
+            }
+            set
+            {
+                if(this.transactionsWriteable)
+                {
+                    this.transactions_DB = value;
+                }
+                else
+                {
+                    throw new Exception("Attempted to write to read-only field Transactions_DB");
+                }
+            }
+        }
 
         /// <summary>
         /// Gets a value indicating whether the collection currently can undo a recent transaction
@@ -201,6 +235,17 @@ namespace MiniDB
             }
         }
 
+        private void Load(string filename)
+        {
+            string transactionFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
+            this.Transactions_DB = this.storageStrategy._getTransactionsCollection(transactionFilename);
+            this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
+
+            this.LoadFile(filename, true);
+
+            this.CollectionChanged += this.DataBase_CollectionChanged;
+        }
+
         private void LoadFile(string filename, bool registerItemsForPropertyChanged)
         {
             var data = this.storageStrategy._loadDB(filename);
@@ -279,6 +324,47 @@ namespace MiniDB
                 this.storageStrategy._cacheDB(this);
             }
         }
+
+        #region mutex helpers
+
+        /// <summary>
+        /// Invoked action and return its return value - if action throws an exception, release the mutex before re-raising
+        /// </summary>
+        /// <typeparam name="T2">The expected return type</typeparam>
+        /// <param name="action">The method to invoke</param>
+        /// <returns>The result of the action (if not error)</returns>
+        private T2 ReleaseMutexOnError<T2>(Func<T2> action)
+        {
+            try
+            {
+                return action.Invoke();
+            }
+            catch
+            {
+                this.Dispose();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Special case - templates can't handle a void type parameter --
+        /// also <see cref="ReleaseMutexOnError{T2}(Func{T2})" />
+        /// </summary>
+        /// <param name="action">the action to perform</param>
+        private void ReleaseMutexOnError(Action action)
+        {
+            try
+            {
+                action.Invoke();
+            }
+            catch
+            {
+                this.Dispose();
+                throw;
+            }
+        }
+
+        #endregion
 
         #endregion
 

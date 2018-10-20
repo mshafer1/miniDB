@@ -18,9 +18,9 @@ namespace MiniDB
         /// </summary>
         /// <param name="transactions_filename">the filename/path that the db is stored in</param>
         /// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
-        ObservableCollection<DBTransaction> _getTransactionsCollection(string filename);
+        ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename);
 
-        void cacheTransactions(ObservableCollection<DBTransaction> dBTransactions);
+        void cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions);
 
         /// <summary>
         /// load the DB

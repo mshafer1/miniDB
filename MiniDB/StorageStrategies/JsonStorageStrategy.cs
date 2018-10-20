@@ -19,7 +19,7 @@ namespace MiniDB
             MinimumCompatibleVersion = minimumCompatibleVersion;
         }
 
-        public void cacheTransactions(ObservableCollection<DBTransaction> dBTransactions)
+        public void cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions)
         {
             throw new NotImplementedException();
         }
@@ -30,7 +30,7 @@ namespace MiniDB
             System.IO.File.WriteAllText(db.Filename, json);
         }
 
-        public ObservableCollection<DBTransaction> _getTransactionsCollection(string filename)
+        public ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename)
         {
             /*this.DBVersion = databaseVersion;
             this.Filename = filename;
@@ -38,10 +38,10 @@ namespace MiniDB
             var json = _readFile(filename);
             if (json.Length == 0)
             {
-                return new ObservableCollection<DBTransaction>();
+                return new ObservableCollection<IDBTransaction>();
             }
 
-            var adapted = JsonConvert.DeserializeObject<ObservableCollection<DBTransaction>>(json);
+            var adapted = JsonConvert.DeserializeObject<ObservableCollection<IDBTransaction>>(json);
             return adapted;
         }
 

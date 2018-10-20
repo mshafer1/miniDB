@@ -13,11 +13,13 @@ namespace DbXunitTests
         public NullWriterStorageStrategy(): base()
         {
             this.WroteFlag = false;
+            this.WroteTransactionsFlag = false;
         }
 
-        public void cacheTransactions(ObservableCollection<DBTransaction> dBTransactions)
+        public void cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions)
         {
-           // NOOP
+            // NOOP
+            this.WroteTransactionsFlag = true;
         }
 
         public void _cacheDB(DataBase db)
@@ -26,9 +28,9 @@ namespace DbXunitTests
             this.WroteFlag = true;
         }
 
-        public ObservableCollection<DBTransaction> _getTransactionsCollection(string filename)
+        public ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename)
         {
-            return new ObservableCollection<DBTransaction>();
+            return new ObservableCollection<IDBTransaction>();
         }
 
         public DataBase _loadDB(string filename)
@@ -42,10 +44,12 @@ namespace DbXunitTests
         }
 
         public bool WroteFlag { get; private set; }
+        public bool WroteTransactionsFlag { get; private set; }
 
-        public void ClearWroteFlag()
+        public void ClearWroteFlags()
         {
             this.WroteFlag = false;
+            this.WroteTransactionsFlag = false;
         }
     }
 }

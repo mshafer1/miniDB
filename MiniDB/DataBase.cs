@@ -24,7 +24,7 @@ namespace MiniDB
 
         private readonly IStorageStrategy storageStrategy;
 
-        private ObservableCollection<DBTransaction> transactions_DB;
+        private ObservableCollection<IDBTransaction> transactions_DB;
 
         private readonly bool transactionsWriteable;
 
@@ -132,7 +132,7 @@ namespace MiniDB
         public float DBVersion { get; internal set; }
         public float MinimumCompatibleVersion { get; }
 
-        private ObservableCollection<DBTransaction> Transactions_DB
+        private ObservableCollection<IDBTransaction> Transactions_DB
         {
             get
             {

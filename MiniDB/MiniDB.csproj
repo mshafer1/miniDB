@@ -48,7 +48,9 @@
     <Compile Include="DBJsonSerializer.cs" />
     <Compile Include="DBOptions.cs" />
     <Compile Include="DBSurrogate.cs" />
-    <Compile Include="DBTransaction.cs" />
+    <Compile Include="Transactions\AddTransaction.cs" />
+    <Compile Include="Transactions\BaseDBTransaction.cs" />
+    <Compile Include="Transactions\IDBTransaction.cs" />
     <Compile Include="DBTransactionType.cs" />
     <Compile Include="INotifyPropertyChangedExtended.cs" />
     <Compile Include="Interfaces\IDatabaseObject.cs" />
@@ -62,6 +64,9 @@
     <Compile Include="StorageStrategies\EncryptedStorageStrategy.cs" />
     <Compile Include="StorageStrategies\JsonStorageStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Transactions\DeleteTransaction.cs" />
+    <Compile Include="Transactions\ModifyTransaction.cs" />
+    <Compile Include="Transactions\WholeItemTransaction.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HardwareID\HardwareID.csproj">

@@ -59,10 +59,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DBCallsStorageStrategyTests.cs" />
     <Compile Include="DBLoadTests.cs" />
+    <Compile Include="ExampleComplicatedStoredItem.cs" />
     <Compile Include="ExampleStoredItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestStorageStrategy.cs" />
+    <Compile Include="NullWriterStorageStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

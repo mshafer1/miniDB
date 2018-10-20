@@ -9,7 +9,7 @@ namespace MiniDB
 {
     public class EncryptedStorageStrategy : IStorageStrategy
     {
-        public void cacheTransactions(ObservableCollection<DBTransaction> dBTransactions)
+        public void cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions)
         {
             throw new NotImplementedException();
         }
@@ -19,7 +19,7 @@ namespace MiniDB
             throw new NotImplementedException();
         }
 
-        public ObservableCollection<DBTransaction> _getTransactionsCollection(string filename)
+        public ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename)
         {
             throw new NotImplementedException();
         }

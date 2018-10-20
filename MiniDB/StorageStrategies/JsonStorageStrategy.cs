@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    public class JsonStorageStrategy : IStorageStrategy
+    public class JsonStorageStrategy<T> : IStorageStrategy where T : IDatabaseObject
     {
         private readonly float DBVersion;
         private readonly float MinimumCompatibleVersion;
@@ -26,7 +26,8 @@ namespace MiniDB
 
         public void _cacheDB(DataBase db)
         {
-            throw new NotImplementedException();
+            var json = this.serializeDB(db);
+            System.IO.File.WriteAllText(db.Filename, json);
         }
 
         public ObservableCollection<DBTransaction> _getTransactionsCollection(string filename)
@@ -53,7 +54,7 @@ namespace MiniDB
                 return result;
             }
 
-            var adapted = JsonConvert.DeserializeObject<DataBase>(json, new DataBaseSerializer());
+            var adapted = JsonConvert.DeserializeObject<DataBase>(json, new DataBaseSerializer<T>());
             if (adapted.DBVersion > this.DBVersion)
             {
                 throw new DBCreationException($"Cannot load db of version {adapted.DBVersion}. Current version is only {this.DBVersion}");
@@ -91,6 +92,12 @@ namespace MiniDB
             }
 
             return string.Empty;
+        }
+
+        private string serializeDB(DataBase db)
+        {
+            // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
+            return JsonConvert.SerializeObject(db, new DataBaseSerializer<T>());
         }
     }
 }

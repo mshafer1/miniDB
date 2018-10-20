@@ -49,6 +49,7 @@
     <Compile Include="DBOptions.cs" />
     <Compile Include="DBSurrogate.cs" />
     <Compile Include="DBTransaction.cs" />
+    <Compile Include="DBTransactionType.cs" />
     <Compile Include="INotifyPropertyChangedExtended.cs" />
     <Compile Include="Interfaces\IDatabaseObject.cs" />
     <Compile Include="Interfaces\IStorageStrategy.cs" />

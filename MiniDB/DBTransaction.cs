@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    public class DBTransaction : IDatabaseObject
+    public abstract class DBTransaction : IDatabaseObject
     {
         public ID ID => throw new NotImplementedException();
 

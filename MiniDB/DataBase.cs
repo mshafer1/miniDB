@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -26,7 +27,7 @@ namespace MiniDB
         private ObservableCollection<DBTransaction> transactions_DB;
 
         private readonly bool transactionsWriteable;
-        
+
         /// <summary>
         /// http://www.albahari.com/threading/part2.aspx#_Mutex
         /// Create mutex in constructor - name it so that only one instance of db class can be accessing file
@@ -58,7 +59,13 @@ namespace MiniDB
             }
         }
 
-        internal DataBase(string filename, float version, float minimumCompatibleVersion)
+        /// <summary>
+        /// Setup a basic DB class that does not have the ability to load or write to disk.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="version"></param>
+        /// <param name="minimumCompatibleVersion"></param>
+        public DataBase(string filename, float version, float minimumCompatibleVersion)
         {
             this.Filename = filename;
             this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
@@ -133,7 +140,7 @@ namespace MiniDB
             }
             set
             {
-                if(this.transactionsWriteable)
+                if (this.transactionsWriteable)
                 {
                     this.transactions_DB = value;
                 }
@@ -270,17 +277,64 @@ namespace MiniDB
 
         private void DataBaseItem_PropertyChanged(object sender, PropertyChangedExtendedEventArgs e)
         {
-            throw new NotImplementedException();
+            lock (Locker)
+            {
+                var item = sender as IDatabaseObject;
+                this.ReleaseMutexOnError(() =>
+                {
+                   if (item == null)
+                   {
+                       throw new Exception($"Sender must be of type: {nameof(IDatabaseObject)}");
+                   }
+                });
+
+                this._cacheDB();
+
+                // if not an undoable change, alert property changes and leave
+                if (!e.UndoableChange)
+                {
+                    this.OnItemChanged(item);
+                    this.PublicOnPropertyChanged(nameof(this.CanUndo));
+                    this.PublicOnPropertyChanged(nameof(this.CanRedo));
+                    return;
+                }
+
+                //else, store the transaction and notify
+
+                // TODO
+            }
         }
 
         private void DataBase_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            throw new NotImplementedException();
+            lock (Locker)
+            {
+                this._cacheDB();
+            }
+
+            // TODO: implement storing changed transaction
+
+            // TODOne: register new items
+            IList changed = null;
+
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+                foreach (IDatabaseObject item in e.NewItems)
+                {
+                    // register for property change
+                    item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+
+                    // create add transaction
+                    //TODO store add item.
+                }
+
+                changed = e.NewItems;
+            }
+            // TODO: deregister old items
         }
 
         private void DataBase_TransactionsChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            // called on primary db
             lock (Locker)
             {
                 this.storageStrategy.cacheTransactions(this.Transactions_DB);

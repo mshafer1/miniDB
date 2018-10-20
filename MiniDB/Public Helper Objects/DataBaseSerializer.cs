@@ -15,7 +15,7 @@ namespace MiniDB
     /// intermediate class that can be serialized by JSON.net
     /// </summary>
     /// <typeparam name="T">and contains the same data as <see cref="DataBase{T}"/> - allows for DBVersion to be serialized</typeparam>
-    internal class DataBaseSurrogate
+    internal class DataBaseSurrogate<T> where T : IDatabaseObject
     {
         // the collection of T elements
 
@@ -23,7 +23,7 @@ namespace MiniDB
         /// Gets or sets the collection to cache
         /// Represent the Database data as an ObservableCollection of T (Database base class)
         /// </summary>
-        public ObservableCollection<IDatabaseObject> Collection { get; set; }
+        public ObservableCollection<T> Collection { get; set; }
 
         // the properties of DataBase to serialize
 
@@ -34,7 +34,7 @@ namespace MiniDB
         public float DBVersion { get; set; }
     }
 
-    public class DataBaseSerializer : JsonConverter
+    public class DataBaseSerializer<T> : JsonConverter where T : IDatabaseObject
     {
         /// <summary>
         /// Verify if JsonConverter can be used to convert this object from Json
@@ -57,7 +57,7 @@ namespace MiniDB
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             // N.B. null handling is missing
-            var surrogate = serializer.Deserialize<DataBaseSurrogate>(reader);
+            var surrogate = serializer.Deserialize<DataBaseSurrogate<T>>(reader);
             var elements = surrogate.Collection;
             var db = new DataBase() { DBVersion = surrogate.DBVersion };
             foreach (var el in elements)
@@ -81,7 +81,7 @@ namespace MiniDB
 
             // create the surrogate and serialize it instead 
             // of the collection itself
-            var surrogate = new DataBaseSurrogate()
+            var surrogate = new DataBaseSurrogate<IDatabaseObject>()
             {
                 Collection = new ObservableCollection<IDatabaseObject>(db),
                 DBVersion = db.DBVersion

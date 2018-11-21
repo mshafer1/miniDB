@@ -20,13 +20,13 @@ namespace DbXunitTests
         public void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename)
         {
             // NOOP
-            this.WroteTransactionsFlag = true;
+            this.OnTransactionsWrite(dBTransactions);
         }
 
         public void _cacheDB(DataBase db)
         {
             // NOOP
-            this.WroteFlag = true;
+            this.OnMainWrite(db);
         }
 
         public ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename)
@@ -52,5 +52,21 @@ namespace DbXunitTests
             this.WroteFlag = false;
             this.WroteTransactionsFlag = false;
         }
+
+        private void OnMainWrite(IEnumerable<IDBObject> data)
+        {
+            this.WroteFlag = true;
+            this.WroteMain?.Invoke(data);
+        }
+
+        private void OnTransactionsWrite(IEnumerable<IDBObject> data)
+        {
+            this.WroteTransactionsFlag = true;
+            this.WroteTransactions?.Invoke(data);
+        }
+
+        public delegate void WriteMessageHandler(IEnumerable<IDBObject> data);
+        public event WriteMessageHandler WroteMain;
+        public event WriteMessageHandler WroteTransactions;
     }
 }

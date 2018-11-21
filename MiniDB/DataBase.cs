@@ -279,8 +279,18 @@ namespace MiniDB
                 }
 
                 //else, store the transaction and notify
+                var transaction = new ModifyTransaction()
+                {
+                    ChangedItemID = (sender as IDBObject).ID,
+                    ChangedFieldName = e.PropertyName,
+                    OldValue = e.OldValue,
+                    NewValue = e.NewValue
+                };
 
-                // TODO
+                this.Transactions_DB.Add(transaction);
+                this.OnItemChanged(item);
+                this.PublicOnPropertyChanged(nameof(this.CanUndo));
+                this.PublicOnPropertyChanged(nameof(this.CanRedo));
             }
         }
 

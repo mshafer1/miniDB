@@ -36,16 +36,23 @@ namespace DbXunitTests
 
         public DataBase _loadDB(string filename)
         {
-            return new DataBase("blah", 1, 1);
+            var result = new DataBase("blah", 1, 1);
+            if(this.dBObjects == null)
+            {
+                return result;
+            }
+
+            foreach(var item in this.dBObjects)
+            {
+                result.Add(item);
+            }
+            return result;
         }
 
         public void _migrate(float oldVersion, float newVersion)
         {
             // NOOP
         }
-
-        public bool WroteFlag { get; private set; }
-        public bool WroteTransactionsFlag { get; private set; }
 
         public void ClearWroteFlags()
         {
@@ -59,14 +66,22 @@ namespace DbXunitTests
             this.WroteMain?.Invoke(data);
         }
 
-        private void OnTransactionsWrite(IEnumerable<IDBObject> data)
+        private void OnTransactionsWrite(IEnumerable<IDBTransaction> data)
         {
             this.WroteTransactionsFlag = true;
             this.WroteTransactions?.Invoke(data);
         }
 
+        public IEnumerable<IDBObject> dBObjects { get; set; }
+
+        public bool WroteFlag { get; private set; }
+        public bool WroteTransactionsFlag { get; private set; }
+
+        
+
         public delegate void WriteMessageHandler(IEnumerable<IDBObject> data);
+        public delegate void WriteTransactionHandler(IEnumerable<IDBTransaction> data);
         public event WriteMessageHandler WroteMain;
-        public event WriteMessageHandler WroteTransactions;
+        public event WriteTransactionHandler WroteTransactions;
     }
 }

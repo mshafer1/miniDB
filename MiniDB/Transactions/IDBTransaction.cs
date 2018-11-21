@@ -13,5 +13,11 @@ namespace MiniDB.Transactions
 
         [JsonProperty]
         System.DateTime Transaction_timestamp { get; }
+
+        string ChangedFieldName { get; }
+
+        object OldValue { get; }
+
+        object NewValue { get; }
     }
 }

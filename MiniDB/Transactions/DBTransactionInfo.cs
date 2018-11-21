@@ -17,6 +17,32 @@ namespace MiniDB.Transactions
 
         }
 
+        event PropertyChangedExtendedEventHandler IDBObject.PropertyChangedExtended
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        event PropertyChangedEventHandler IDBObject.PropertyChanged
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         [JsonProperty]
         public bool? Active { get; internal set; }
 
@@ -32,6 +58,14 @@ namespace MiniDB.Transactions
         [JsonProperty]
         public ID ID { get; internal set; }
 
+        [JsonProperty]
+        public string ChangedFieldName { get; internal set; }
+
+        [JsonProperty]
+        public object OldValue { get; internal set; }
+
+        [JsonProperty]
+        public object NewValue { get; internal set; }
 
         public static IDBTransaction GetDBTransaction(DBTransactionInfo self)
         {

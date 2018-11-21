@@ -35,5 +35,11 @@ namespace MiniDB.Transactions
         /// Gets or sets whether or not this transaction has been reversed (undone for most transactions, redone for undo transactions).
         /// </summary>
         public bool? Active { get => this.Get(); set => this.Set(value); }
+
+        public abstract string ChangedFieldName { get; set; }
+
+        public abstract object OldValue { get; set; }
+
+        public abstract object NewValue { get; set; }
     }
 }

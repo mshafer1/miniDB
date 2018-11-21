@@ -17,8 +17,18 @@ namespace MiniDB.Transactions
             {
                 throw new DBException($"Attempted to create class of type {nameof(ModifyTransaction)}, but parameter used of type {other.DBTransactionType}");
             }
+
+            this.ChangedFieldName = other.ChangedFieldName;
+            this.OldValue = other.OldValue;
+            this.NewValue = other.NewValue;
         }
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Modify;
+
+        public override string ChangedFieldName { get; set; }
+
+        public override object OldValue { get; set; }
+
+        public override object NewValue { get; set; }
     }
 }

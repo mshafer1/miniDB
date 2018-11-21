@@ -21,5 +21,9 @@ namespace MiniDB.Transactions
         }
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Add;
+
+        public override string ChangedFieldName { get; set; }
+        public override object OldValue { get; set; }
+        public override object NewValue { get; set; }
     }
 }

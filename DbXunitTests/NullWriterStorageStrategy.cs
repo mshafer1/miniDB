@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MiniDB;
+using MiniDB.Transactions;
 
 namespace DbXunitTests
 {
@@ -16,7 +17,7 @@ namespace DbXunitTests
             this.WroteTransactionsFlag = false;
         }
 
-        public void cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions)
+        public void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename)
         {
             // NOOP
             this.WroteTransactionsFlag = true;

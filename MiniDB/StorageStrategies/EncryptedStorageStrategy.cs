@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MiniDB.Transactions;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace MiniDB
 {
     public class EncryptedStorageStrategy : IStorageStrategy
     {
-        public void cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions)
+        public void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename)
         {
             throw new NotImplementedException();
         }

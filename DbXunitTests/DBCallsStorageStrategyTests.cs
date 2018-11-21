@@ -43,14 +43,17 @@ namespace DbXunitTests
             Assert.True(this.nullWritingStorageStrategy.WroteFlag);
         }
 
-        // TODO: DoesWriteTrancsactionOnInsert
-        ////[Fact]
-        ////public void DoesWriteTransactionsFileOnInsert()
-        ////{
-        ////    Assert.False(this.nullWritingStorageStrategy.WroteTransactionsFlag);
-        ////    this.testDB.Add(new ExampleStoredItem());
-        ////    Assert.True(this.nullWritingStorageStrategy.WroteTransactionsFlag);
-        ////}
+
+        [Fact]
+        public void DoesWriteTransactionsFileOnInsert()
+        {
+            this.nullWritingStorageStrategy.ClearWroteFlags();
+            Assert.False(this.nullWritingStorageStrategy.WroteTransactionsFlag);
+
+            this.testDB.Add(new ExampleStoredItem());
+
+            Assert.True(this.nullWritingStorageStrategy.WroteTransactionsFlag);
+        }
 
         [Fact]
         public void DoesWriteMainFileOnDelete()
@@ -64,7 +67,18 @@ namespace DbXunitTests
             Assert.True(this.nullWritingStorageStrategy.WroteFlag);
         }
 
-        // TODO: DoesWriteTransactionsFileOnDelete
+        [Fact]
+        public void DoesWriteTransactionsFileOnDelete()
+        {
+            var item = new ExampleStoredItem();
+            this.testDB.Add(item);
+            this.nullWritingStorageStrategy.ClearWroteFlags();
+            Assert.False(this.nullWritingStorageStrategy.WroteTransactionsFlag);
+
+            this.testDB.Remove(item);
+
+            Assert.True(this.nullWritingStorageStrategy.WroteTransactionsFlag);
+        }
 
         [Fact]
         public void DoesWriteMainFileOnItemEdit()

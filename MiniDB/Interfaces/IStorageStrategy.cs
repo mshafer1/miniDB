@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MiniDB.Transactions;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace MiniDB
         /// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
         ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename);
 
-        void cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions);
+        void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename);
 
         /// <summary>
         /// load the DB

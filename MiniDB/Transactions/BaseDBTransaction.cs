@@ -3,7 +3,7 @@
 
 namespace MiniDB.Transactions
 {
-    abstract class BaseDBTransaction : BaseDBObject, IDBTransaction, IDatabaseObject
+    abstract class BaseDBTransaction : BaseDBObject, IDBTransaction
     {
         public BaseDBTransaction() : base()
         {
@@ -11,12 +11,19 @@ namespace MiniDB.Transactions
             this.Active = true;
         }
 
+        public BaseDBTransaction(IDBTransaction other) : base(other.ID)
+        {
+            this.Transaction_timestamp = other.Transaction_timestamp;
+            this.Active = other.Active;
+            this.ChangedItemID = other.ChangedItemID;
+        }
+
         public abstract DBTransactionType DBTransactionType { get; }
 
         /// <summary>
         /// Gets or sets the ID of the item that was acted on
         /// </summary>
-        public ID ChangedItemID { get; set; }
+        public ID ChangedItemID { get => this.Get(); set => this.Set(value); }
 
         /// <summary>
         /// Gets the system timestamp that this transaction occured at.
@@ -28,6 +35,5 @@ namespace MiniDB.Transactions
         /// Gets or sets whether or not this transaction has been reversed (undone for most transactions, redone for undo transactions).
         /// </summary>
         public bool? Active { get => this.Get(); set => this.Set(value); }
-
     }
 }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MiniDB.Transactions;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.ObjectModel;
@@ -20,9 +21,6 @@ namespace MiniDB
 
         private readonly IStorageStrategy storageStrategy;
 
-        private ObservableCollection<IDBTransaction> transactions_DB;
-
-        private readonly bool transactionsWriteable;
 
         /// <summary>
         /// http://www.albahari.com/threading/part2.aspx#_Mutex
@@ -49,9 +47,21 @@ namespace MiniDB
             {
                 this.getMutex();
 
-                this.transactionsWriteable = true;
-                this.ReleaseMutexOnError(() => this.Load(filename));
-                this.transactionsWriteable = false;
+                try
+                {
+                    TransactionsFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
+                    this.Transactions_DB = this.storageStrategy._getTransactionsCollection(TransactionsFilename);
+                    this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
+
+                    this.LoadFile(filename, true);
+
+                    this.CollectionChanged += this.DataBase_CollectionChanged;
+                }
+                catch
+                {
+                    this.Dispose();
+                    throw;
+                }
             }
         }
 
@@ -125,27 +135,11 @@ namespace MiniDB
         #region Properties
 
         public string Filename { get; }
+        private string TransactionsFilename { get; }
         public float DBVersion { get; internal set; }
         public float MinimumCompatibleVersion { get; }
 
-        private ObservableCollection<IDBTransaction> Transactions_DB
-        {
-            get
-            {
-                return this.transactions_DB;
-            }
-            set
-            {
-                if (this.transactionsWriteable)
-                {
-                    this.transactions_DB = value;
-                }
-                else
-                {
-                    throw new Exception("Attempted to write to read-only field Transactions_DB");
-                }
-            }
-        }
+        private ObservableCollection<IDBTransaction> Transactions_DB { get; }
 
         /// <summary>
         /// Gets a value indicating whether the collection currently can undo a recent transaction
@@ -238,17 +232,6 @@ namespace MiniDB
             }
         }
 
-        private void Load(string filename)
-        {
-            string transactionFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-            this.Transactions_DB = this.storageStrategy._getTransactionsCollection(transactionFilename);
-            this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
-
-            this.LoadFile(filename, true);
-
-            this.CollectionChanged += this.DataBase_CollectionChanged;
-        }
-
         private void LoadFile(string filename, bool registerItemsForPropertyChanged)
         {
             var data = this.storageStrategy._loadDB(filename);
@@ -312,9 +295,9 @@ namespace MiniDB
 
             // TODOne: register new items
             IList changed = null;
-            IDBTransaction dBTransaction;
+            
 
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            if (e.Action == NotifyCollectionChangedAction.Add)
             {
                 foreach (IDatabaseObject item in e.NewItems)
                 {
@@ -322,15 +305,32 @@ namespace MiniDB
                     item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
 
                     // create add transaction
-                    //TODO store add item.
+                    IDBTransaction dBTransaction = new AddTransaction() { ChangedItemID = item.ID };
+                    this.Transactions_DB.Add(dBTransaction);
                 }
 
                 changed = e.NewItems;
             }
+            else if(e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (IDatabaseObject item in e.OldItems)
+                {
+                    // create remove transaction
+                    // create add transaction
+                    IDBTransaction dBTransaction = new DeleteTransaction()
+                    {
+                        ChangedItemID = item.ID,
+                        TransactedItem = item,
+                    };
+                    this.Transactions_DB.Add(dBTransaction);
+                }
+
+                changed = e.OldItems;
+            }
             // TODO: store transaction of changed things
             else
             {
-                throw new NotImplementedException("I don't know how to log that type of change");
+                throw new NotImplementedException($"I don't know how to log transactions of type: {e.Action}");
             }
         }
 
@@ -338,7 +338,7 @@ namespace MiniDB
         {
             lock (Locker)
             {
-                this.storageStrategy.cacheTransactions(this.Transactions_DB);
+                this.storageStrategy._cacheTransactions(this.Transactions_DB, this.TransactionsFilename);
             }
         }
 

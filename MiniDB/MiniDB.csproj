@@ -50,6 +50,7 @@
     <Compile Include="DBSurrogate.cs" />
     <Compile Include="Transactions\AddTransaction.cs" />
     <Compile Include="Transactions\BaseDBTransaction.cs" />
+    <Compile Include="Transactions\DBTransactionInfo.cs" />
     <Compile Include="Transactions\IDBTransaction.cs" />
     <Compile Include="DBTransactionType.cs" />
     <Compile Include="INotifyPropertyChangedExtended.cs" />

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MiniDB.Transactions;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,9 +20,10 @@ namespace MiniDB
             MinimumCompatibleVersion = minimumCompatibleVersion;
         }
 
-        public void cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions)
+        public void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string transactionsFilename)
         {
-            throw new NotImplementedException();
+            var json = JsonConvert.SerializeObject(dBTransactions);
+            System.IO.File.WriteAllText(transactionsFilename, json);
         }
 
         public void _cacheDB(DataBase db)
@@ -41,8 +43,15 @@ namespace MiniDB
                 return new ObservableCollection<IDBTransaction>();
             }
 
-            var adapted = JsonConvert.DeserializeObject<ObservableCollection<IDBTransaction>>(json);
-            return adapted;
+            var adapted = JsonConvert.DeserializeObject<ObservableCollection<DBTransactionInfo>>(json);
+            var result = new ObservableCollection<IDBTransaction>();
+
+            foreach(var item in adapted)
+            {
+                result.Add(DBTransactionInfo.GetDBTransaction(item));
+            }
+
+            return result;
         }
 
         public DataBase _loadDB(string filename)

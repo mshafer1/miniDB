@@ -1,14 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
+using System;
 
-namespace MiniDB
+namespace MiniDB.Transactions
 {
-    internal interface IDBTransaction
+    public interface IDBTransaction : IDatabaseObject
     {
+        bool? Active { get; }
+
+        ID ChangedItemID { get; }
+
         DBTransactionType DBTransactionType { get; }
+
+        [JsonProperty]
+        System.DateTime Transaction_timestamp { get; }
     }
 }

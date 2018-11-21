@@ -26,22 +26,20 @@ namespace DbXunitTests.UndoRedoTests
         #endregion
 
         #region dispose/destruct
+        // cleanup once finished
         ~DBStoresCorrectTransactionsInitially_Tests()
         {
             this.Cleanup();
         }
 
         /// <summary>
-        /// In beteen each test, cleanup.
+        /// In between each test, cleanup.
         /// </summary>
         public void Dispose()
         {
-            // clean up when finished
             this.Cleanup();
         }
         #endregion
-
-        // TODO: add test storing and reloading transactions
 
         [Fact]
         public void TestAddingItemToDBMakes_Add_Transaction_onInit()

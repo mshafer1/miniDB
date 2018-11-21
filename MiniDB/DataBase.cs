@@ -190,6 +190,27 @@ namespace MiniDB
 
         #region API
 
+        /// <summary>
+        /// Remove all elements from DB
+        /// </summary>
+        public new void Clear()
+        {
+            ///
+            /// Ordinarily, Clear wipes all elements then calls our collectionChanged with a NotifyCollectionChangedAction.Reset,
+            /// but the items are removed by then (and the OldItems in the event is null), so override the clear to remove each item so we can log it.
+
+            var tempItems = new Collection<IDBObject>();
+            foreach(var item in this)
+            {
+                tempItems.Add(item);
+            }
+
+            foreach (var item in tempItems)
+            {
+                this.Remove(item);
+            }
+        }
+
         public void Undo()
         {
             throw new NotImplementedException();
@@ -322,6 +343,22 @@ namespace MiniDB
                 changed = e.NewItems;
             }
             else if(e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (IDBObject item in e.OldItems)
+                {
+                    // create remove transaction
+                    // create add transaction
+                    IDBTransaction dBTransaction = new DeleteTransaction()
+                    {
+                        ChangedItemID = item.ID,
+                        TransactedItem = item,
+                    };
+                    this.Transactions_DB.Add(dBTransaction);
+                }
+
+                changed = e.OldItems;
+            }
+            else if(e.Action == NotifyCollectionChangedAction.Reset)
             {
                 foreach (IDBObject item in e.OldItems)
                 {

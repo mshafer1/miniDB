@@ -8,6 +8,6 @@ namespace MiniDB.Transactions
 {
     abstract class WholeItemTransaction : BaseDBTransaction
     {
-        IDatabaseObject TransactedItem { get; set; }
+        IDBObject TransactedItem { get; set; }
     }
 }

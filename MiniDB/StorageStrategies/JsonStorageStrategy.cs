@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    public class JsonStorageStrategy<T> : IStorageStrategy where T : IDatabaseObject
+    public class JsonStorageStrategy<T> : IStorageStrategy where T : IDBObject
     {
         private readonly float DBVersion;
         private readonly float MinimumCompatibleVersion;

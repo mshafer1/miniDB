@@ -12,7 +12,7 @@ namespace MiniDB
     /// Class to serialize database to json with db version number
     /// </summary>
     /// <typeparam name="T">The type of object stored in the Database</typeparam>
-    internal class DBJsonSerializer<T> : JsonConverter where T : IDatabaseObject
+    internal class DBJsonSerializer<T> : JsonConverter where T : IDBObject
     {
         /// <summary>
         /// Verify if JsonConverter can be used to convert this object from Json
@@ -61,7 +61,7 @@ namespace MiniDB
             // of the collection itself
             var surrogate = new DBSurrogate()
             {
-                Collection = new ObservableCollection<IDatabaseObject>(db),
+                Collection = new ObservableCollection<IDBObject>(db),
                 DBVersion = db.DBVersion
             };
 

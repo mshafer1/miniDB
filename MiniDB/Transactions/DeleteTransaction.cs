@@ -21,6 +21,6 @@ namespace MiniDB.Transactions
             }
         }
 
-        public IDatabaseObject TransactedItem { get; set; }
+        public IDBObject TransactedItem { get; set; }
     }
 }

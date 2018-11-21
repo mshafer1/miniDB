@@ -12,7 +12,7 @@ namespace MiniDB
         /// Gets or sets the collection to cache
         /// Represent the Database data as an ObservableCollection of T (Database base class)
         /// </summary>
-        public ObservableCollection<IDatabaseObject> Collection { get; set; }
+        public ObservableCollection<IDBObject> Collection { get; set; }
 
         // the properties of DataBase to serialize
 

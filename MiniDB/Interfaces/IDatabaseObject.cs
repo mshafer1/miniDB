@@ -2,7 +2,7 @@
 
 namespace MiniDB
 {
-    public interface IDatabaseObject
+    public interface IDBObject
     {
         #region events
         /// <summary>

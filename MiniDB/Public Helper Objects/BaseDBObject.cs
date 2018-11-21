@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    public abstract class BaseDBObject : IDatabaseObject
+    public abstract class BaseDBObject : IDBObject
     {
         #region fields
         /// <summary>

@@ -3,7 +3,7 @@ using System;
 
 namespace MiniDB.Transactions
 {
-    public interface IDBTransaction : IDatabaseObject
+    public interface IDBTransaction : IDBObject
     {
         bool? Active { get; }
 

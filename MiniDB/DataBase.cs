@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace MiniDB
 {
-    public class DataBase : ObservableCollection<IDatabaseObject>, IDisposable
+    public class DataBase : ObservableCollection<IDBObject>, IDisposable
     {
         #region fields
 
@@ -258,12 +258,12 @@ namespace MiniDB
         {
             lock (Locker)
             {
-                var item = sender as IDatabaseObject;
+                var item = sender as IDBObject;
                 this.ReleaseMutexOnError(() =>
                 {
                     if (item == null)
                     {
-                        throw new Exception($"Sender must be of type: {nameof(IDatabaseObject)}");
+                        throw new Exception($"Sender must be of type: {nameof(IDBObject)}");
                     }
                 });
 
@@ -299,7 +299,7 @@ namespace MiniDB
 
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
-                foreach (IDatabaseObject item in e.NewItems)
+                foreach (IDBObject item in e.NewItems)
                 {
                     // register for property change
                     item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
@@ -313,7 +313,7 @@ namespace MiniDB
             }
             else if(e.Action == NotifyCollectionChangedAction.Remove)
             {
-                foreach (IDatabaseObject item in e.OldItems)
+                foreach (IDBObject item in e.OldItems)
                 {
                     // create remove transaction
                     // create add transaction
@@ -355,7 +355,7 @@ namespace MiniDB
         /// Raise the ItemChanged event, passing in the itemChanged's id to handlers
         /// </summary>
         /// <param name="itemChanged">the object of type T (databaseObject) that changed.</param>
-        private void OnItemChanged(IDatabaseObject itemChanged)
+        private void OnItemChanged(IDBObject itemChanged)
         {
             this.OnItemChanged(itemChanged?.ID);
         }

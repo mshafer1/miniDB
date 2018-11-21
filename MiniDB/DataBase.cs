@@ -374,7 +374,33 @@ namespace MiniDB
 
                 changed = e.OldItems;
             }
-            // TODO: store transaction of changed things
+            else if(e.Action == NotifyCollectionChangedAction.Replace)
+            {
+                int index = 0;
+
+                foreach (IDBObject item in e.OldItems)
+                {
+                    index = e.OldItems.IndexOf(item);
+                    // create remove transaction
+                    
+                    IDBTransaction dBTransaction = new DeleteTransaction()
+                    {
+                        ChangedItemID = item.ID,
+                        TransactedItem = item,
+                    };
+                    this.Transactions_DB.Add(dBTransaction);
+
+                    var newItem = e.NewItems[index] as IDBObject;
+
+                    // create add transaction
+                    dBTransaction = new AddTransaction()
+                    {
+                        ChangedItemID = newItem.ID,
+                        TransactedItem = newItem,
+                    };
+                    this.Transactions_DB.Add(dBTransaction);
+                }
+            }
             else
             {
                 throw new NotImplementedException($"I don't know how to log transactions of type: {e.Action}");

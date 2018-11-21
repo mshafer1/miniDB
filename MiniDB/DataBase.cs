@@ -1,4 +1,5 @@
-﻿using MiniDB.Transactions;
+﻿using MiniDB.Interfaces;
+using MiniDB.Transactions;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -21,6 +22,7 @@ namespace MiniDB
 
         private readonly IStorageStrategy storageStrategy;
 
+        private readonly IUndoRedoManager undoRedoManager;
 
         /// <summary>
         /// http://www.albahari.com/threading/part2.aspx#_Mutex
@@ -33,12 +35,13 @@ namespace MiniDB
 
         #region Constructors
 
-        public DataBase(string filename, float version, float minimumCompatibleVersion, IStorageStrategy storageStrategy)
+        public DataBase(string filename, float version, float minimumCompatibleVersion, IStorageStrategy storageStrategy, IUndoRedoManager undoRedoManager = null) : base()
         {
             this.Filename = filename;
             this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
 
             this.storageStrategy = storageStrategy;
+            this.undoRedoManager = undoRedoManager;
 
             this.DBVersion = version;
             this.MinimumCompatibleVersion = minimumCompatibleVersion;
@@ -71,7 +74,7 @@ namespace MiniDB
         /// <param name="filename"></param>
         /// <param name="version"></param>
         /// <param name="minimumCompatibleVersion"></param>
-        public DataBase(string filename, float version, float minimumCompatibleVersion)
+        public DataBase(string filename, float version, float minimumCompatibleVersion) : base()
         {
             this.Filename = filename;
             this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
@@ -148,7 +151,7 @@ namespace MiniDB
         {
             get
             {
-                throw new NotImplementedException();
+                return this.undoRedoManager.CheckCanUndo(this.Transactions_DB);
             }
         }
 
@@ -159,7 +162,7 @@ namespace MiniDB
         {
             get
             {
-                throw new NotImplementedException();
+                return this.undoRedoManager.CheckCanUndo(this.Transactions_DB);
             }
         }
 
@@ -213,12 +216,24 @@ namespace MiniDB
 
         public void Undo()
         {
-            throw new NotImplementedException();
+            if(!this.undoRedoManager.CheckCanUndo(this.Transactions_DB))
+            {
+                throw new DBCannotUndoException("Cannot undo at this time");
+            }
+
+            var undoTransaction = this.undoRedoManager.Undo(this, this.Transactions_DB);
+            this.Transactions_DB.Add(undoTransaction);
         }
 
         public void Redo()
         {
-            throw new NotImplementedException();
+            if (!this.undoRedoManager.CheckCanRedo(this.Transactions_DB))
+            {
+                throw new DBCannotRedoException("Cannot redo at this time");
+            }
+
+            var redoTransaction = this.undoRedoManager.Redo(this, this.Transactions_DB);
+            this.Transactions_DB.Add(redoTransaction);
         }
 
         #endregion

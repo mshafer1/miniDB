@@ -39,6 +39,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Delegation, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HavenSoft.AutoImplement.1.0.1\lib\System.Delegation.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -63,11 +66,13 @@
     <Compile Include="DBLoadTests.cs" />
     <Compile Include="ExampleComplicatedStoredItem.cs" />
     <Compile Include="ExampleStoredItem.cs" />
+    <Compile Include="GeneratedCode\StubUndoRedoManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="NullWriterStorageStrategy.cs" />
     <Compile Include="UndoRedoTests\DBMassEditStoresTransactionsTests.cs" />
     <Compile Include="UndoRedoTests\DBStoresCorrectTransactionsOnReload_Tests.cs" />
     <Compile Include="UndoRedoTests\DBStoresCorrectTransactionsInitially_Tests.cs" />
+    <Compile Include="UndoRedoTests\DBUsesUndoRedoManagerCorrectly.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -84,6 +89,9 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="libs\AutoImplement.exe" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -94,4 +102,9 @@
     <Error Condition="!Exists('..\packages\xunit.runner.visualstudio.2.3.1\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.runner.visualstudio.2.3.1\build\net20\xunit.runner.visualstudio.props'))" />
   </Target>
   <Import Project="..\packages\xunit.core.2.3.1\build\xunit.core.targets" Condition="Exists('..\packages\xunit.core.2.3.1\build\xunit.core.targets')" />
+  <PropertyGroup>
+    <PreBuildEvent>$(ProjectDir)libs\AutoImplement $(ProjectDir)..\MiniDB\bin\$(ConfigurationName)\MiniDB.dll IUndoRedoManager 
+if not exist $(ProjectDir)GeneratedCode mkdir $(ProjectDir)GeneratedCode
+copy StubUndoRedoManager.cs $(ProjectDir)GeneratedCode</PreBuildEvent>
+  </PropertyGroup>
 </Project>

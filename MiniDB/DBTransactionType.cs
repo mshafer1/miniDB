@@ -22,5 +22,7 @@ namespace MiniDB
         Add, // create
         Modify, // update
         Delete, // delete
+        Undo,
+        Redo,
     }
 }

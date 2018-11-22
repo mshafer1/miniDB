@@ -103,8 +103,7 @@
   </Target>
   <Import Project="..\packages\xunit.core.2.3.1\build\xunit.core.targets" Condition="Exists('..\packages\xunit.core.2.3.1\build\xunit.core.targets')" />
   <PropertyGroup>
-    <PreBuildEvent>$(ProjectDir)libs\AutoImplement $(ProjectDir)..\MiniDB\bin\$(ConfigurationName)\MiniDB.dll IUndoRedoManager 
-if not exist $(ProjectDir)GeneratedCode mkdir $(ProjectDir)GeneratedCode
-copy StubUndoRedoManager.cs $(ProjectDir)GeneratedCode</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
 </Project>

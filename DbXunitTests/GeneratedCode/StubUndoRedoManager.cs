@@ -1,7 +1,5 @@
 // this file was created by AutoImplement
 using System;
-using System.Collections.Generic;
-using System.Delegation;
 
 namespace MiniDB.Interfaces
 {

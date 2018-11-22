@@ -162,7 +162,7 @@ namespace MiniDB
         {
             get
             {
-                return this.undoRedoManager.CheckCanUndo(this.Transactions_DB);
+                return this.undoRedoManager.CheckCanRedo(this.Transactions_DB);
             }
         }
 

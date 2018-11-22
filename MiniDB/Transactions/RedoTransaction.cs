@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    public class AddTransaction : BaseDBTransaction
+    public class RedoTransaction : BaseDBTransaction
     {
-        public AddTransaction() : base()
+        public RedoTransaction() : base()
         { }
 
-        public AddTransaction(IDBTransaction other) : base(other)
+        public RedoTransaction(IDBTransaction other) : base(other)
         {
             if (other.DBTransactionType != this.DBTransactionType)
             {
@@ -20,8 +19,6 @@ namespace MiniDB.Transactions
             }
         }
 
-        public override DBTransactionType DBTransactionType => DBTransactionType.Add;
-
-        public IDBObject TransactedItem { get; set; }
+        public override DBTransactionType DBTransactionType => DBTransactionType.Redo;
     }
 }

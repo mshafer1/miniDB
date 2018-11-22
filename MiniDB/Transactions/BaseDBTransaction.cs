@@ -3,7 +3,7 @@
 
 namespace MiniDB.Transactions
 {
-    abstract class BaseDBTransaction : BaseDBObject, IDBTransaction
+    public abstract class BaseDBTransaction : BaseDBObject, IDBTransaction
     {
         public BaseDBTransaction() : base()
         {
@@ -36,10 +36,11 @@ namespace MiniDB.Transactions
         /// </summary>
         public bool? Active { get => this.Get(); set => this.Set(value); }
 
-        public abstract string ChangedFieldName { get; set; }
+        // TODO: we don't always care about these, but have to have them . . . is there a cleaner way to do this?
+        public virtual string ChangedFieldName { get; set; }
 
-        public abstract object OldValue { get; set; }
+        public virtual object OldValue { get; set; }
 
-        public abstract object NewValue { get; set; }
+        public virtual object NewValue { get; set; }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    class ModifyTransaction : BaseDBTransaction
+    public class ModifyTransaction : BaseDBTransaction
     {
         public ModifyTransaction() : base()
         { }

@@ -22,10 +22,5 @@ namespace MiniDB.Transactions
         }
 
         public IDBObject TransactedItem { get; set; }
-
-        // TODO: we don't care about these, but have to have them . . . is there a cleaner way to do this?
-        public override string ChangedFieldName { get; set; }
-        public override object OldValue { get; set; }
-        public override object NewValue { get; set; }
     }
 }

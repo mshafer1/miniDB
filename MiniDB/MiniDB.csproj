@@ -68,7 +68,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Transactions\DeleteTransaction.cs" />
     <Compile Include="Transactions\ModifyTransaction.cs" />
+    <Compile Include="Transactions\RedoTransaction.cs" />
     <Compile Include="Transactions\UndoRedoManager.cs" />
+    <Compile Include="Transactions\UndoTransaction.cs" />
     <Compile Include="Transactions\WholeItemTransaction.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    public class AddTransaction : BaseDBTransaction
+    public class UndoTransaction : BaseDBTransaction
     {
-        public AddTransaction() : base()
+        public UndoTransaction() : base()
         { }
 
-        public AddTransaction(IDBTransaction other) : base(other)
+        public UndoTransaction(IDBTransaction other) : base(other)
         {
             if (other.DBTransactionType != this.DBTransactionType)
             {
@@ -20,8 +20,6 @@ namespace MiniDB.Transactions
             }
         }
 
-        public override DBTransactionType DBTransactionType => DBTransactionType.Add;
-
-        public IDBObject TransactedItem { get; set; }
+        public override DBTransactionType DBTransactionType => DBTransactionType.Undo;
     }
 }

@@ -22,6 +22,24 @@ namespace MiniDB.Transactions
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Add;
 
-        public IDBObject TransactedItem { get; set; }
+        public override IDBTransaction revert(IList<IDBObject> objects)
+        {
+            // reverting an Add Transaction means removing the item and creating a Delete transaction
+            IDBObject transactedObject = objects.FirstOrDefault(entry => entry.ID == this.ChangedItemID);
+
+            if(transactedObject == null)
+            {
+                throw new DBCannotUndoException($"Failed to find item wit ID {this.ChangedItemID} to remove");
+            }
+
+            objects.Remove(transactedObject);
+            this.Active = false;
+
+            return new UndoTransaction()
+            {
+                SubDBTransactionType = DBTransactionType.Delete,
+                TransactedItem = transactedObject,
+            };
+        }
     }
 }

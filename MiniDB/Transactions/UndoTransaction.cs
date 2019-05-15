@@ -21,5 +21,14 @@ namespace MiniDB.Transactions
         }
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Undo;
+
+        public DBTransactionType SubDBTransactionType { get; set; }
+
+        public IDBObject TransactedItem { get; set; }
+
+        public override IDBTransaction revert(IList<IDBObject> objects)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -18,6 +18,8 @@ namespace MiniDB.Interfaces
                 return default(bool);
             }
         }
+
+
         
         public Func<System.Collections.Generic.IEnumerable<MiniDB.Transactions.IDBTransaction>, bool> CheckCanRedo { get; set; }
         

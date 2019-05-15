@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -82,6 +83,10 @@ namespace MiniDB.Transactions
             }
         }
 
+        public IDBTransaction revert(IList<IDBObject> objects)
+        {
+            throw new NotImplementedException();
+        }
 
         public event PropertyChangedExtendedEventHandler PropertyChangedExtended;
         public event PropertyChangedEventHandler PropertyChanged;

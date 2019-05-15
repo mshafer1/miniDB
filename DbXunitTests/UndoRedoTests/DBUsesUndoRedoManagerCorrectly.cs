@@ -87,16 +87,20 @@ namespace DbXunitTests.UndoRedoTests
                 return result;
             };
 
+            bool wroteToTransactions = false;
             this.storageStrategy.WroteTransactions += (data) => 
             {
                 var insertedTransaction = data.Last();
                 Assert.True(ReferenceEquals(insertedTransaction, result));
+                wroteToTransactions = true;
             };
 
             this.testDB.Undo();
 
             // assert no-throw
-            // assert that `result` is what is added to transactions
+            // assert that `result` is what is added to transactions in call back
+            // assert callback called
+            Assert.True(wroteToTransactions);
         }
 
         [Fact]
@@ -111,16 +115,21 @@ namespace DbXunitTests.UndoRedoTests
                 return result;
             };
 
+            bool wroteToTransactions = false;
+
             this.storageStrategy.WroteTransactions += (data) =>
             {
                 var insertedTransaction = data.Last();
                 Assert.True(ReferenceEquals(insertedTransaction, result));
+                wroteToTransactions = true;
             };
 
             this.testDB.Redo();
 
             // assert no-throw
-            // assert that `result` is what is added to transactions
+            // assert that `result` is what is added to transactions in call back
+            // assert callback called
+            Assert.True(wroteToTransactions);
         }
     }
 }

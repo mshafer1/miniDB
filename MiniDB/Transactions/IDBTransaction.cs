@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace MiniDB.Transactions
 {
@@ -19,5 +21,7 @@ namespace MiniDB.Transactions
         object OldValue { get; }
 
         object NewValue { get; }
+
+        IDBTransaction revert(IList<IDBObject> objects);
     }
 }

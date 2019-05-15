@@ -69,6 +69,7 @@
     <Compile Include="GeneratedCode\StubUndoRedoManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="NullWriterStorageStrategy.cs" />
+    <Compile Include="UndoRedoTests\DBDefaultUndoRedoManagerTests.cs" />
     <Compile Include="UndoRedoTests\DBMassEditStoresTransactionsTests.cs" />
     <Compile Include="UndoRedoTests\DBStoresCorrectTransactionsOnReload_Tests.cs" />
     <Compile Include="UndoRedoTests\DBStoresCorrectTransactionsInitially_Tests.cs" />

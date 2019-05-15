@@ -30,5 +30,10 @@ namespace MiniDB.Transactions
         public override object OldValue { get; set; }
 
         public override object NewValue { get; set; }
+
+        public override IDBTransaction revert(IList<IDBObject> objects)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

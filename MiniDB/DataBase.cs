@@ -221,8 +221,7 @@ namespace MiniDB
                 throw new DBCannotUndoException("Cannot undo at this time");
             }
 
-            var undoTransaction = this.undoRedoManager.Undo(this, this.Transactions_DB);
-            this.Transactions_DB.Add(undoTransaction);
+            this.undoRedoManager.Undo(this, this.Transactions_DB);
         }
 
         public void Redo()
@@ -232,8 +231,7 @@ namespace MiniDB
                 throw new DBCannotRedoException("Cannot redo at this time");
             }
 
-            var redoTransaction = this.undoRedoManager.Redo(this, this.Transactions_DB);
-            this.Transactions_DB.Add(redoTransaction);
+            this.undoRedoManager.Redo(this, this.Transactions_DB);
         }
 
         #endregion
@@ -410,8 +408,7 @@ namespace MiniDB
                     // create add transaction
                     dBTransaction = new AddTransaction()
                     {
-                        ChangedItemID = newItem.ID,
-                        TransactedItem = newItem,
+                        ChangedItemID = newItem.ID
                     };
                     this.Transactions_DB.Add(dBTransaction);
                 }

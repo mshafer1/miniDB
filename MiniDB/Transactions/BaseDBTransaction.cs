@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 
 namespace MiniDB.Transactions
@@ -34,7 +35,7 @@ namespace MiniDB.Transactions
         /// <summary>
         /// Gets or sets whether or not this transaction has been reversed (undone for most transactions, redone for undo transactions).
         /// </summary>
-        public bool? Active { get => this.Get(); set => this.Set(value); }
+        public bool? Active { get => this.Get(); protected set => this.Set(value); }
 
         // TODO: we don't always care about these, but have to have them . . . is there a cleaner way to do this?
         public virtual string ChangedFieldName { get; set; }
@@ -42,5 +43,7 @@ namespace MiniDB.Transactions
         public virtual object OldValue { get; set; }
 
         public virtual object NewValue { get; set; }
+
+        public abstract IDBTransaction revert(IList<IDBObject> objects);
     }
 }

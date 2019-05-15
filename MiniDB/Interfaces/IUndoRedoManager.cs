@@ -1,6 +1,7 @@
 ﻿using MiniDB.Transactions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,8 +14,8 @@ namespace MiniDB.Interfaces
 
         bool CheckCanRedo(IEnumerable<IDBTransaction> transactions);
 
-        IDBTransaction Undo(IEnumerable<IDBObject> dataToActOn, IEnumerable<IDBTransaction> transactions);
+        void Undo(IList<IDBObject> dataToActOn, IList<IDBTransaction> transactions);
 
-        IDBTransaction Redo(IEnumerable<IDBObject> dataToActOn, IEnumerable<IDBTransaction> transactions);
+        void Redo(Collection<IDBObject> dataToActOn, Collection<IDBTransaction> transactions);
     }
 }

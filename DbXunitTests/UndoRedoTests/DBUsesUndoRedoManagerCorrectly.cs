@@ -80,23 +80,13 @@ namespace DbXunitTests.UndoRedoTests
         {
             this.manager.CheckCanUndo = (dontCare) => { return true; };
             this.storageStrategy.ClearWroteFlags();
-
-            var result = new MiniDB.Transactions.UndoTransaction();
-
-            bool wroteToTransactions = false;
-            this.storageStrategy.WroteTransactions += (data) => 
-            {
-                var insertedTransaction = data.Last();
-                Assert.True(ReferenceEquals(insertedTransaction, result));
-                wroteToTransactions = true;
-            };
+            this.manager.Undo = (data, transactions) => { data.Add(new ExampleStoredItem()); transactions.Add(new MiniDB.Transactions.UndoTransaction()); };
 
             this.testDB.Undo();
 
             // assert no-throw
-            // assert that `result` is what is added to transactions in call back
-            // assert callback called
-            Assert.True(wroteToTransactions);
+            Assert.True(this.storageStrategy.WroteFlag, "Should write to db storage");
+            Assert.True(this.storageStrategy.WroteTransactionsFlag, "Should write to transaction storage");
         }
 
         [Fact]
@@ -104,25 +94,14 @@ namespace DbXunitTests.UndoRedoTests
         {
             this.manager.CheckCanRedo = (dontCare) => { return true; };
             this.storageStrategy.ClearWroteFlags();
+            this.manager.Redo = (data, transactions) => { data.Add(new ExampleStoredItem()); transactions.Add(new MiniDB.Transactions.RedoTransaction()); };
 
-            var result = new MiniDB.Transactions.UndoTransaction();
-
-
-            bool wroteToTransactions = false;
-
-            this.storageStrategy.WroteTransactions += (data) =>
-            {
-                var insertedTransaction = data.Last();
-                Assert.True(ReferenceEquals(insertedTransaction, result));
-                wroteToTransactions = true;
-            };
 
             this.testDB.Redo();
 
             // assert no-throw
-            // assert that `result` is what is added to transactions in call back
-            // assert callback called
-            Assert.True(wroteToTransactions);
+            Assert.True(this.storageStrategy.WroteFlag, "Should write to db storage");
+            Assert.True(this.storageStrategy.WroteTransactionsFlag, "Should write to transaction storage");
         }
     }
 }

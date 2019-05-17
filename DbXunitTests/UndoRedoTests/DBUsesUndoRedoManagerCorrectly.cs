@@ -82,10 +82,6 @@ namespace DbXunitTests.UndoRedoTests
             this.storageStrategy.ClearWroteFlags();
 
             var result = new MiniDB.Transactions.UndoTransaction();
-            this.manager.Undo = (data, transactions) =>
-            {
-                return result;
-            };
 
             bool wroteToTransactions = false;
             this.storageStrategy.WroteTransactions += (data) => 
@@ -110,10 +106,7 @@ namespace DbXunitTests.UndoRedoTests
             this.storageStrategy.ClearWroteFlags();
 
             var result = new MiniDB.Transactions.UndoTransaction();
-            this.manager.Redo = (data, transactions) =>
-            {
-                return result;
-            };
+
 
             bool wroteToTransactions = false;
 

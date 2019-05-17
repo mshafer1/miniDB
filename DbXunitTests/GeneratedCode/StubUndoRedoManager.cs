@@ -1,6 +1,8 @@
-// this file was created by AutoImplement
 using System;
+using System.Collections.Generic;
+using System.Delegation;
 
+// this file was created by AutoImplement
 namespace MiniDB.Interfaces
 {
     public class StubUndoRedoManager : IUndoRedoManager
@@ -18,8 +20,6 @@ namespace MiniDB.Interfaces
                 return default(bool);
             }
         }
-
-
         
         public Func<System.Collections.Generic.IEnumerable<MiniDB.Transactions.IDBTransaction>, bool> CheckCanRedo { get; set; }
         
@@ -35,31 +35,23 @@ namespace MiniDB.Interfaces
             }
         }
         
-        public Func<System.Collections.Generic.IEnumerable<MiniDB.IDBObject>, System.Collections.Generic.IEnumerable<MiniDB.Transactions.IDBTransaction>, MiniDB.Transactions.IDBTransaction> Undo { get; set; }
+        public Action<System.Collections.Generic.IList<MiniDB.IDBObject>, System.Collections.Generic.IList<MiniDB.Transactions.IDBTransaction>> Undo { get; set; }
         
-        MiniDB.Transactions.IDBTransaction IUndoRedoManager.Undo(System.Collections.Generic.IEnumerable<MiniDB.IDBObject> dataToActOn, System.Collections.Generic.IEnumerable<MiniDB.Transactions.IDBTransaction> transactions)
+        void IUndoRedoManager.Undo(System.Collections.Generic.IList<MiniDB.IDBObject> dataToActOn, System.Collections.Generic.IList<MiniDB.Transactions.IDBTransaction> transactions)
         {
             if (this.Undo != null)
             {
-                return this.Undo(dataToActOn, transactions);
-            }
-            else
-            {
-                return default(MiniDB.Transactions.IDBTransaction);
+                this.Undo(dataToActOn, transactions);
             }
         }
         
-        public Func<System.Collections.Generic.IEnumerable<MiniDB.IDBObject>, System.Collections.Generic.IEnumerable<MiniDB.Transactions.IDBTransaction>, MiniDB.Transactions.IDBTransaction> Redo { get; set; }
+        public Action<System.Collections.ObjectModel.Collection<MiniDB.IDBObject>, System.Collections.ObjectModel.Collection<MiniDB.Transactions.IDBTransaction>> Redo { get; set; }
         
-        MiniDB.Transactions.IDBTransaction IUndoRedoManager.Redo(System.Collections.Generic.IEnumerable<MiniDB.IDBObject> dataToActOn, System.Collections.Generic.IEnumerable<MiniDB.Transactions.IDBTransaction> transactions)
+        void IUndoRedoManager.Redo(System.Collections.ObjectModel.Collection<MiniDB.IDBObject> dataToActOn, System.Collections.ObjectModel.Collection<MiniDB.Transactions.IDBTransaction> transactions)
         {
             if (this.Redo != null)
             {
-                return this.Redo(dataToActOn, transactions);
-            }
-            else
-            {
-                return default(MiniDB.Transactions.IDBTransaction);
+                this.Redo(dataToActOn, transactions);
             }
         }
         

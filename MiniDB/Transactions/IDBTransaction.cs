@@ -22,6 +22,6 @@ namespace MiniDB.Transactions
 
         object NewValue { get; }
 
-        IDBTransaction revert(IList<IDBObject> objects);
+        IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier);
     }
 }

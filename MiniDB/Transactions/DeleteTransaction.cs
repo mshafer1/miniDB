@@ -23,7 +23,7 @@ namespace MiniDB.Transactions
 
         public IDBObject TransactedItem { get; set; }
 
-        public override IDBTransaction revert(IList<IDBObject> objects)
+        public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             // reverting a delete transaction means adding the item, and making an undo-add transaction
             var transacted_item = this.TransactedItem;

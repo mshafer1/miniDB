@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -102,7 +103,7 @@ namespace MiniDB.Transactions
             
         }
 
-        public void Undo(IList<IDBObject> dataToActOn, IList<IDBTransaction> transactions)
+        public void Undo(IList<IDBObject> dataToActOn, IList<IDBTransaction> transactions, NotifyCollectionChangedEventHandler dataChangedHandler, NotifyCollectionChangedEventHandler transactionsChangedHandler, PropertyChangedExtendedEventHandler propertyChangedHandler)
         {
             // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
             if (!this.CheckCanUndo(transactions))
@@ -110,15 +111,72 @@ namespace MiniDB.Transactions
                 throw new DBCannotUndoException("Cannot undo at this time");
             }
 
-            // get last transaction
-            var last_transaction = this.GetLastTransaction(transactions, DBTransactionType.Undo, x => x.Active == true);
-            var new_transaction = last_transaction.revert(dataToActOn);
-            transactions.Add(new_transaction);
+            IDBTransaction new_transaction = null;
+            using (new TransactionBlockScope(dataToActOn, transactions, dataChangedHandler, transactionsChangedHandler))
+            {
+                // get last transaction
+                var last_transaction = this.GetLastTransaction(transactions, DBTransactionType.Undo, x => x.Active == true);
+
+                new_transaction = last_transaction.revert(dataToActOn, propertyChangedHandler);
+            }
+            transactions.Insert(0, new_transaction);
         }
 
-        public void Redo(Collection<IDBObject> dataToActOn, Collection<IDBTransaction> transactions)
+        public void Redo(Collection<IDBObject> dataToActOn, Collection<IDBTransaction> transactions, NotifyCollectionChangedEventHandler dataChangedHandler, NotifyCollectionChangedEventHandler transactionsChangedHandler, PropertyChangedExtendedEventHandler propertyChangedHandler)
         {
             throw new NotImplementedException();
+        }
+
+        private class TransactionBlockScope : IDisposable
+        {
+            private readonly ObservableCollection<IDBObject> data;
+            private readonly ObservableCollection<IDBTransaction> transactions;
+
+            private readonly NotifyCollectionChangedEventHandler dataChangedHandler, transactionsChangedHandler;
+
+            public TransactionBlockScope(IList<IDBObject> dataToActOn, IList<IDBTransaction> transactions, NotifyCollectionChangedEventHandler dataChangedHandler, NotifyCollectionChangedEventHandler transactionsChangedHandler)
+            {
+                this.data = (ObservableCollection<IDBObject>)dataToActOn;
+                this.transactions = (ObservableCollection<IDBTransaction>)transactions;
+
+                this.dataChangedHandler = dataChangedHandler;
+                this.transactionsChangedHandler = transactionsChangedHandler;
+
+                DeregisterListener(this.data, this.dataChangedHandler);
+                DeregisterListener(this.transactions, this.transactionsChangedHandler);
+            }
+
+            public void Dispose()
+            {
+                ReregisterListener(this.data, this.dataChangedHandler);
+                ReregisterListener(this.transactions, this.transactionsChangedHandler);
+            }
+        }
+
+        private static void DeregisterListener(IDBObject item, PropertyChangedExtendedEventHandler listener)
+        {
+            item.PropertyChangedExtended -= listener;
+        }
+
+        private static void ReregisterListener(IDBObject item, PropertyChangedExtendedEventHandler listener)
+        {
+            // first make sure it's not registered already
+            DeregisterListener(item, listener);
+
+            item.PropertyChangedExtended += listener;
+        }
+
+        private static void DeregisterListener<T>(ObservableCollection<T> list, NotifyCollectionChangedEventHandler listener)
+        {
+            list.CollectionChanged -= listener;
+        }
+
+        private static void ReregisterListener<T>(ObservableCollection<T> list, NotifyCollectionChangedEventHandler listener)
+        {
+            // first make sure it's not registered already
+            DeregisterListener(list, listener);
+
+            list.CollectionChanged += listener;
         }
 
         /// <summary>

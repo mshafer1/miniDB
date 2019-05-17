@@ -221,7 +221,15 @@ namespace MiniDB
                 throw new DBCannotUndoException("Cannot undo at this time");
             }
 
-            this.undoRedoManager.Undo(this, this.Transactions_DB);
+            
+            
+            this.undoRedoManager.Undo(
+                dataToActOn: this,
+                transactions: this.Transactions_DB,
+                dataChangedHandler: this.DataBase_CollectionChanged,
+                transactionsChangedHandler: this.DataBase_TransactionsChanged, 
+                propertyChangedHandler: this.DataBaseItem_PropertyChanged);
+            this._cacheDB();
         }
 
         public void Redo()
@@ -231,7 +239,13 @@ namespace MiniDB
                 throw new DBCannotRedoException("Cannot redo at this time");
             }
 
-            this.undoRedoManager.Redo(this, this.Transactions_DB);
+            this.undoRedoManager.Redo(
+                dataToActOn: this,
+                transactions: this.Transactions_DB,
+                dataChangedHandler: this.DataBase_CollectionChanged,
+                transactionsChangedHandler: this.DataBase_TransactionsChanged,
+                propertyChangedHandler: this.DataBaseItem_PropertyChanged);
+            this._cacheDB();
         }
 
         #endregion

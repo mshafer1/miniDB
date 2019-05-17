@@ -83,7 +83,7 @@ namespace MiniDB.Transactions
             }
         }
 
-        public IDBTransaction revert(IList<IDBObject> objects)
+        public IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             throw new NotImplementedException();
         }

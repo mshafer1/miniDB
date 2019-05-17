@@ -44,6 +44,6 @@ namespace MiniDB.Transactions
 
         public virtual object NewValue { get; set; }
 
-        public abstract IDBTransaction revert(IList<IDBObject> objects);
+        public abstract IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier);
     }
 }

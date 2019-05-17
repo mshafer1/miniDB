@@ -26,7 +26,7 @@ namespace MiniDB.Transactions
 
         public IDBObject TransactedItem { get; set; }
 
-        public override IDBTransaction revert(IList<IDBObject> objects)
+        public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             throw new NotImplementedException();
         }

@@ -21,7 +21,7 @@ namespace MiniDB.Transactions
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Redo;
 
-        public override IDBTransaction revert(IList<IDBObject> objects)
+        public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             throw new NotImplementedException();
         }

@@ -22,7 +22,7 @@ namespace MiniDB.Transactions
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Add;
 
-        public override IDBTransaction revert(IList<IDBObject> objects)
+        public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             // reverting an Add Transaction means removing the item and creating a Delete transaction
             IDBObject transactedObject = objects.FirstOrDefault(entry => entry.ID == this.ChangedItemID);

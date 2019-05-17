@@ -47,20 +47,20 @@ namespace DbXunitTests.UndoRedoTests
             // Act
             this.testDB.Undo();
 
-            // Assert
+            //// Assert
             Assert.Empty(this.testDB);
             Assert.False(this.testDB.CanUndo, "DB should be empty again and not undoable");
             Assert.True(this.testDB.CanRedo, "Should be able to redo an undo");
             Assert.True(this.storageStrategy.WroteFlag, "Should have written to the db file");
             Assert.True(this.storageStrategy.WroteTransactionsFlag, "Should have written to the transactions file");
 
-            // Rea-add
-            this.testDB.Redo();
+            //// Rea-add
+            //this.testDB.Redo();
 
-            // Assert
-            Assert.Single(this.testDB);
-            Assert.False(this.testDB.CanRedo);
-            Assert.True(this.testDB.CanUndo);
+            //// Assert
+            //Assert.Single(this.testDB);
+            //Assert.False(this.testDB.CanRedo);
+            //Assert.True(this.testDB.CanUndo);
         }
     }
 }

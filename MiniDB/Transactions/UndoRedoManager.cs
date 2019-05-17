@@ -105,7 +105,7 @@ namespace MiniDB.Transactions
         public void Undo(IList<IDBObject> dataToActOn, IList<IDBTransaction> transactions)
         {
             // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
-            if (!this.CheckCanRedo(transactions))
+            if (!this.CheckCanUndo(transactions))
             {
                 throw new DBCannotUndoException("Cannot undo at this time");
             }

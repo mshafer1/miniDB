@@ -8,8 +8,11 @@ namespace MiniDB.Transactions
 {
     public class RedoTransaction : BaseDBTransaction
     {
-        public RedoTransaction() : base()
-        { }
+        public RedoTransaction(DBTransactionType subTransactionType, IDBObject transactedObject) : base(transactedObject.ID)
+        {
+            this.SubDBTransactionType = subTransactionType;
+            this.TransactedItem = transactedObject;
+        }
 
         public RedoTransaction(IDBTransaction other) : base(other)
         {
@@ -20,6 +23,10 @@ namespace MiniDB.Transactions
         }
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Redo;
+
+        public DBTransactionType SubDBTransactionType { get; set; }
+
+        public IDBObject TransactedItem { get; set; }
 
         public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {

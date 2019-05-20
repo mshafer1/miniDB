@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    class DBTransactionInfo : IDBTransaction
+    public class DBTransactionInfo : IDBTransaction, IModifyTransaction, IWholeItemTransaction
     {
         // provide contstructor and properties for NewtonSoft to construct this.
         [JsonConstructor]
@@ -67,6 +67,11 @@ namespace MiniDB.Transactions
 
         [JsonProperty]
         public object NewValue { get; internal set; }
+
+        [JsonProperty]
+        public object transactedItem { get; internal set; }
+
+        public IDBObject TransactedItem { get { return (IDBObject)this.transactedItem; } }
 
         public static IDBTransaction GetDBTransaction(DBTransactionInfo self)
         {

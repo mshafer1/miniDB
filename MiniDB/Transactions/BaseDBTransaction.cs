@@ -6,14 +6,20 @@ namespace MiniDB.Transactions
 {
     public abstract class BaseDBTransaction : BaseDBObject, IDBTransaction
     {
-        public BaseDBTransaction() : base()
+        public BaseDBTransaction(ID changedItemID) : base()
         {
             this.Transaction_timestamp = System.DateTime.Now;
             this.Active = true;
+            this.ChangedItemID = changedItemID;
         }
 
-        public BaseDBTransaction(IDBTransaction other) : base(other.ID)
+        public BaseDBTransaction(IDBTransaction other) : this(other.ID)
         {
+            if (other.DBTransactionType != this.DBTransactionType)
+            {
+                throw new DBException($"Attempted to create class of type {this.DBTransactionType}, but parameter used of type {other.DBTransactionType}");
+            }
+
             this.Transaction_timestamp = other.Transaction_timestamp;
             this.Active = other.Active;
             this.ChangedItemID = other.ChangedItemID;
@@ -37,12 +43,12 @@ namespace MiniDB.Transactions
         /// </summary>
         public bool? Active { get => this.Get(); protected set => this.Set(value); }
 
-        // TODO: we don't always care about these, but have to have them . . . is there a cleaner way to do this?
-        public virtual string ChangedFieldName { get; set; }
+        //// TODO: we don't always care about these, but have to have them . . . is there a cleaner way to do this?
+        //public virtual string ChangedFieldName { get; set; }
 
-        public virtual object OldValue { get; set; }
+        //public virtual object OldValue { get; set; }
 
-        public virtual object NewValue { get; set; }
+        //public virtual object NewValue { get; set; }
 
         public abstract IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier);
     }

@@ -10,18 +10,17 @@ namespace MiniDB.Transactions
     {
         public override DBTransactionType DBTransactionType => DBTransactionType.Delete;
 
-        public DeleteTransaction() : base()
-        { }
+        public DeleteTransaction(IDBObject transactedItem) : base(transactedItem.ID)
+        {
+            this.TransactedItem = transactedItem;
+        }
 
         public DeleteTransaction(IDBTransaction other) : base(other)
         {
-            if (other.DBTransactionType != this.DBTransactionType)
-            {
-                throw new DBException($"Attempted to create class of type {nameof(DeleteTransaction)}, but parameter used of type {other.DBTransactionType}");
-            }
+           
         }
 
-        public IDBObject TransactedItem { get; set; }
+        public IDBObject TransactedItem { get; }
 
         public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
@@ -34,12 +33,7 @@ namespace MiniDB.Transactions
 
             objects.Add(transacted_item);
 
-            return new UndoTransaction()
-            {
-                SubDBTransactionType = DBTransactionType.Add,
-                TransactedItem = transacted_item,
-                ChangedItemID = transacted_item.ID,
-            };
+            return new UndoTransaction(transacted_item, DBTransactionType.Add);
         }
     }
 }

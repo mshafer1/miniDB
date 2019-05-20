@@ -68,6 +68,8 @@
     <Compile Include="StorageStrategies\JsonStorageStrategy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Transactions\DeleteTransaction.cs" />
+    <Compile Include="Transactions\IModifyTransaction.cs" />
+    <Compile Include="Transactions\IWholeItemTransaction.cs" />
     <Compile Include="Transactions\ModifyTransaction.cs" />
     <Compile Include="Transactions\RedoTransaction.cs" />
     <Compile Include="Transactions\UndoRedoManager.cs" />

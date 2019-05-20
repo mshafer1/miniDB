@@ -30,7 +30,7 @@ namespace DbXunitTests.UndoRedoTests
         }
 
         [Fact]
-        public void Test_UndoRdeoAdd()
+        public void Test_UndoRedoAdd()
         {
             // Arrange
             Assert.False(this.testDB.CanUndo);
@@ -47,20 +47,33 @@ namespace DbXunitTests.UndoRedoTests
             // Act
             this.testDB.Undo();
 
-            //// Assert
+            // Assert
             Assert.Empty(this.testDB);
             Assert.False(this.testDB.CanUndo, "DB should be empty again and not undoable");
             Assert.True(this.testDB.CanRedo, "Should be able to redo an undo");
             Assert.True(this.storageStrategy.WroteFlag, "Should have written to the db file");
             Assert.True(this.storageStrategy.WroteTransactionsFlag, "Should have written to the transactions file");
 
-            //// Rea-add
-            //this.testDB.Redo();
+            // Rea-add
+            this.testDB.Redo();
 
-            //// Assert
-            //Assert.Single(this.testDB);
-            //Assert.False(this.testDB.CanRedo);
-            //Assert.True(this.testDB.CanUndo);
+            // Assert
+            Assert.Single(this.testDB);
+            Assert.False(this.testDB.CanRedo);
+            Assert.True(this.testDB.CanUndo);
+
+            var item = this.testDB.First();
+            Assert.True(item == entry);
+
+            // Act
+            this.testDB.Undo();
+
+            // Assert
+            Assert.Empty(this.testDB);
+            Assert.False(this.testDB.CanUndo, "DB should be empty again and not undoable");
+            Assert.True(this.testDB.CanRedo, "Should be able to redo an undo");
+            Assert.True(this.storageStrategy.WroteFlag, "Should have written to the db file");
+            Assert.True(this.storageStrategy.WroteTransactionsFlag, "Should have written to the transactions file");
         }
     }
 }

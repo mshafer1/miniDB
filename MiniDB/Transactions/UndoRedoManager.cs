@@ -124,7 +124,21 @@ namespace MiniDB.Transactions
 
         public void Redo(Collection<IDBObject> dataToActOn, Collection<IDBTransaction> transactions, NotifyCollectionChangedEventHandler dataChangedHandler, NotifyCollectionChangedEventHandler transactionsChangedHandler, PropertyChangedExtendedEventHandler propertyChangedHandler)
         {
-            throw new NotImplementedException();
+            // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
+            if (!this.CheckCanRedo(transactions))
+            {
+                throw new DBCannotRedoException("Cannot undo at this time");
+            }
+
+            IDBTransaction new_transaction = null;
+            using (new TransactionBlockScope(dataToActOn, transactions, dataChangedHandler, transactionsChangedHandler))
+            {
+                // get last transaction
+                var last_transaction = this.GetLastTransaction(transactions, DBTransactionType.Redo, x => x.Active == true);
+
+                new_transaction = last_transaction.revert(dataToActOn, propertyChangedHandler);
+            }
+            transactions.Insert(0, new_transaction);
         }
 
         private class TransactionBlockScope : IDisposable
@@ -184,7 +198,7 @@ namespace MiniDB.Transactions
         /// </summary>
         /// <param name="last_transaction">what happened that we're changing back</param>
         /// <param name="transactedItem">the item to act on</param>
-        private static void SetProperty(BaseDBTransaction last_transaction, IDBObject transactedItem)
+        private static void SetProperty(ModifyTransaction last_transaction, IDBObject transactedItem)
         {
             // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
 

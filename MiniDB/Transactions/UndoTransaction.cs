@@ -9,8 +9,11 @@ namespace MiniDB.Transactions
 {
     public class UndoTransaction : BaseDBTransaction
     {
-        public UndoTransaction() : base()
-        { }
+        public UndoTransaction(IDBObject transactedItem, DBTransactionType subTransactionType) : base(transactedItem.ID)
+        {
+            this.TransactedItem = transactedItem;
+            this.SubDBTransactionType = subTransactionType;
+        }
 
         public UndoTransaction(IDBTransaction other) : base(other)
         {
@@ -22,13 +25,40 @@ namespace MiniDB.Transactions
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Undo;
 
-        public DBTransactionType SubDBTransactionType { get; set; }
+        public DBTransactionType SubDBTransactionType { get; }
 
-        public IDBObject TransactedItem { get; set; }
+        public IDBObject TransactedItem { get; }
 
         public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
-            throw new NotImplementedException();
+            IDBTransaction result = null;
+
+            if(this.SubDBTransactionType == DBTransactionType.Add)
+            {
+                // redo an add
+                if(this.TransactedItem == null)
+                {
+                    throw new DBCannotRedoException($"Cannot find item to re-add");
+                }
+                var transactedItem = this.TransactedItem;
+                transactedItem.PropertyChangedExtended += notifier;
+
+                objects.Add(transactedItem);
+
+                result = new RedoTransaction(DBTransactionType.Add, transactedItem);
+            }
+            else
+            {
+                throw new NotImplementedException("TODO: implement rest of revert undo");
+            }
+            
+
+            if(result == null)
+            {
+                throw new DBCannotRedoException($"Failure attempting to rever Undo proocedure: {this}");
+            }
+
+            return result;
         }
     }
 }

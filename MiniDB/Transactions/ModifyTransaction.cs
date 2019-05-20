@@ -6,18 +6,17 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    public class ModifyTransaction : BaseDBTransaction
+    public class ModifyTransaction : BaseDBTransaction, IModifyTransaction
     {
-        public ModifyTransaction() : base()
-        { }
-
-        public ModifyTransaction(IDBTransaction other) : base(other)
+        public ModifyTransaction(ID changedItemID, string fieldName, object oldValue, object newValue) : base(changedItemID)
         {
-            if (other.DBTransactionType != this.DBTransactionType)
-            {
-                throw new DBException($"Attempted to create class of type {nameof(ModifyTransaction)}, but parameter used of type {other.DBTransactionType}");
-            }
+            this.ChangedFieldName = fieldName;
+            this.OldValue = oldValue;
+            this.NewValue = newValue;
+        }
 
+        public ModifyTransaction(IModifyTransaction other) : base(other)
+        {
             this.ChangedFieldName = other.ChangedFieldName;
             this.OldValue = other.OldValue;
             this.NewValue = other.NewValue;
@@ -25,11 +24,11 @@ namespace MiniDB.Transactions
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Modify;
 
-        public override string ChangedFieldName { get; set; }
+        public string ChangedFieldName { get; }
 
-        public override object OldValue { get; set; }
+        public object OldValue { get; }
 
-        public override object NewValue { get; set; }
+        public object NewValue { get; }
 
         public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {

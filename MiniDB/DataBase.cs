@@ -327,13 +327,7 @@ namespace MiniDB
                 }
 
                 //else, store the transaction and notify
-                var transaction = new ModifyTransaction()
-                {
-                    ChangedItemID = (sender as IDBObject).ID,
-                    ChangedFieldName = e.PropertyName,
-                    OldValue = e.OldValue,
-                    NewValue = e.NewValue
-                };
+                var transaction = new ModifyTransaction(changedItemID: (sender as IDBObject).ID, fieldName: e.PropertyName, oldValue: e.OldValue, newValue: e.NewValue);
 
                 this.Transactions_DB.Add(transaction);
                 this.OnItemChanged(item);
@@ -363,7 +357,7 @@ namespace MiniDB
                     item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
 
                     // create add transaction
-                    IDBTransaction dBTransaction = new AddTransaction() { ChangedItemID = item.ID };
+                    IDBTransaction dBTransaction = new AddTransaction(item);
                     this.Transactions_DB.Add(dBTransaction);
                 }
 
@@ -375,11 +369,8 @@ namespace MiniDB
                 {
                     // create remove transaction
                     // create add transaction
-                    IDBTransaction dBTransaction = new DeleteTransaction()
-                    {
-                        ChangedItemID = item.ID,
-                        TransactedItem = item,
-                    };
+                    IDBTransaction dBTransaction = new DeleteTransaction(item);
+
                     this.Transactions_DB.Add(dBTransaction);
                 }
 
@@ -391,11 +382,8 @@ namespace MiniDB
                 {
                     // create remove transaction
                     // create add transaction
-                    IDBTransaction dBTransaction = new DeleteTransaction()
-                    {
-                        ChangedItemID = item.ID,
-                        TransactedItem = item,
-                    };
+                    IDBTransaction dBTransaction = new DeleteTransaction(item);
+
                     this.Transactions_DB.Add(dBTransaction);
                 }
 
@@ -410,20 +398,13 @@ namespace MiniDB
                     index = e.OldItems.IndexOf(item);
                     // create remove transaction
                     
-                    IDBTransaction dBTransaction = new DeleteTransaction()
-                    {
-                        ChangedItemID = item.ID,
-                        TransactedItem = item,
-                    };
+                    IDBTransaction dBTransaction = new DeleteTransaction(item);
                     this.Transactions_DB.Add(dBTransaction);
 
                     var newItem = e.NewItems[index] as IDBObject;
 
                     // create add transaction
-                    dBTransaction = new AddTransaction()
-                    {
-                        ChangedItemID = newItem.ID
-                    };
+                    dBTransaction = new AddTransaction(newItem);
                     this.Transactions_DB.Add(dBTransaction);
                 }
             }

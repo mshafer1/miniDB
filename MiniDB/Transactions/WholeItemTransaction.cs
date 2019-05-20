@@ -6,8 +6,18 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    abstract class WholeItemTransaction : BaseDBTransaction
+    public abstract class WholeItemTransaction : BaseDBTransaction, IWholeItemTransaction
     {
-        IDBObject TransactedItem { get; set; }
+        public WholeItemTransaction(IDBObject transactedObject): base(transactedObject.ID)
+        {
+            this.TransactedItem = transactedObject;
+        }
+
+        public WholeItemTransaction(IWholeItemTransaction other) : base(other)
+        {
+            this.TransactedItem = other.TransactedItem;
+        }
+
+        public IDBObject TransactedItem { get; }
     }
 }

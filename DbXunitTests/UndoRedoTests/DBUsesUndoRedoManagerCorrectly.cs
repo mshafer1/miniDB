@@ -80,7 +80,12 @@ namespace DbXunitTests.UndoRedoTests
         {
             this.manager.CheckCanUndo = (dontCare) => { return true; };
             this.storageStrategy.ClearWroteFlags();
-            this.manager.Undo = (data, transactions, dontcare1, dontcare2, doncare3) => { data.Add(new ExampleStoredItem()); transactions.Add(new MiniDB.Transactions.UndoTransaction()); };
+            this.manager.Undo = (data, transactions, dontcare1, dontcare2, doncare3) => 
+            {
+                var item = new ExampleStoredItem();
+                data.Add(item);
+                transactions.Add(new MiniDB.Transactions.UndoTransaction(item, DBTransactionType.Add));
+            };
 
             this.testDB.Undo();
 
@@ -94,7 +99,12 @@ namespace DbXunitTests.UndoRedoTests
         {
             this.manager.CheckCanRedo = (dontCare) => { return true; };
             this.storageStrategy.ClearWroteFlags();
-            this.manager.Redo = (data, transactions, dontcare1, dontcare2, doncare3) => { data.Add(new ExampleStoredItem()); transactions.Add(new MiniDB.Transactions.RedoTransaction()); };
+            this.manager.Redo = (data, transactions, dontcare1, dontcare2, doncare3) =>
+            {
+                var item = new ExampleStoredItem();
+                data.Add(item);
+                transactions.Add(new MiniDB.Transactions.UndoTransaction(item, DBTransactionType.Add));
+            };
 
 
             this.testDB.Redo();

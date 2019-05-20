@@ -7,17 +7,14 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    public class AddTransaction : BaseDBTransaction
+    public class AddTransaction : WholeItemTransaction
     {
-        public AddTransaction() : base()
-        { }
-
-        public AddTransaction(IDBTransaction other) : base(other)
+        public AddTransaction(IDBObject addedObject) : base(addedObject)
         {
-            if (other.DBTransactionType != this.DBTransactionType)
-            {
-                throw new DBException($"Attempted to create class of type {nameof(AddTransaction)}, but parameter used of type {other.DBTransactionType}");
-            }
+        }
+
+        public AddTransaction(IWholeItemTransaction other) : base(other)
+        {
         }
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Add;
@@ -35,11 +32,8 @@ namespace MiniDB.Transactions
             objects.Remove(transactedObject);
             this.Active = false;
 
-            return new UndoTransaction()
-            {
-                SubDBTransactionType = DBTransactionType.Delete,
-                TransactedItem = transactedObject,
-            };
+            // return an Undo-Add transaction object
+            return new UndoTransaction(transactedObject, DBTransactionType.Add);
         }
     }
 }

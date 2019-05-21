@@ -145,6 +145,30 @@ namespace DbXunitTests.UndoRedoTests
             this.AssertStorageCached();
         }
 
+        [Fact]
+        public void Test_AddUndoRedoUndoRedoUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .Undo()
+                .Redo()
+                .Undo()
+                .Redo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Empty(this.testDB);
+            Assert.True(this.testDB.CanRedo, "Just undid again!");
+            Assert.False(this.testDB.CanUndo, "should be NOT able to undo on empty");
+            this.AssertStorageCached();
+        }
+
         private void AssertStorageCached()
         {
             Assert.True(this.storageStrategy.WroteFlag, "Should have written to the db file");

@@ -39,5 +39,10 @@ namespace DbXunitTests.UndoRedoTests
         {
             return this._db;
         }
+
+        public MiniDB.IDBObject Get_FirstItem()
+        {
+            return this._db.First();
+        }
     }
 }

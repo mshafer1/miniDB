@@ -169,6 +169,71 @@ namespace DbXunitTests.UndoRedoTests
             this.AssertStorageCached();
         }
 
+
+        [Fact]
+        public void Test_AddItem()
+        {
+            // Arrange
+            this.storageStrategy.ClearWroteFlags();
+            var entry = new ExampleStoredItem("John", "Doe");
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .Get_DB();
+            var item = (ExampleStoredItem)db.First();
+
+            // Assert
+            Assert.Equal(entry, item);
+            Assert.True(entry == item, "Device comparison should also work");
+            Assert.True(db.CanUndo, "Should be able to Undo an add to a DB");
+            Assert.False(db.CanRedo, "Should not be able to Redo without undoing");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddChangeItem()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .Get_DB();
+            var item = (ExampleStoredItem)db.First();
+            this.storageStrategy.ClearWroteFlags();
+            
+            // Act
+            item.Age++;
+
+            // Assert
+            Assert.Equal(entry, item);
+            Assert.True(entry == item, "Device comparison should also work");
+            Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
+            Assert.False(db.CanRedo, "Should not be able to Redo without undoing");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddChangeItemUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .Get_DB();
+            var item = (ExampleStoredItem)db.First();
+            item.Age++;
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Equal(old_age, item.Age);
+            Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
+            Assert.False(db.CanRedo, "Should not be able to Redo without undoing");
+            this.AssertStorageCached();
+        }
+
         private void AssertStorageCached()
         {
             Assert.True(this.storageStrategy.WroteFlag, "Should have written to the db file");

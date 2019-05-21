@@ -329,7 +329,7 @@ namespace MiniDB
                 //else, store the transaction and notify
                 var transaction = new ModifyTransaction(changedItemID: (sender as IDBObject).ID, fieldName: e.PropertyName, oldValue: e.OldValue, newValue: e.NewValue);
 
-                this.Transactions_DB.Add(transaction);
+                this.Transactions_DB.Insert(0, transaction);
                 this.OnItemChanged(item);
                 this.PublicOnPropertyChanged(nameof(this.CanUndo));
                 this.PublicOnPropertyChanged(nameof(this.CanRedo));

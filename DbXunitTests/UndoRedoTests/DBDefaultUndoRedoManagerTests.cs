@@ -25,37 +25,70 @@ namespace DbXunitTests.UndoRedoTests
 
         public void Dispose()
         {
-            // NOOP
             this.testDB.Dispose();
         }
 
         [Fact]
-        public void Test_UndoRedoAdd()
+        public void Test_Setup()
         {
             // Arrange
-            Assert.False(this.testDB.CanUndo);
+            var db = new DBStateBuilder(this.testDB).Get_DB();
+
+            // Assert
+            Assert.False(db.CanUndo, "Should not be able to Undo an empty DB");
+            Assert.False(db.CanRedo, "Should not be able to Redo an empty DB");
+        }
+
+        [Fact]
+        public void Test_Add()
+        {
+            // Arrange
             this.storageStrategy.ClearWroteFlags();
-
             var entry = new ExampleStoredItem("John", "Doe");
-            this.testDB.Add(entry);
+            var db = new DBStateBuilder(this.testDB)
+                .Get_DB();
 
-            // add calls storage strategy is tested in storage strategy tests
-            Assert.True(this.testDB.CanUndo, "Should be able to undo an add to empty db");
-            Assert.False(this.testDB.CanRedo, "Should not be able to redo an add to an empty db");
+            // Act
+            db.Add(entry);
+
+            // Assert
+            Assert.True(db.CanUndo, "Should be able to Undo an add to a DB");
+            Assert.False(db.CanRedo, "Should not be able to Redo without undoing");
+        }
+
+        [Fact]
+        public void Test_AddUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .Get_DB();
             this.storageStrategy.ClearWroteFlags();
 
             // Act
-            this.testDB.Undo();
+            db.Undo();
 
             // Assert
             Assert.Empty(this.testDB);
             Assert.False(this.testDB.CanUndo, "DB should be empty again and not undoable");
             Assert.True(this.testDB.CanRedo, "Should be able to redo an undo");
-            Assert.True(this.storageStrategy.WroteFlag, "Should have written to the db file");
-            Assert.True(this.storageStrategy.WroteTransactionsFlag, "Should have written to the transactions file");
+            this.AssertStorageCached();
+        }
 
-            // Rea-add
-            this.testDB.Redo();
+        [Fact]
+        public void Test_AddUndoRedo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .Undo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Redo();
 
             // Assert
             Assert.Single(this.testDB);
@@ -64,14 +97,56 @@ namespace DbXunitTests.UndoRedoTests
 
             var item = this.testDB.First();
             Assert.True(item == entry);
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddUndoRedoUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .Undo()
+                .Redo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
 
             // Act
-            this.testDB.Undo();
+            db.Undo();
 
             // Assert
             Assert.Empty(this.testDB);
-            Assert.False(this.testDB.CanUndo, "DB should be empty again and not undoable");
-            Assert.True(this.testDB.CanRedo, "Should be able to redo an undo");
+            Assert.True(this.testDB.CanRedo, "Just undid again!");
+            Assert.False(this.testDB.CanUndo, "should be NOT able to undo on empty");
+            this.AssertStorageCached();   
+        }
+
+        [Fact]
+        public void Test_AddUndoRedoUndoRedo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .Undo()
+                .Redo()
+                .Undo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Redo();
+
+            // Assert
+            Assert.Single(this.testDB);
+            Assert.False(this.testDB.CanRedo, "Should be back to the top of the edit stack");
+            Assert.True(this.testDB.CanUndo, "Just redid!");
+            this.AssertStorageCached();
+        }
+
+        private void AssertStorageCached()
+        {
             Assert.True(this.storageStrategy.WroteFlag, "Should have written to the db file");
             Assert.True(this.storageStrategy.WroteTransactionsFlag, "Should have written to the transactions file");
         }

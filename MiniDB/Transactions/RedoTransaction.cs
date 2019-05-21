@@ -8,7 +8,7 @@ namespace MiniDB.Transactions
 {
     public class RedoTransaction : BaseDBTransaction
     {
-        public RedoTransaction(DBTransactionType subTransactionType, IDBObject transactedObject) : base(transactedObject.ID)
+        public RedoTransaction(IDBObject transactedObject, DBTransactionType subTransactionType) : base(transactedObject.ID)
         {
             this.SubDBTransactionType = subTransactionType;
             this.TransactedItem = transactedObject;
@@ -30,7 +30,39 @@ namespace MiniDB.Transactions
 
         public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
-            throw new NotImplementedException();
+            IDBTransaction result = null;
+
+            if (this.SubDBTransactionType == DBTransactionType.Add)
+            {
+                // revert an add
+                if (this.TransactedItem == null)
+                {
+                    throw new DBCannotUndoException($"Cannot find item to re-remove");
+                }
+                var transactedItem = objects.FirstOrDefault(dbItem => dbItem.ID == this.TransactedItem.ID);
+                if(transactedItem == null)
+                {
+                    throw new DBCannotUndoException($"Cannot find item with ID: {this.TransactedItem.ID}");
+                }
+                transactedItem.PropertyChangedExtended -= notifier;
+
+                objects.Remove(transactedItem);
+
+                result = new UndoTransaction(transactedItem, DBTransactionType.Add);
+            }
+            else
+            {
+                throw new NotImplementedException("TODO: implement rest of revert undo");
+            }
+
+
+            if (result == null)
+            {
+                throw new DBCannotRedoException($"Failure attempting to revert Redo procedure: {this}");
+            }
+
+            this.Active = false;
+            return result;
         }
     }
 }

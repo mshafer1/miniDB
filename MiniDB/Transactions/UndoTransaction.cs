@@ -45,7 +45,7 @@ namespace MiniDB.Transactions
 
                 objects.Add(transactedItem);
 
-                result = new RedoTransaction(DBTransactionType.Add, transactedItem);
+                result = new RedoTransaction(transactedItem, DBTransactionType.Add);
             }
             else
             {
@@ -58,6 +58,7 @@ namespace MiniDB.Transactions
                 throw new DBCannotRedoException($"Failure attempting to rever Undo proocedure: {this}");
             }
 
+            this.Active = false;
             return result;
         }
     }

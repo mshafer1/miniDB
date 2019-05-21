@@ -73,6 +73,7 @@
     <Compile Include="NullWriterStorageStrategy.cs" />
     <Compile Include="UndoRedoTests\DBDefaultUndoRedoManagerTests.cs" />
     <Compile Include="UndoRedoTests\DBMassEditStoresTransactionsTests.cs" />
+    <Compile Include="UndoRedoTests\DBStateBuilder.cs" />
     <Compile Include="UndoRedoTests\DBStoresCorrectTransactionsOnReload_Tests.cs" />
     <Compile Include="UndoRedoTests\DBStoresCorrectTransactionsInitially_Tests.cs" />
     <Compile Include="UndoRedoTests\DBUsesUndoRedoManagerCorrectly.cs" />

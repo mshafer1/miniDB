@@ -177,6 +177,11 @@ namespace MiniDB
             return this.id.Equals(other.id) && this.hardwareComponent.Equals(other.hardwareComponent);
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         /// <summary>
         /// Set the ID
         ///     hardware component is determined based on the system,

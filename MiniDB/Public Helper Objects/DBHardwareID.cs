@@ -45,7 +45,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Get hardware as Unigned 64 bit as byte array
+        /// Get hardware as Unsigned 64 bit as byte array
         /// </summary>
         /// <param name="seed">Seed pass to ID method</param>
         /// <returns>ID value</returns>

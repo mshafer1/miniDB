@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
@@ -43,17 +40,18 @@ namespace MiniDB.Transactions
 
         public object NewValue { get; }
 
-        public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
+        public override IDBTransaction Revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             IDBTransaction result = null;
 
-            if(this.SubDBTransactionType == DBTransactionType.Add)
+            if (this.SubDBTransactionType == DBTransactionType.Add)
             {
                 // redo an add
-                if(this.TransactedItem == null)
+                if (this.TransactedItem == null)
                 {
                     throw new DBCannotRedoException($"Cannot find item to re-add");
                 }
+
                 var transactedItem = this.TransactedItem;
                 transactedItem.PropertyChangedExtended += notifier;
 
@@ -61,7 +59,7 @@ namespace MiniDB.Transactions
 
                 result = new RedoTransaction(transactedItem, DBTransactionType.Add);
             }
-            else if(this.SubDBTransactionType == DBTransactionType.Modify)
+            else if (this.SubDBTransactionType == DBTransactionType.Modify)
             {
                 // redo a modify
                 if (this.ChangedItemID == null)
@@ -82,9 +80,8 @@ namespace MiniDB.Transactions
             {
                 throw new NotImplementedException("TODO: implement rest of revert undo");
             }
-            
 
-            if(result == null)
+            if (result == null)
             {
                 throw new DBCannotRedoException($"Failure attempting to revert Undo proocedure: {this}");
             }

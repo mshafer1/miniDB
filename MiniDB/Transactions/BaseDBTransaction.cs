@@ -33,7 +33,7 @@ namespace MiniDB.Transactions
         public ID ChangedItemID { get => this.Get(); set => this.Set(value); }
 
         /// <summary>
-        /// Gets the system timestamp that this transaction occured at.
+        /// Gets the system timestamp that this transaction occurred at.
         /// </summary>
         [JsonProperty]
         public System.DateTime Transaction_timestamp { get; private set; }
@@ -43,13 +43,6 @@ namespace MiniDB.Transactions
         /// </summary>
         public bool? Active { get => this.Get(); protected set => this.Set(value); }
 
-        //// TODO: we don't always care about these, but have to have them . . . is there a cleaner way to do this?
-        //public virtual string ChangedFieldName { get; set; }
-
-        //public virtual object OldValue { get; set; }
-
-        //public virtual object NewValue { get; set; }
-
-        public abstract IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier);
+        public abstract IDBTransaction Revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier);
     }
 }

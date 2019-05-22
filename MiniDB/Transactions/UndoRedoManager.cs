@@ -5,9 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
@@ -15,7 +13,9 @@ namespace MiniDB.Transactions
     public class UndoRedoManager : IUndoRedoManager
     {
         public UndoRedoManager()
-        { }
+        {
+            // NO-OP
+        }
 
         public bool CheckCanUndo(IEnumerable<IDBTransaction> transactions)
         {
@@ -32,7 +32,6 @@ namespace MiniDB.Transactions
             var undos_count = this.CountRecentTransactions(matcher, transactions.Skip(redos_count * 2));
             return undos_count > 0;
         }
-
 
         /// <summary>
         /// Count recent transactions that match the provided TransactionType
@@ -57,7 +56,6 @@ namespace MiniDB.Transactions
             return count;
         }
 
-
         /// <summary>
         /// Count recent transactions that match the predicate
         /// </summary>
@@ -81,28 +79,6 @@ namespace MiniDB.Transactions
             return count;
         }
 
-        /// <summary>
-        /// Count the number of transactions at the start of the transactions db that are of a type in transactionTypes
-        /// </summary>
-        /// <param name="transactionTypes">transaction types to count</param>
-        /// <param name="list">(optional) list of transactions to count in (uses this if not provided).</param>
-        /// <returns>the count of transactions</returns>
-        private int CountRecentTransactions(List<DBTransactionType> transactionTypes, IEnumerable<IDBTransaction> list)
-        {
-                var first = list.FirstOrDefault();
-                if (first == null)
-                {
-                    return 0;
-                }
-
-                int count = transactionTypes.Contains(first.DBTransactionType) ?
-                    list.Select((item, index) => new { item, index })
-                        .Where(x => !transactionTypes.Contains(x.item.DBTransactionType)).Select(x => x.index).FirstOrDefault()
-                    : 0;
-                return count;
-            
-        }
-
         public void Undo(IList<IDBObject> dataToActOn, IList<IDBTransaction> transactions, NotifyCollectionChangedEventHandler dataChangedHandler, NotifyCollectionChangedEventHandler transactionsChangedHandler, PropertyChangedExtendedEventHandler propertyChangedHandler)
         {
             // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
@@ -117,8 +93,9 @@ namespace MiniDB.Transactions
                 // get last transaction
                 var last_transaction = this.GetLastTransaction(transactions, DBTransactionType.Undo, x => x.Active == true);
 
-                new_transaction = last_transaction.revert(dataToActOn, propertyChangedHandler);
+                new_transaction = last_transaction.Revert(dataToActOn, propertyChangedHandler);
             }
+
             transactions.Insert(0, new_transaction);
         }
 
@@ -136,35 +113,31 @@ namespace MiniDB.Transactions
                 // get last transaction
                 var last_transaction = this.GetLastTransaction(transactions, DBTransactionType.Redo, x => x.Active == true);
 
-                new_transaction = last_transaction.revert(dataToActOn, propertyChangedHandler);
+                new_transaction = last_transaction.Revert(dataToActOn, propertyChangedHandler);
             }
+
             transactions.Insert(0, new_transaction);
         }
 
-        private class TransactionBlockScope : IDisposable
+        /// <summary>
+        /// Count the number of transactions at the start of the transactions db that are of a type in transactionTypes
+        /// </summary>
+        /// <param name="transactionTypes">transaction types to count</param>
+        /// <param name="list">(optional) list of transactions to count in (uses this if not provided).</param>
+        /// <returns>the count of transactions</returns>
+        private int CountRecentTransactions(List<DBTransactionType> transactionTypes, IEnumerable<IDBTransaction> list)
         {
-            private readonly ObservableCollection<IDBObject> data;
-            private readonly ObservableCollection<IDBTransaction> transactions;
-
-            private readonly NotifyCollectionChangedEventHandler dataChangedHandler, transactionsChangedHandler;
-
-            public TransactionBlockScope(IList<IDBObject> dataToActOn, IList<IDBTransaction> transactions, NotifyCollectionChangedEventHandler dataChangedHandler, NotifyCollectionChangedEventHandler transactionsChangedHandler)
+            var first = list.FirstOrDefault();
+            if (first == null)
             {
-                this.data = (ObservableCollection<IDBObject>)dataToActOn;
-                this.transactions = (ObservableCollection<IDBTransaction>)transactions;
-
-                this.dataChangedHandler = dataChangedHandler;
-                this.transactionsChangedHandler = transactionsChangedHandler;
-
-                DeregisterListener(this.data, this.dataChangedHandler);
-                DeregisterListener(this.transactions, this.transactionsChangedHandler);
+                return 0;
             }
 
-            public void Dispose()
-            {
-                ReregisterListener(this.data, this.dataChangedHandler);
-                ReregisterListener(this.transactions, this.transactionsChangedHandler);
-            }
+            int count = transactionTypes.Contains(first.DBTransactionType) ?
+                list.Select((item, index) => new { item, index })
+                    .Where(x => !transactionTypes.Contains(x.item.DBTransactionType)).Select(x => x.index).FirstOrDefault()
+                : 0;
+            return count;
         }
 
         private static void DeregisterListener(IDBObject item, PropertyChangedExtendedEventHandler listener)
@@ -297,7 +270,7 @@ namespace MiniDB.Transactions
         }
 
         /// <summary>
-        /// Determine if the objece is a nullable type
+        /// Determine if the object is a nullable type
         /// </summary>
         /// <param name="type">the type in question</param>
         /// <returns>true if nullable</returns>
@@ -310,8 +283,9 @@ namespace MiniDB.Transactions
         /// <summary>
         /// Get last transaction skipping all transaction with a type in notTransactionType and matches matcher
         /// </summary>
-        /// <param name="notTransactionType">List of transaction types to skip</param>
-        /// <param name="matcher">ethod to determine a match</param>
+        /// <param name="transactions">List of transactions to check</param>
+        /// <param name="notTransactionType">Transaction type to skip</param>
+        /// <param name="matcher">checker to determine match</param>
         /// <returns>last transaction skipping all transaction with a type in notTransactionType and matches matcher</returns>
         private IDBTransaction GetLastTransaction(IEnumerable<IDBTransaction> transactions, DBTransactionType notTransactionType, Func<IDBTransaction, bool> matcher)
         {
@@ -350,6 +324,32 @@ namespace MiniDB.Transactions
             }
             while (last_transaction == null || last_transaction.DBTransactionType == notTransactionType);
             return last_transaction;
+        }
+
+        private class TransactionBlockScope : IDisposable
+        {
+            private readonly ObservableCollection<IDBObject> data;
+            private readonly ObservableCollection<IDBTransaction> transactions;
+
+            private readonly NotifyCollectionChangedEventHandler dataChangedHandler, transactionsChangedHandler;
+
+            public TransactionBlockScope(IList<IDBObject> dataToActOn, IList<IDBTransaction> transactions, NotifyCollectionChangedEventHandler dataChangedHandler, NotifyCollectionChangedEventHandler transactionsChangedHandler)
+            {
+                this.data = (ObservableCollection<IDBObject>)dataToActOn;
+                this.transactions = (ObservableCollection<IDBTransaction>)transactions;
+
+                this.dataChangedHandler = dataChangedHandler;
+                this.transactionsChangedHandler = transactionsChangedHandler;
+
+                DeregisterListener(this.data, this.dataChangedHandler);
+                DeregisterListener(this.transactions, this.transactionsChangedHandler);
+            }
+
+            public void Dispose()
+            {
+                ReregisterListener(this.data, this.dataChangedHandler);
+                ReregisterListener(this.transactions, this.transactionsChangedHandler);
+            }
         }
     }
 }

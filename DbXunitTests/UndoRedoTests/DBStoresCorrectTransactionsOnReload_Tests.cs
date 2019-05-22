@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Xunit;
 
@@ -11,9 +9,9 @@ namespace DbXunitTests.UndoRedoTests
     public class DBStoresCorrectTransactionsOnReload_Tests : IDisposable
     {
         #region Fields
+        private readonly MiniDB.IDBObject storedItem;
         private MiniDB.DataBase testDB;
         private NullWriterStorageStrategy nullWritingStorageStrategy;
-        private readonly MiniDB.IDBObject storedItem;
         #endregion
 
         #region Constructors
@@ -23,17 +21,16 @@ namespace DbXunitTests.UndoRedoTests
 
             this.nullWritingStorageStrategy = new NullWriterStorageStrategy();
 
-            //simulate reloading the DB by causing it to load with an item in it.
-
+            // simulate reloading the DB by causing it to load with an item in it.
             var jdoe = new ExampleStoredItem("John", "Doe");
             jdoe.Age = 10;
 
             this.nullWritingStorageStrategy.dBObjects = new List<ExampleStoredItem>() { jdoe };
 
-            this.testDB = new MiniDB.DataBase(dbFilename, 1, 1, nullWritingStorageStrategy);
+            this.testDB = new MiniDB.DataBase(dbFilename, 1, 1, this.nullWritingStorageStrategy);
             this.storedItem = this.testDB.FirstOrDefault(); // allow access for modifying it.
 
-            if(this.storedItem == null)
+            if (this.storedItem == null)
             {
                 throw new Exception("Failed to setup DB with item in it");
             }
@@ -47,7 +44,7 @@ namespace DbXunitTests.UndoRedoTests
         }
 
         /// <summary>
-        /// In beteen each test, cleanup.
+        /// In between each test, cleanup.
         /// </summary>
         public void Dispose()
         {
@@ -59,34 +56,34 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void TestAddingItemToDBMakes_Add_Transaction()
         {
-            bool AddTransactionAdded = false;
+            bool addTransactionAdded = false;
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
                 var transaction = data.Last();
-                AddTransactionAdded = transaction.DBTransactionType == MiniDB.DBTransactionType.Add;
+                addTransactionAdded = transaction.DBTransactionType == MiniDB.DBTransactionType.Add;
             };
 
             this.testDB.Add(new ExampleStoredItem("Jane", "Doe"));
 
-            Assert.True(AddTransactionAdded);
+            Assert.True(addTransactionAdded);
         }
 
         [Fact]
         public void TestChangingItemInDBMakes_Modify_Transaction_onExistingItem()
         {
-            bool ModifyTransactionAdded = false;
+            bool modifyTransactionAdded = false;
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
                 var transaction = data.Last();
-                ModifyTransactionAdded = transaction.DBTransactionType == MiniDB.DBTransactionType.Modify;
+                modifyTransactionAdded = transaction.DBTransactionType == MiniDB.DBTransactionType.Modify;
             };
 
-            Assert.False(ModifyTransactionAdded, "Should not have added a modify yet");
+            Assert.False(modifyTransactionAdded, "Should not have added a modify yet");
 
             var jdoe = this.storedItem as ExampleStoredItem; // using dynamic cast to keep original object reference.
             jdoe.Age = 11; // should trigger modify transaction
 
-            Assert.True(ModifyTransactionAdded);
+            Assert.True(modifyTransactionAdded);
         }
 
         [Fact]
@@ -103,7 +100,6 @@ namespace DbXunitTests.UndoRedoTests
 
             Assert.True(ModifyTransactionAdded);
         }
-
 
         #region cleanup
         /// <summary>

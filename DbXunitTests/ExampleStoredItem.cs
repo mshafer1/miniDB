@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-namespace DbXunitTests
+﻿namespace DbXunitTests
 {
     /// <summary>
     /// An example of an object class that can be stored in a MiniDB. This is used in the unit tests.

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
@@ -32,16 +27,16 @@ namespace MiniDB.Transactions
 
         public object NewValue { get; }
 
-        public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
+        public override IDBTransaction Revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             var transactedItem = objects.FirstOrDefault(item => item.ID == this.ChangedItemID);
-            if(transactedItem == null)
+            if (transactedItem == null)
             {
                 throw new DBCannotUndoException($"Failed to find item with with ID {this.ChangedItemID} to undo property {this.ChangedFieldName}");
             }
 
             ModifyTransactionHelpers.ExecuteInTransactionBlockingScope(notifier, transactedItem, this, ModifyTransactionHelpers.RevertProperty);
-                
+
             var result = new UndoTransaction(
                 changedItemID: this.ChangedItemID,
                 changedPropertyName: this.ChangedFieldName,
@@ -50,7 +45,5 @@ namespace MiniDB.Transactions
             this.Active = false;
             return result;
         }
-
-        
     }
 }

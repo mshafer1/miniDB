@@ -8,10 +8,6 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
     public interface IStorageStrategy
     {
         /// <summary>
@@ -26,6 +22,7 @@ namespace MiniDB
         /// <summary>
         /// load the DB
         /// </summary>
+        /// <param name="filename">File to load</param>
         /// <returns>An instance of <see cref="DataBase{T}" /> from file.</returns>
         DataBase _loadDB(string filename);
 
@@ -40,6 +37,5 @@ namespace MiniDB
         /// <param name="oldVersion"></param>
         /// <param name="newVersion"></param>
         void _migrate(float oldVersion, float newVersion);
-
     }
 }

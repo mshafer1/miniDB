@@ -11,6 +11,12 @@ namespace DbXunitTests
 {
     class NullWriterStorageStrategy : MiniDB.IStorageStrategy
     {
+        public delegate void WriteMessageHandler(IEnumerable<IDBObject> data);
+        public delegate void WriteTransactionHandler(IEnumerable<IDBTransaction> data);
+
+        public event WriteMessageHandler WroteMain;
+        public event WriteTransactionHandler WroteTransactions;
+
         public NullWriterStorageStrategy(): base()
         {
             this.WroteFlag = false;
@@ -76,12 +82,5 @@ namespace DbXunitTests
 
         public bool WroteFlag { get; private set; }
         public bool WroteTransactionsFlag { get; private set; }
-
-        
-
-        public delegate void WriteMessageHandler(IEnumerable<IDBObject> data);
-        public delegate void WriteTransactionHandler(IEnumerable<IDBTransaction> data);
-        public event WriteMessageHandler WroteMain;
-        public event WriteTransactionHandler WroteTransactions;
     }
 }

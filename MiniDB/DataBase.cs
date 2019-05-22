@@ -1,7 +1,4 @@
-﻿using MiniDB.Interfaces;
-using MiniDB.Transactions;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -9,8 +6,15 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 
+using MiniDB.Interfaces;
+using MiniDB.Transactions;
+using Newtonsoft.Json;
+
 namespace MiniDB
 {
+    /// <summary>
+    /// The primary DataBase class to provide the core logic of MiniDB.
+    /// </summary>
     public class DataBase : ObservableCollection<IDBObject>, IDisposable
     {
         #region fields
@@ -52,8 +56,8 @@ namespace MiniDB
 
                 try
                 {
-                    TransactionsFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-                    this.Transactions_DB = this.storageStrategy._getTransactionsCollection(TransactionsFilename);
+                    this.TransactionsFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
+                    this.Transactions_DB = this.storageStrategy._getTransactionsCollection(this.TransactionsFilename);
                     this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
 
                     this.LoadFile(filename, true);
@@ -171,9 +175,9 @@ namespace MiniDB
         #region events/delegates
 
         /// <summary>
-        /// Delegate to specify what handlers of ItemChanged shoud look like
+        /// Delegate to specify what handlers of ItemChanged should look like
         /// </summary>
-        /// <param name="sender">Istance of T that chaged</param>
+        /// <param name="sender">Instance of T that chaged</param>
         /// <param name="id">Database ID for T object</param>
         public delegate void TChangedEventHandler(object sender, ID id);
 
@@ -198,12 +202,12 @@ namespace MiniDB
         /// </summary>
         public new void Clear()
         {
-            ///
-            /// Ordinarily, Clear wipes all elements then calls our collectionChanged with a NotifyCollectionChangedAction.Reset,
-            /// but the items are removed by then (and the OldItems in the event is null), so override the clear to remove each item so we can log it.
+            //
+            // Ordinarily, Clear wipes all elements then calls our collectionChanged with a NotifyCollectionChangedAction.Reset,
+            // but the items are removed by then (and the OldItems in the event is null), so override the clear to remove each item so we can log it.
 
             var tempItems = new Collection<IDBObject>();
-            foreach(var item in this)
+            foreach (var item in this)
             {
                 tempItems.Add(item);
             }
@@ -216,18 +220,16 @@ namespace MiniDB
 
         public void Undo()
         {
-            if(!this.undoRedoManager.CheckCanUndo(this.Transactions_DB))
+            if (!this.undoRedoManager.CheckCanUndo(this.Transactions_DB))
             {
                 throw new DBCannotUndoException("Cannot undo at this time");
             }
 
-            
-            
             this.undoRedoManager.Undo(
                 dataToActOn: this,
                 transactions: this.Transactions_DB,
                 dataChangedHandler: this.DataBase_CollectionChanged,
-                transactionsChangedHandler: this.DataBase_TransactionsChanged, 
+                transactionsChangedHandler: this.DataBase_TransactionsChanged,
                 propertyChangedHandler: this.DataBaseItem_PropertyChanged);
             this._cacheDB();
 
@@ -258,8 +260,8 @@ namespace MiniDB
 
         private void _alertUndoableChanged()
         {
-            this.PublicOnPropertyChanged(nameof(CanUndo));
-            this.PublicOnPropertyChanged(nameof(CanRedo));
+            this.PublicOnPropertyChanged(nameof(this.CanUndo));
+            this.PublicOnPropertyChanged(nameof(this.CanRedo));
         }
 
         private void getMutex()
@@ -293,6 +295,7 @@ namespace MiniDB
         private void LoadFile(string filename, bool registerItemsForPropertyChanged)
         {
             var data = this.storageStrategy._loadDB(filename);
+
             // if new enough, and not too new,
             if (data.DBVersion >= this.MinimumCompatibleVersion && data.DBVersion <= this.DBVersion)
             {
@@ -357,7 +360,7 @@ namespace MiniDB
 
             // TODOne: register new items
             IList changed = null;
-            
+
 
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
@@ -373,7 +376,7 @@ namespace MiniDB
 
                 changed = e.NewItems;
             }
-            else if(e.Action == NotifyCollectionChangedAction.Remove)
+            else if (e.Action == NotifyCollectionChangedAction.Remove)
             {
                 foreach (IDBObject item in e.OldItems)
                 {
@@ -386,7 +389,7 @@ namespace MiniDB
 
                 changed = e.OldItems;
             }
-            else if(e.Action == NotifyCollectionChangedAction.Reset)
+            else if (e.Action == NotifyCollectionChangedAction.Reset)
             {
                 foreach (IDBObject item in e.OldItems)
                 {
@@ -399,15 +402,15 @@ namespace MiniDB
 
                 changed = e.OldItems;
             }
-            else if(e.Action == NotifyCollectionChangedAction.Replace)
+            else if (e.Action == NotifyCollectionChangedAction.Replace)
             {
                 int index = 0;
 
                 foreach (IDBObject item in e.OldItems)
                 {
                     index = e.OldItems.IndexOf(item);
+
                     // create remove transaction
-                    
                     IDBTransaction dBTransaction = new DeleteTransaction(item);
                     this.Transactions_DB.Insert(0, dBTransaction);
 

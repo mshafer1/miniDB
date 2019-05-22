@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace DbXunitTests.UndoRedoTests
 {
     // inspired by discussion here: https://raygun.com/blog/unit-testing-patterns/#state
-    class DBStateBuilder
+    internal class DBStateBuilder
     {
         private readonly MiniDB.DataBase _db;    
         
-
         public DBStateBuilder(MiniDB.DataBase db)
         {
             this._db = db;

@@ -1,9 +1,6 @@
-﻿using MiniDB;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+
+using MiniDB;
 
 using Xunit;
 
@@ -105,7 +102,6 @@ namespace DbXunitTests.UndoRedoTests
                 data.Add(item);
                 transactions.Add(new MiniDB.Transactions.UndoTransaction(item, DBTransactionType.Add));
             };
-
 
             this.testDB.Redo();
 

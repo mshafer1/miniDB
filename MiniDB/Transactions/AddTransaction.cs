@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace MiniDB.Transactions
 {
@@ -19,12 +16,12 @@ namespace MiniDB.Transactions
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Add;
 
-        public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
+        public override IDBTransaction Revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             // reverting an Add Transaction means removing the item and creating a Delete transaction
             IDBObject transactedObject = objects.FirstOrDefault(entry => entry.ID == this.ChangedItemID);
 
-            if(transactedObject == null)
+            if (transactedObject == null)
             {
                 throw new DBCannotUndoException($"Failed to find item wit ID {this.ChangedItemID} to remove");
             }

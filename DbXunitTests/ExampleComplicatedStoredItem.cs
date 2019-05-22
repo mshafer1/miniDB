@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DbXunitTests
+﻿namespace DbXunitTests
 {
     /// <summary>
     /// Example of a storable item with a nested property (Address)
@@ -78,7 +72,7 @@ namespace DbXunitTests
         /// <summary>
         /// When an address field is changed - raise an event on this object to
         /// </summary>
-        /// <param name="sender">the object that raissed the event - expected to be this address</param>
+        /// <param name="sender">the object that raised the event - expected to be this address</param>
         /// <param name="e">the event args</param>
         private void Address_PropertyChangedExtended(object sender, MiniDB.PropertyChangedExtendedEventArgs e)
         {

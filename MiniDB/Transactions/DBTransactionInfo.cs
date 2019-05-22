@@ -1,11 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using Newtonsoft.Json;
 
 namespace MiniDB.Transactions
 {
@@ -15,7 +12,7 @@ namespace MiniDB.Transactions
         [JsonConstructor]
         internal DBTransactionInfo()
         {
-
+            // NO-OP
         }
 
         event PropertyChangedExtendedEventHandler IDBObject.PropertyChangedExtended
@@ -71,7 +68,10 @@ namespace MiniDB.Transactions
         [JsonProperty]
         public object transactedItem { get; internal set; }
 
-        public IDBObject TransactedItem { get { return (IDBObject)this.transactedItem; } }
+        public IDBObject TransactedItem
+        {
+            get { return (IDBObject)this.transactedItem; }
+        }
 
         public static IDBTransaction GetDBTransaction(DBTransactionInfo self)
         {
@@ -88,7 +88,7 @@ namespace MiniDB.Transactions
             }
         }
 
-        public IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
+        public IDBTransaction Revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             throw new NotImplementedException();
         }

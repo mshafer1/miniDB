@@ -1,11 +1,9 @@
-﻿using MiniDB;
-using MiniDB.Interfaces;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
+
+using MiniDB;
+using MiniDB.Interfaces;
 
 namespace DbXunitTests.UndoRedoTests
 {
@@ -119,7 +117,7 @@ namespace DbXunitTests.UndoRedoTests
             Assert.Empty(this.testDB);
             Assert.True(this.testDB.CanRedo, "Just undid again!");
             Assert.False(this.testDB.CanUndo, "should be NOT able to undo on empty");
-            this.AssertStorageCached();   
+            this.AssertStorageCached();
         }
 
         [Fact]
@@ -199,7 +197,7 @@ namespace DbXunitTests.UndoRedoTests
                 .Get_DB();
             var item = (ExampleStoredItem)db.First();
             this.storageStrategy.ClearWroteFlags();
-            
+
             // Act
             item.Age++;
 
@@ -273,7 +271,7 @@ namespace DbXunitTests.UndoRedoTests
             db.Redo();
 
             // Assert
-            Assert.Equal(old_age+1, ((ExampleStoredItem)db.First()).Age);
+            Assert.Equal(old_age + 1, ((ExampleStoredItem)db.First()).Age);
             Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
             Assert.False(db.CanRedo, "Should be at the top of the stack");
             this.AssertStorageCached();

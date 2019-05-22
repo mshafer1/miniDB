@@ -165,11 +165,11 @@ PhysicalMemory >> {PhysicalMemory}";
         /// <summary>
         ///  Get hash of string (translated to bytes)
         /// hashing code from http://forum.codecall.net/topic/78149-c-tutorial-generating-a-unique-hardware-id/
-        /// Not using the builting s.GetHashCode as its implementation is differen in different versions of CLR,
+        /// Not using the builtin s.GetHashCode as its implementation is different in different versions of CLR,
         ///   so we are using MD5 to keep consistency across platforms/compiles.
         /// </summary>
         /// <param name="s">the value to hash</param>
-        /// <returns>Hexidecimal formatted hash string</returns>
+        /// <returns>Hexadecimal formatted hash string</returns>
         private static string GetHash(string s)
         {
             // Initialize a new MD5 Crypto Service Provider in order to generate a hash
@@ -207,7 +207,7 @@ PhysicalMemory >> {PhysicalMemory}";
         /// Return the requested item by name from data if it is there, else null.
         /// </summary>
         /// <param name="name">The name of the item to fetch (default: caller)</param>
-        /// <returns>the chached value</returns>
+        /// <returns>the cached value</returns>
         private static string Get([CallerMemberName]string name = null)
         {
             if (Data.ContainsKey(name))

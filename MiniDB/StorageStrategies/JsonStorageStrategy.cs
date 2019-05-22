@@ -16,8 +16,8 @@ namespace MiniDB
 
         public JsonStorageStrategy(float dbVersion, float minimumCompatibleVersion)
         {
-            DBVersion = dbVersion;
-            MinimumCompatibleVersion = minimumCompatibleVersion;
+            this.DBVersion = dbVersion;
+            this.MinimumCompatibleVersion = minimumCompatibleVersion;
         }
 
         public void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string transactionsFilename)
@@ -37,7 +37,7 @@ namespace MiniDB
             /*this.DBVersion = databaseVersion;
             this.Filename = filename;
             this.LoadFile(filename, false);*/
-            var json = _readFile(filename);
+            var json = this._readFile(filename);
             if (json.Length == 0)
             {
                 return new ObservableCollection<IDBTransaction>();

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Xunit;
 
@@ -21,7 +19,7 @@ namespace DbXunitTests.UndoRedoTests
             var dbFilename = "testDB.json"; // this is ignored because the nullStorageStrategy doesn't care, but let's be consistent.
 
             this.nullWritingStorageStrategy = new NullWriterStorageStrategy();
-            this.testDB = new MiniDB.DataBase(dbFilename, 1, 1, nullWritingStorageStrategy);
+            this.testDB = new MiniDB.DataBase(dbFilename, 1, 1, this.nullWritingStorageStrategy);
         }
         #endregion
 
@@ -32,7 +30,7 @@ namespace DbXunitTests.UndoRedoTests
         }
 
         /// <summary>
-        /// In beteen each test, cleanup.
+        /// In between each test, cleanup.
         /// </summary>
         public void Dispose()
         {
@@ -41,9 +39,7 @@ namespace DbXunitTests.UndoRedoTests
         }
         #endregion
 
-
         #region Tests
-
         [Fact]
         public void Test_MassRemoveLogsDeletes_Clear()
         {
@@ -59,7 +55,7 @@ namespace DbXunitTests.UndoRedoTests
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
                 var lastTransaction = data.First();
-                if(lastTransaction.DBTransactionType == MiniDB.DBTransactionType.Delete)
+                if (lastTransaction.DBTransactionType == MiniDB.DBTransactionType.Delete)
                 {
                     ++remove_count;
                 }
@@ -120,8 +116,6 @@ namespace DbXunitTests.UndoRedoTests
                 new ExampleStoredItem("Molly", "Doe")
             };
 
-
-
             foreach (var item in thingsToAdd)
             {
                 this.testDB.Add(item);
@@ -129,7 +123,7 @@ namespace DbXunitTests.UndoRedoTests
 
             int remove_count = 0;
             int add_count = 0;
-            string actionOrder = "";
+            string actionOrder = string.Empty;
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
                 var lastTransaction = data.First();
@@ -138,7 +132,7 @@ namespace DbXunitTests.UndoRedoTests
                     ++remove_count;
                     actionOrder += "r";
                 }
-                else if(lastTransaction.DBTransactionType == MiniDB.DBTransactionType.Add)
+                else if (lastTransaction.DBTransactionType == MiniDB.DBTransactionType.Add)
                 {
                     ++add_count;
                     actionOrder += "a";
@@ -152,13 +146,10 @@ namespace DbXunitTests.UndoRedoTests
 
             Assert.Equal(1, remove_count);
             Assert.Equal(1, add_count);
-            Assert.True("ra" == actionOrder, "Error, expected a remove, then an add . . .");
+            Assert.True(actionOrder == "ra", "Error, expected a remove, then an add . . .");
         }
 
-
         #endregion
-
-
 
         #region cleanup
         /// <summary>

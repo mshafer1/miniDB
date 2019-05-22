@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace MiniDB
 {
-    class DBOptions
+    public class DBOptions
     {
-        //public Func<string,DataBase<T>> JsonDataBase<T> => 
+        //TODO: public Func<string,DataBase<T>> JsonDataBase<T> => 
     }
 }

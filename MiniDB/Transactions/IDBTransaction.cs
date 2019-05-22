@@ -16,6 +16,6 @@ namespace MiniDB.Transactions
         [JsonProperty]
         System.DateTime Transaction_timestamp { get; }
 
-        IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier);
+        IDBTransaction Revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier);
     }
 }

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using Xunit;
 
 namespace DbXunitTests
@@ -14,8 +11,8 @@ namespace DbXunitTests
 
         public DBCallsStorageStrategyTests()
         {
-            nullWritingStorageStrategy = new NullWriterStorageStrategy();
-            testDB = new MiniDB.DataBase("testDB.json", 1, 1, nullWritingStorageStrategy);
+            this.nullWritingStorageStrategy = new NullWriterStorageStrategy();
+            this.testDB = new MiniDB.DataBase("testDB.json", 1, 1, this.nullWritingStorageStrategy);
         }
 
         public void Dispose()
@@ -42,7 +39,6 @@ namespace DbXunitTests
             this.testDB.Add(new ExampleStoredItem());
             Assert.True(this.nullWritingStorageStrategy.WroteFlag);
         }
-
 
         [Fact]
         public void DoesWriteTransactionsFileOnInsert()

@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MiniDB.Transactions
+﻿namespace MiniDB.Transactions
 {
     public abstract class WholeItemTransaction : BaseDBTransaction, IWholeItemTransaction
     {
-        public WholeItemTransaction(IDBObject transactedObject): base(transactedObject.ID)
+        public WholeItemTransaction(IDBObject transactedObject) : base(transactedObject.ID)
         {
             this.TransactedItem = transactedObject;
         }

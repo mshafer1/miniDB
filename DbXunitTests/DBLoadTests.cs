@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Xunit;
 
@@ -56,7 +53,7 @@ namespace DbXunitTests
         }
 
         /// <summary>
-        /// In beteen each test, cleanup.
+        /// In between each test, cleanup.
         /// </summary>
         public void Dispose()
         {
@@ -77,12 +74,12 @@ namespace DbXunitTests
         ///// <summary>
         ///// Test that even with encryption, a DB can be cached an reloaded multiple times
         ///// </summary>
-        //[Fact]
-        //public void TestEncryptedDBCanReload()
-        //{
-        //    Console.WriteLine($"Test reloading encrypted DB");
-        //    this.TestDBType(file => new MiniDB.EncryptedDB(file, 1, 1.0f));
-        //}
+        ////[Fact]
+        ////public void TestEncryptedDBCanReload()
+        ////{
+        ////    Console.WriteLine($"Test reloading encrypted DB");
+        ////    this.TestDBType(file => new MiniDB.EncryptedDB(file, 1, 1.0f));
+        ////}
 
         /// <summary>
         /// Test that re-opening a db of the same type in the same file fails (mutex should prevent it).
@@ -171,11 +168,11 @@ namespace DbXunitTests
         /// </summary>
         private void Cleanup()
         {
-            var filesToDelete = new string[] { this.filename, this.filename2, this.transactionsFile, this.transactions2File};
+            var filesToDelete = new string[] { this.filename, this.filename2, this.transactionsFile, this.transactions2File };
 
-            foreach(var file in filesToDelete)
+            foreach (var file in filesToDelete)
             {
-                if(File.Exists(file))
+                if (File.Exists(file))
                 {
                     File.Delete(file);
                 }

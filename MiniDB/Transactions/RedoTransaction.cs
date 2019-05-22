@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
@@ -42,7 +40,7 @@ namespace MiniDB.Transactions
 
         public object NewValue { get; }
 
-        public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
+        public override IDBTransaction Revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
             IDBTransaction result = null;
 
@@ -54,26 +52,27 @@ namespace MiniDB.Transactions
                     throw new DBCannotUndoException($"Cannot find item to re-remove");
                 }
                 var transactedItem = objects.FirstOrDefault(dbItem => dbItem.ID == this.TransactedItem.ID);
-                if(transactedItem == null)
+                if (transactedItem == null)
                 {
                     throw new DBCannotUndoException($"Cannot find item with ID: {this.TransactedItem.ID}");
                 }
+
                 transactedItem.PropertyChangedExtended -= notifier;
 
                 objects.Remove(transactedItem);
 
                 result = new UndoTransaction(transactedItem, DBTransactionType.Add);
             }
-            else if(this.SubDBTransactionType == DBTransactionType.Modify)
+            else if (this.SubDBTransactionType == DBTransactionType.Modify)
             {
                 // undo a modify
-                if(this.ChangedItemID == null)
+                if (this.ChangedItemID == null)
                 {
                     throw new DBCannotUndoException("Error with stored undo command. No ID stored.");
                 }
 
                 var transactedItem = objects.FirstOrDefault(item => item.ID == this.ChangedItemID);
-                if(transactedItem == null)
+                if (transactedItem == null)
                 {
                     throw new DBCannotUndoException($"Cannot find item with ID {this.ChangedItemID} to change");
                 }

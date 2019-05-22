@@ -234,6 +234,29 @@ namespace DbXunitTests.UndoRedoTests
         }
 
         [Fact]
+        public void Test_AddChangeItemUndoUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).Age++; })
+                .Undo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Empty(db);
+            Assert.False(db.CanUndo, "Should be empty again!");
+            Assert.True(db.CanRedo, "Just Undid!");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
         public void Test_AddChangeItemUndoRedo()
         {
             // Arrange
@@ -253,6 +276,234 @@ namespace DbXunitTests.UndoRedoTests
             Assert.Equal(old_age+1, ((ExampleStoredItem)db.First()).Age);
             Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
             Assert.False(db.CanRedo, "Should be at the top of the stack");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddChangeItemUndoRedoUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).Age++; })
+                .Undo()
+                .Redo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Equal(old_age, ((ExampleStoredItem)db.First()).Age);
+            Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
+            Assert.True(db.CanRedo, "Just undid!");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddChangeItemUndoRedoUndoUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).Age++; })
+                .Undo()
+                .Redo()
+                .Undo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Empty(db);
+            Assert.False(db.CanUndo, "Should be back to empty");
+            Assert.True(db.CanRedo, "Just undid!");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddChangeItemUndoRedoUndoUndoRedoRedo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).Age++; })
+                .Undo()
+                .Redo()
+                .Undo()
+                .Undo()
+                .Redo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Redo();
+
+            // Assert
+            Assert.Equal(old_age + 1, ((ExampleStoredItem)db.First()).Age);
+            Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
+            Assert.False(db.CanRedo, "Should be at the top of the stack");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddEditUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zach"; })
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Equal("John", entry.FirstName);
+            Assert.True(db.CanUndo, "Should be able to Undo add");
+            Assert.True(db.CanRedo, "Just Undid!");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddEditEditUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zach"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zachary"; })
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Equal("Zach", entry.FirstName);
+            Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
+            Assert.True(db.CanRedo, "Just Undid!");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddEditEditUndoEditUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zach"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zachary"; })
+                .Undo()
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zacha"; })
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Equal("Zach", entry.FirstName);
+            Assert.True(db.CanUndo, "Should be able to Undo add DB item");
+            Assert.True(db.CanRedo, "Just Undid!");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddEditEditEditUndoUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zach"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zachary"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zacha"; })
+                .Undo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Equal("Zach", entry.FirstName);
+            Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
+            Assert.True(db.CanRedo, "Just Undid!");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddEditEditEditUndoUndoRedoUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zach"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zachary"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zacha"; })
+                .Undo()
+                .Undo()
+                .Redo()
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Equal("Zach", entry.FirstName);
+            Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
+            Assert.True(db.CanRedo, "Just Undid!");
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_AddEditEditEditUndoUndoRedoUndoUndoUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zach"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zachary"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zacha"; })
+                .Undo() // zachary
+                .Undo() // zach
+                .Redo() // zachary
+                .Undo() // zach
+                .Undo() // John
+                .Get_DB();
+
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo(); // undo add
+
+            // Assert
+            Assert.Empty(db);
+            Assert.False(db.CanUndo, "Should not be able to undo on empty db");
+            Assert.True(db.CanRedo, "Just Undid!");
             this.AssertStorageCached();
         }
 

@@ -47,6 +47,7 @@ namespace MiniDB.Transactions
                 changedPropertyName: this.ChangedFieldName,
                 oldValue: this.NewValue,
                 newValue: this.OldValue);
+            this.Active = false;
             return result;
         }
 

@@ -72,7 +72,11 @@ namespace MiniDB.Transactions
                 var transactedItem = objects.FirstOrDefault(item => item.ID == this.ChangedItemID);
 
                 ModifyTransactionHelpers.ExecuteInTransactionBlockingScope(notifier, transactedItem, this, ModifyTransactionHelpers.RevertProperty);
-                result = new RedoTransaction(this.ChangedItemID, this.ChangedFieldName, this.OldValue, this.NewValue);
+                result = new RedoTransaction(
+                    changedItemID: this.ChangedItemID,
+                    changedPropertyName: this.ChangedFieldName,
+                    newValue: this.OldValue,
+                    oldValue: this.NewValue);
             }
             else
             {

@@ -64,6 +64,27 @@ namespace MiniDB.Transactions
 
                 result = new UndoTransaction(transactedItem, DBTransactionType.Add);
             }
+            else if(this.SubDBTransactionType == DBTransactionType.Modify)
+            {
+                // undo a modify
+                if(this.ChangedItemID == null)
+                {
+                    throw new DBCannotUndoException("Error with stored undo command. No ID stored.");
+                }
+
+                var transactedItem = objects.FirstOrDefault(item => item.ID == this.ChangedItemID);
+                if(transactedItem == null)
+                {
+                    throw new DBCannotUndoException($"Cannot find item with ID {this.ChangedItemID} to change");
+                }
+
+                ModifyTransactionHelpers.ExecuteInTransactionBlockingScope(notifier, transactedItem, this, ModifyTransactionHelpers.RevertProperty);
+                result = new UndoTransaction(
+                    changedItemID: this.ChangedItemID,
+                    changedPropertyName: this.ChangedFieldName,
+                    newValue: this.OldValue,
+                    oldValue: this.NewValue);
+            }
             else
             {
                 throw new NotImplementedException("TODO: implement rest of revert undo");

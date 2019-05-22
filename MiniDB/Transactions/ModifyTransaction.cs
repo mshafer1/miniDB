@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
@@ -32,7 +34,22 @@ namespace MiniDB.Transactions
 
         public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
-            throw new NotImplementedException();
+            var transactedItem = objects.FirstOrDefault(item => item.ID == this.ChangedItemID);
+            if(transactedItem == null)
+            {
+                throw new DBCannotUndoException($"Failed to find item with with ID {this.ChangedItemID} to undo property {this.ChangedFieldName}");
+            }
+
+            ModifyTransactionHelpers.ExecuteInTransactionBlockingScope(notifier, transactedItem, this, ModifyTransactionHelpers.RevertProperty);
+                
+            var result = new UndoTransaction(
+                changedItemID: this.ChangedItemID,
+                changedPropertyName: this.ChangedFieldName,
+                oldValue: this.NewValue,
+                newValue: this.OldValue);
+            return result;
         }
+
+        
     }
 }

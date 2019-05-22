@@ -6,12 +6,20 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    public class RedoTransaction : BaseDBTransaction
+    public class RedoTransaction : BaseDBTransaction, IModifyTransaction, IWholeItemTransaction
     {
         public RedoTransaction(IDBObject transactedObject, DBTransactionType subTransactionType) : base(transactedObject.ID)
         {
             this.SubDBTransactionType = subTransactionType;
             this.TransactedItem = transactedObject;
+        }
+
+        public RedoTransaction(ID changedItemID, string changedPropertyName, object oldValue, object newValue) : base(changedItemID)
+        {
+            this.SubDBTransactionType = DBTransactionType.Modify;
+            this.ChangedFieldName = changedPropertyName;
+            this.OldValue = oldValue;
+            this.NewValue = newValue;
         }
 
         public RedoTransaction(IDBTransaction other) : base(other)
@@ -24,9 +32,15 @@ namespace MiniDB.Transactions
 
         public override DBTransactionType DBTransactionType => DBTransactionType.Redo;
 
-        public DBTransactionType SubDBTransactionType { get; set; }
+        public DBTransactionType SubDBTransactionType { get; }
 
-        public IDBObject TransactedItem { get; set; }
+        public IDBObject TransactedItem { get; }
+
+        public string ChangedFieldName { get; }
+
+        public object OldValue { get; }
+
+        public object NewValue { get; }
 
         public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {

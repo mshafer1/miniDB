@@ -230,6 +230,8 @@ namespace MiniDB
                 transactionsChangedHandler: this.DataBase_TransactionsChanged, 
                 propertyChangedHandler: this.DataBaseItem_PropertyChanged);
             this._cacheDB();
+
+            this._alertUndoableChanged();
         }
 
         public void Redo()
@@ -246,11 +248,19 @@ namespace MiniDB
                 transactionsChangedHandler: this.DataBase_TransactionsChanged,
                 propertyChangedHandler: this.DataBaseItem_PropertyChanged);
             this._cacheDB();
+
+            this._alertUndoableChanged();
         }
 
         #endregion
 
         #region helper methods
+
+        private void _alertUndoableChanged()
+        {
+            this.PublicOnPropertyChanged(nameof(CanUndo));
+            this.PublicOnPropertyChanged(nameof(CanRedo));
+        }
 
         private void getMutex()
         {
@@ -358,7 +368,7 @@ namespace MiniDB
 
                     // create add transaction
                     IDBTransaction dBTransaction = new AddTransaction(item);
-                    this.Transactions_DB.Add(dBTransaction);
+                    this.Transactions_DB.Insert(0, dBTransaction);
                 }
 
                 changed = e.NewItems;
@@ -371,7 +381,7 @@ namespace MiniDB
                     // create add transaction
                     IDBTransaction dBTransaction = new DeleteTransaction(item);
 
-                    this.Transactions_DB.Add(dBTransaction);
+                    this.Transactions_DB.Insert(0, dBTransaction);
                 }
 
                 changed = e.OldItems;
@@ -384,7 +394,7 @@ namespace MiniDB
                     // create add transaction
                     IDBTransaction dBTransaction = new DeleteTransaction(item);
 
-                    this.Transactions_DB.Add(dBTransaction);
+                    this.Transactions_DB.Insert(0, dBTransaction);
                 }
 
                 changed = e.OldItems;
@@ -399,13 +409,13 @@ namespace MiniDB
                     // create remove transaction
                     
                     IDBTransaction dBTransaction = new DeleteTransaction(item);
-                    this.Transactions_DB.Add(dBTransaction);
+                    this.Transactions_DB.Insert(0, dBTransaction);
 
                     var newItem = e.NewItems[index] as IDBObject;
 
                     // create add transaction
                     dBTransaction = new AddTransaction(newItem);
-                    this.Transactions_DB.Add(dBTransaction);
+                    this.Transactions_DB.Insert(0, dBTransaction);
                 }
             }
             else

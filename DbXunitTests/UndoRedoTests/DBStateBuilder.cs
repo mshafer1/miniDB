@@ -35,14 +35,18 @@ namespace DbXunitTests.UndoRedoTests
             return this;
         }
 
+        public DBStateBuilder EditItem(System.Action<MiniDB.IDBObject> edit)
+        {
+            var first = this._db.Single();
+
+            edit(first);
+
+            return this;
+        }
+
         public MiniDB.DataBase Get_DB()
         {
             return this._db;
-        }
-
-        public MiniDB.IDBObject Get_FirstItem()
-        {
-            return this._db.First();
         }
     }
 }

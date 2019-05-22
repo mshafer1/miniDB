@@ -58,7 +58,7 @@ namespace DbXunitTests.UndoRedoTests
 
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
-                var lastTransaction = data.Last();
+                var lastTransaction = data.First();
                 if(lastTransaction.DBTransactionType == MiniDB.DBTransactionType.Delete)
                 {
                     ++remove_count;
@@ -91,7 +91,7 @@ namespace DbXunitTests.UndoRedoTests
 
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
-                var lastTransaction = data.Last();
+                var lastTransaction = data.First();
                 if (lastTransaction.DBTransactionType == MiniDB.DBTransactionType.Delete)
                 {
                     ++remove_count;
@@ -132,7 +132,7 @@ namespace DbXunitTests.UndoRedoTests
             string actionOrder = "";
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
-                var lastTransaction = data.Last();
+                var lastTransaction = data.First();
                 if (lastTransaction.DBTransactionType == MiniDB.DBTransactionType.Delete)
                 {
                     ++remove_count;

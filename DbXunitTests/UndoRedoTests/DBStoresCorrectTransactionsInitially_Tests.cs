@@ -62,7 +62,7 @@ namespace DbXunitTests.UndoRedoTests
             bool ModifyTransactionAdded = false;
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
-                var transaction = data.Last();
+                var transaction = data.First();
                 ModifyTransactionAdded = transaction.DBTransactionType == MiniDB.DBTransactionType.Modify;
             };
 
@@ -83,7 +83,7 @@ namespace DbXunitTests.UndoRedoTests
             bool DeleteTransactionAdded = false;
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
-                var transaction = data.Last();
+                var transaction = data.First();
                 DeleteTransactionAdded = transaction.DBTransactionType == MiniDB.DBTransactionType.Delete;
             };
 

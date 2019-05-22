@@ -7,12 +7,20 @@ using System.Threading.Tasks;
 
 namespace MiniDB.Transactions
 {
-    public class UndoTransaction : BaseDBTransaction
+    public class UndoTransaction : BaseDBTransaction, IWholeItemTransaction, IModifyTransaction
     {
         public UndoTransaction(IDBObject transactedItem, DBTransactionType subTransactionType) : base(transactedItem.ID)
         {
             this.TransactedItem = transactedItem;
             this.SubDBTransactionType = subTransactionType;
+        }
+
+        public UndoTransaction(ID changedItemID, string changedPropertyName, object oldValue, object newValue) : base(changedItemID)
+        {
+            this.SubDBTransactionType = DBTransactionType.Modify;
+            this.ChangedFieldName = changedPropertyName;
+            this.OldValue = oldValue;
+            this.NewValue = newValue;
         }
 
         public UndoTransaction(IDBTransaction other) : base(other)
@@ -28,6 +36,12 @@ namespace MiniDB.Transactions
         public DBTransactionType SubDBTransactionType { get; }
 
         public IDBObject TransactedItem { get; }
+
+        public string ChangedFieldName { get; }
+
+        public object OldValue { get; }
+
+        public object NewValue { get; }
 
         public override IDBTransaction revert(IList<IDBObject> objects, PropertyChangedExtendedEventHandler notifier)
         {
@@ -47,6 +61,19 @@ namespace MiniDB.Transactions
 
                 result = new RedoTransaction(transactedItem, DBTransactionType.Add);
             }
+            else if(this.SubDBTransactionType == DBTransactionType.Modify)
+            {
+                // redo a modify
+                if (this.ChangedItemID == null)
+                {
+                    throw new DBCannotRedoException($"Cannot find item to re-modify");
+                }
+
+                var transactedItem = objects.FirstOrDefault(item => item.ID == this.ChangedItemID);
+
+                ModifyTransactionHelpers.ExecuteInTransactionBlockingScope(notifier, transactedItem, this, ModifyTransactionHelpers.RevertProperty);
+                result = new RedoTransaction(this.ChangedItemID, this.ChangedFieldName, this.OldValue, this.NewValue);
+            }
             else
             {
                 throw new NotImplementedException("TODO: implement rest of revert undo");
@@ -55,7 +82,7 @@ namespace MiniDB.Transactions
 
             if(result == null)
             {
-                throw new DBCannotRedoException($"Failure attempting to rever Undo proocedure: {this}");
+                throw new DBCannotRedoException($"Failure attempting to revert Undo proocedure: {this}");
             }
 
             this.Active = false;

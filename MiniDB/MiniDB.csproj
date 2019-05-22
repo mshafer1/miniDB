@@ -71,6 +71,7 @@
     <Compile Include="Transactions\IModifyTransaction.cs" />
     <Compile Include="Transactions\IWholeItemTransaction.cs" />
     <Compile Include="Transactions\ModifyTransaction.cs" />
+    <Compile Include="Transactions\ModifyTransactionHelpers.cs" />
     <Compile Include="Transactions\RedoTransaction.cs" />
     <Compile Include="Transactions\UndoRedoManager.cs" />
     <Compile Include="Transactions\UndoTransaction.cs" />

@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 
+using MiniDB.Interfaces;
+
 namespace DbXunitTests.UndoRedoTests
 {
     // inspired by discussion here: https://raygun.com/blog/unit-testing-patterns/#state
@@ -12,7 +14,7 @@ namespace DbXunitTests.UndoRedoTests
             this._db = db;
         }
 
-        public DBStateBuilder AddItem(MiniDB.IDBObject dbObjcet)
+        public DBStateBuilder AddItem(MiniDB.Interfaces.IDBObject dbObjcet)
         {
             this._db.Add(dbObjcet);
             return this;
@@ -30,7 +32,7 @@ namespace DbXunitTests.UndoRedoTests
             return this;
         }
 
-        public DBStateBuilder EditItem(System.Action<MiniDB.IDBObject> edit)
+        public DBStateBuilder EditItem(System.Action<MiniDB.Interfaces.IDBObject> edit)
         {
             var first = this._db.Single();
 

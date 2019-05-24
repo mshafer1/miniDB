@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using Newtonsoft.Json;
+
+using MiniDB.Interfaces;
+
 namespace MiniDB.Transactions
 {
     public class ModifyTransaction : BaseDBTransaction, IModifyTransaction

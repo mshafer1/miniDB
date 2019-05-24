@@ -43,7 +43,7 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void Test_MassRemoveLogsDeletes_Clear()
         {
-            var thingsToAdd = new List<MiniDB.IDBObject>()
+            var thingsToAdd = new List<MiniDB.Interfaces.IDBObject>()
             {
                 new ExampleStoredItem("John", "Doe"),
                 new ExampleStoredItem("Jane", "Doe"),
@@ -76,7 +76,7 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void Test_RemoveAtLogsDeletes()
         {
-            var thingsToAdd = new List<MiniDB.IDBObject>()
+            var thingsToAdd = new List<MiniDB.Interfaces.IDBObject>()
             {
                 new ExampleStoredItem("John", "Doe"),
                 new ExampleStoredItem("Jane", "Doe"),
@@ -109,7 +109,7 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void Test_SwapLogsRemoveThenAdd()
         {
-            var thingsToAdd = new List<MiniDB.IDBObject>()
+            var thingsToAdd = new List<MiniDB.Interfaces.IDBObject>()
             {
                 new ExampleStoredItem("John", "Doe"),
                 new ExampleStoredItem("Jane", "Doe"),

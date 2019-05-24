@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 
+using MiniDB.Interfaces;
+
 namespace MiniDB
 {
     /// <summary>

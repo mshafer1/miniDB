@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using MiniDB;
 using MiniDB.Transactions;
 
+using MiniDB.Interfaces;
+
 namespace DbXunitTests
 {
-    class NullWriterStorageStrategy : MiniDB.IStorageStrategy
+    class NullWriterStorageStrategy : MiniDB.Interfaces.IStorageStrategy
     {
         public delegate void WriteMessageHandler(IEnumerable<IDBObject> data);
         public delegate void WriteTransactionHandler(IEnumerable<IDBTransaction> data);

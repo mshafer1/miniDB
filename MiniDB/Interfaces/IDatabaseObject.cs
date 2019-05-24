@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace MiniDB
+namespace MiniDB.Interfaces
 {
     public interface IDBObject
     {

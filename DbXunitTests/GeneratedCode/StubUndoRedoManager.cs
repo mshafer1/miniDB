@@ -35,9 +35,9 @@ namespace MiniDB.Interfaces
             }
         }
         
-        public Action<System.Collections.Generic.IList<MiniDB.IDBObject>, System.Collections.Generic.IList<MiniDB.Transactions.IDBTransaction>, System.Collections.Specialized.NotifyCollectionChangedEventHandler, System.Collections.Specialized.NotifyCollectionChangedEventHandler, MiniDB.PropertyChangedExtendedEventHandler> Undo { get; set; }
+        public Action<System.Collections.Generic.IList<IDBObject>, System.Collections.Generic.IList<MiniDB.Transactions.IDBTransaction>, System.Collections.Specialized.NotifyCollectionChangedEventHandler, System.Collections.Specialized.NotifyCollectionChangedEventHandler, MiniDB.PropertyChangedExtendedEventHandler> Undo { get; set; }
         
-        void IUndoRedoManager.Undo(System.Collections.Generic.IList<MiniDB.IDBObject> dataToActOn, System.Collections.Generic.IList<MiniDB.Transactions.IDBTransaction> transactions, System.Collections.Specialized.NotifyCollectionChangedEventHandler dataChangedHandler, System.Collections.Specialized.NotifyCollectionChangedEventHandler transactionsChangedHandler, MiniDB.PropertyChangedExtendedEventHandler propertyChangedHandler)
+        void IUndoRedoManager.Undo(System.Collections.Generic.IList<IDBObject> dataToActOn, System.Collections.Generic.IList<MiniDB.Transactions.IDBTransaction> transactions, System.Collections.Specialized.NotifyCollectionChangedEventHandler dataChangedHandler, System.Collections.Specialized.NotifyCollectionChangedEventHandler transactionsChangedHandler, MiniDB.PropertyChangedExtendedEventHandler propertyChangedHandler)
         {
             if (this.Undo != null)
             {
@@ -45,9 +45,9 @@ namespace MiniDB.Interfaces
             }
         }
         
-        public Action<System.Collections.ObjectModel.Collection<MiniDB.IDBObject>, System.Collections.ObjectModel.Collection<MiniDB.Transactions.IDBTransaction>, System.Collections.Specialized.NotifyCollectionChangedEventHandler, System.Collections.Specialized.NotifyCollectionChangedEventHandler, MiniDB.PropertyChangedExtendedEventHandler> Redo { get; set; }
+        public Action<System.Collections.ObjectModel.Collection<IDBObject>, System.Collections.ObjectModel.Collection<MiniDB.Transactions.IDBTransaction>, System.Collections.Specialized.NotifyCollectionChangedEventHandler, System.Collections.Specialized.NotifyCollectionChangedEventHandler, MiniDB.PropertyChangedExtendedEventHandler> Redo { get; set; }
         
-        void IUndoRedoManager.Redo(System.Collections.ObjectModel.Collection<MiniDB.IDBObject> dataToActOn, System.Collections.ObjectModel.Collection<MiniDB.Transactions.IDBTransaction> transactions, System.Collections.Specialized.NotifyCollectionChangedEventHandler dataChangedHandler, System.Collections.Specialized.NotifyCollectionChangedEventHandler transactionsChangedHandler, MiniDB.PropertyChangedExtendedEventHandler propertyChangedHandler)
+        void IUndoRedoManager.Redo(System.Collections.ObjectModel.Collection<IDBObject> dataToActOn, System.Collections.ObjectModel.Collection<MiniDB.Transactions.IDBTransaction> transactions, System.Collections.Specialized.NotifyCollectionChangedEventHandler dataChangedHandler, System.Collections.Specialized.NotifyCollectionChangedEventHandler transactionsChangedHandler, MiniDB.PropertyChangedExtendedEventHandler propertyChangedHandler)
         {
             if (this.Redo != null)
             {

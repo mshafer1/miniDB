@@ -9,7 +9,7 @@ namespace DbXunitTests.UndoRedoTests
     public class DBStoresCorrectTransactionsOnReload_Tests : IDisposable
     {
         #region Fields
-        private readonly MiniDB.IDBObject storedItem;
+        private readonly MiniDB.Interfaces.IDBObject storedItem;
         private MiniDB.DataBase testDB;
         private NullWriterStorageStrategy nullWritingStorageStrategy;
         #endregion

@@ -1,4 +1,6 @@
-﻿namespace MiniDB.Transactions
+﻿using MiniDB.Interfaces;
+
+namespace MiniDB.Transactions
 {
     public abstract class WholeItemTransaction : BaseDBTransaction, IWholeItemTransaction
     {

@@ -4,6 +4,8 @@ using System.ComponentModel;
 
 using Newtonsoft.Json;
 
+using MiniDB.Interfaces;
+
 namespace MiniDB.Transactions
 {
     public class DBTransactionInfo : IDBTransaction, IModifyTransaction, IWholeItemTransaction

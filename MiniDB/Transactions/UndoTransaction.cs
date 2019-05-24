@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using MiniDB.Interfaces;
+
 namespace MiniDB.Transactions
 {
     public class UndoTransaction : BaseDBTransaction, IWholeItemTransaction, IModifyTransaction

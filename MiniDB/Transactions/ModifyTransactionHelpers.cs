@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
+using MiniDB.Interfaces;
+
 namespace MiniDB.Transactions
 {
     internal class ModifyTransactionHelpers

@@ -1,24 +1,11 @@
-﻿using MiniDB.Transactions;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 
-namespace MiniDB
+using MiniDB.Transactions;
+
+namespace MiniDB.Interfaces
 {
-    public interface IStorageStrategy
+    public interface IStorageStrategy : ITransactionStorageStrategy
     {
-        /// <summary>
-        /// load the transactions db
-        /// </summary>
-        /// <param name="transactions_filename">the filename/path that the db is stored in</param>
-        /// <returns>new DataBase of <see cref="DBTransaction{T}" /></returns>
-        ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename);
-
-        void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename);
-
         /// <summary>
         /// load the DB
         /// </summary>

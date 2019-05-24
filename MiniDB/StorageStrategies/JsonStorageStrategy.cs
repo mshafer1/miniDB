@@ -1,11 +1,9 @@
 ﻿using MiniDB.Transactions;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using MiniDB.Interfaces;
 
 namespace MiniDB
 {
@@ -46,7 +44,7 @@ namespace MiniDB
             var adapted = JsonConvert.DeserializeObject<ObservableCollection<DBTransactionInfo>>(json);
             var result = new ObservableCollection<IDBTransaction>();
 
-            foreach(var item in adapted)
+            foreach (var item in adapted)
             {
                 result.Add(DBTransactionInfo.GetDBTransaction(item));
             }
@@ -107,6 +105,21 @@ namespace MiniDB
         {
             // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
             return JsonConvert.SerializeObject(db, new DataBaseSerializer<T>());
+        }
+
+        DataBase IStorageStrategy._loadDB(string filename)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IStorageStrategy._cacheDB(DataBase db)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IStorageStrategy._migrate(float oldVersion, float newVersion)
+        {
+            throw new NotImplementedException();
         }
     }
 }

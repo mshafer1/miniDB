@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace MiniDB.Transactions
 {
-    // this class is responsible for know how to handle undos and redos for the DB
+    // this class is responsible for knowing how to handle undos and redos for the DB
     public class UndoRedoManager : IUndoRedoManager
     {
         private readonly ITransactionStorageStrategy storageStrategy;
@@ -34,18 +34,15 @@ namespace MiniDB.Transactions
         public bool CheckCanRedo()
         {
             // TODOne: this should be number of immediate redo's is less than number of next immediate undo's
-            //  bool result = true;
             var redos_count = this.CountRecentTransactions(DBTransactionType.Redo, this.transactions_DB);
             Func<IDBTransaction, bool> matcher = x => x.DBTransactionType == DBTransactionType.Undo && x.Active == true;
             var undos_count = this.CountRecentTransactions(matcher, this.transactions_DB.Skip(redos_count * 2));
             return undos_count > 0;
         }
 
-
         public void InsertTransaction(IDBTransaction transaction)
         {
             this.transactions_DB.Insert(0, transaction);
-            //this.storageStrategy._cacheTransactions(this.transactions_DB, this.transactions_filename);
         }
 
         /// <summary>

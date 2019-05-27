@@ -84,15 +84,15 @@ namespace DbXunitTests
         /// <summary>
         /// Test that re-opening a db of the same type in the same file fails (mutex should prevent it).
         /// </summary>
-        ////[Fact]
-        ////public void TestCannotReloadSameDBTypeWithSameFile()
-        ////{
-        ////    Console.WriteLine($"Test Cannot reload same DB type with same file");
-        ////    using (var db = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
-        ////    {
-        ////        Assert.Throws<MiniDB.DBCreationException>(() => new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1));
-        ////    }
-        ////}
+        //[Fact]
+        public void TestCannotReloadSameDBTypeWithSameFile()
+        {
+            Console.WriteLine($"Test Cannot reload same DB type with same file");
+            using (var db = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
+            {
+                Assert.Throws<MiniDB.DBCreationException>(() => new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1));
+            }
+        }
 
         /// <summary>
         /// Test that a db can have two copies initialized if they use two different files
@@ -111,22 +111,22 @@ namespace DbXunitTests
         /// <summary>
         /// Test that db is disposed and can be reloaded
         /// </summary>
-        ////[Fact]
-        ////public void TestCanUseUsingToReloadSameDBTypeWithSameFile()
-        ////{
-        ////    Console.WriteLine($"Test Can work in using statement");
-        ////    using (var db = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
-        ////    {
-        ////        // NO-OP
-        ////    }
+        [Fact]
+        public void TestCanUseUsingToReloadSameDBTypeWithSameFile()
+        {
+            Console.WriteLine($"Test Can work in using statement");
+            using (var db = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
+            {
+                // NO-OP
+            }
 
-        ////    using (var db2 = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
-        ////    {
-        ////        // create second DB of same type after cleaning the last one - this should succeed
-        ////    }
+            using (var db2 = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
+            {
+                // create second DB of same type after cleaning the last one - this should succeed
+            }
 
-        ////    Assert.True(true); // if it made it this far, test is a success.
-        ////}
+            Assert.True(true); // if it made it this far, test is a success.
+        }
 
         /// <summary>
         /// Helper method to test reloading different DB class types

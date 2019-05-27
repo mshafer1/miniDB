@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 
 using MiniDB.Interfaces;
@@ -362,6 +365,8 @@ namespace MiniDB
                     // register for property change
                     item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
 
+                    handle_sub_items(item);
+
                     // create add transaction
                     IDBTransaction dBTransaction = new AddTransaction(item);
                     this.undoRedoManager.InsertTransaction(dBTransaction);
@@ -408,6 +413,7 @@ namespace MiniDB
                     this.undoRedoManager.InsertTransaction(dBTransaction);
 
                     var newItem = e.NewItems[index] as IDBObject;
+                    this.handle_sub_items(newItem);
 
                     // create add transaction
                     dBTransaction = new AddTransaction(newItem);
@@ -418,6 +424,47 @@ namespace MiniDB
             {
                 throw new NotImplementedException($"I don't know how to log transactions of type: {e.Action}");
             }
+        }
+
+        private void handle_sub_items(IDBObject item, string path="", IDBObject parent = null)
+        {
+            var properties = new List<PropertyInfo>(item.GetType().GetProperties());
+            var care_about = properties.ToList();
+            foreach(var property in care_about)
+            {
+                var field = property.GetValue(item, null) as IDBObject;
+                if(field == null)
+                {
+                    continue;
+                }
+
+                string sub_path = property.Name;
+                if (path != "")
+                {
+                    sub_path = $"{path}.{sub_path}";
+                }
+
+                if(parent == null)
+                {
+                    parent = item;
+                }
+
+                this.DatBaseSubItemRegister(parent, field, sub_path);
+                handle_sub_items(field, sub_path, parent);
+            }
+        }
+
+        private void DatBaseSubItemRegister(IDBObject parent, IDBObject item, string path)
+        {
+            item.PropertyChangedExtended += (o, e) => 
+            {
+                var new_path = e.PropertyName;
+                if(path != "")
+                {
+                    new_path = $"{path}.{new_path}";
+                }
+                this.DataBaseItem_PropertyChanged(parent, new PropertyChangedExtendedEventArgs(new_path, e.OldValue, e.NewValue));
+            };
         }
 
 

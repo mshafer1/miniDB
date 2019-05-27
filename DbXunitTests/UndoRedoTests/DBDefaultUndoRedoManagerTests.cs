@@ -505,6 +505,88 @@ namespace DbXunitTests.UndoRedoTests
             this.AssertStorageCached();
         }
 
+        [Fact]
+        public void Test_DBNestedChange()
+        {
+            // Arrange
+            var entry = new ExampleComplicatedStoredItem("John", "Doe");
+            this.testDB.Add(entry);
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            entry.Address.FirstLine = "PO Box";
+
+            // Assert
+            this.AssertStorageCached();
+        }
+
+        [Fact]
+        public void Test_DBNestedChangeUndo()
+        {
+            // Arrange
+            var entry = new ExampleComplicatedStoredItem("John", "Doe");
+            entry.Address.FirstLine = "";
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleComplicatedStoredItem)item).Address.FirstLine = "PO Box"; })
+                .Get_DB();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            this.AssertStorageCached();
+            Assert.Single(db);
+            var first = (ExampleComplicatedStoredItem)db.First();
+            Assert.Equal(entry, first);
+            Assert.Equal("", first.Address.FirstLine);
+        }
+
+        [Fact]
+        public void Test_DBNestedChangeUndoRedo()
+        {
+            // Arrange
+            var entry = new ExampleComplicatedStoredItem("John", "Doe");
+            entry.Address.FirstLine = "";
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleComplicatedStoredItem)item).Address.FirstLine = "PO Box"; })
+                .Undo()
+                .Get_DB();
+
+            // Act
+            db.Redo();
+
+            // Assert
+            this.AssertStorageCached();
+            Assert.Single(db);
+            var first = (ExampleComplicatedStoredItem)db.First();
+            Assert.Equal(entry, first);
+            Assert.Equal("PO Box", first.Address.FirstLine);
+        }
+
+        [Fact]
+        public void Test_DBDoubleNestedChangeUndo()
+        {
+            // Arrange
+            var entry = new ExampleComplicatedStoredItem("John", "Doe");
+            entry.Address.Zip.Value = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleComplicatedStoredItem)item).Address.Zip.Value = 78759; })
+                .Get_DB();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            this.AssertStorageCached();
+            Assert.Single(db);
+            var first = (ExampleComplicatedStoredItem)db.First();
+            Assert.Equal(entry, first);
+            Assert.Equal(0, first.Address.Zip.Value);
+        }
+
         private void AssertStorageCached()
         {
             Assert.True(this.storageStrategy.WroteFlag, "Should have written to the db file");

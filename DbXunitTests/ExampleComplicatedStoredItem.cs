@@ -18,7 +18,6 @@
             this.FirstName = firstName;
             this.LastName = lastName;
             this.Address = new AddressClass();
-            this.Address.PropertyChangedExtended += this.Address_PropertyChangedExtended;
         }
         #endregion
 
@@ -66,27 +65,6 @@
         /// </summary>
         public AddressClass Address { get; }
         #endregion
-
-        #region private methods
-
-        /// <summary>
-        /// When an address field is changed - raise an event on this object to
-        /// </summary>
-        /// <param name="sender">the object that raised the event - expected to be this address</param>
-        /// <param name="e">the event args</param>
-        private void Address_PropertyChangedExtended(object sender, MiniDB.PropertyChangedExtendedEventArgs e)
-        {
-            var address = sender as AddressClass;
-            if (address == null || !object.ReferenceEquals(address, this.Address))
-            {
-                // not the expected sender - not really an error situation in this case, so just return.
-                return;
-            }
-
-            this.OnPropertyChangedExtended(nameof(this.Address) + "." + e.PropertyName, e.OldValue, e.NewValue, e.UndoableChange);
-        }
-
-        #endregion
     }
 
     /// <summary>
@@ -99,7 +77,8 @@
         /// </summary>
         public AddressClass()
         {
-            this.FirstLine = this.SecondLine = this.City = this.State = this.Zip = string.Empty;
+            this.FirstLine = this.SecondLine = this.City = this.State = string.Empty;
+            this.Zip = new Zip();
         }
 
         /// <summary>
@@ -141,7 +120,22 @@
         /// <summary>
         /// Gets or sets the zip code
         /// </summary>
-        public string Zip
+        public Zip Zip
+        {
+            get => this.Get();
+            set => this.Set(value);
+        }
+    }
+
+    // create a second nested item
+    public class Zip : MiniDB.BaseDBObject
+    {
+        public Zip()
+        {
+            this.Value = 0;
+        }
+
+        public int Value
         {
             get => this.Get();
             set => this.Set(value);

@@ -61,15 +61,15 @@ namespace DbXunitTests
             this.Cleanup();
         }
 
-        /// <summary>
-        /// Test that a base DB can reload correctly several times
-        /// </summary>
-        [Fact]
-        public void TestNormalDBCanReload()
-        {
-            Console.WriteLine($"Test reloading normal DB");
-            this.TestDBType(file => new MiniDB.JsonDataBase<ExampleStoredItem>(file, 1, 1));
-        }
+        /////// <summary>
+        /////// Test that a base DB can reload correctly several times
+        /////// </summary>
+        ////[Fact]
+        ////public void TestNormalDBCanReload()
+        ////{
+        ////    Console.WriteLine($"Test reloading normal DB");
+        ////    this.TestDBType(file => new MiniDB.JsonDataBase<ExampleStoredItem>(file, 1, 1));
+        ////}
 
         ///// <summary>
         ///// Test that even with encryption, a DB can be cached an reloaded multiple times

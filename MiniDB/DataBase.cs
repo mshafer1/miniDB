@@ -335,7 +335,7 @@ namespace MiniDB
                     return;
                 }
 
-                //else, store the transaction and notify
+                // else, store the transaction and notify
                 var transaction = new ModifyTransaction(changedItemID: (sender as IDBObject).ID, fieldName: e.PropertyName, oldValue: e.OldValue, newValue: e.NewValue);
 
                 this.undoRedoManager.InsertTransaction(transaction);

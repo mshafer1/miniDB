@@ -107,10 +107,13 @@
   <PropertyGroup>
     <PreBuildEvent>if not exist $(ProjectDir)GeneratedCode mkdir $(ProjectDir)GeneratedCode
 
+cd $(SolutionDir)file_tools
+cp mv.bat $(SolutionDir)MiniDB\$(OutDir)
+
 cd $(SolutionDir)MiniDB\$(OutDir)
 
 $(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement MiniDB.dll IUndoRedoManager
 
-copy /Y StubUndoRedoManager.cs  $(ProjectDir)GeneratedCode</PreBuildEvent>
+mv /Y StubUndoRedoManager.cs  $(ProjectDir)GeneratedCode</PreBuildEvent>
   </PropertyGroup>
 </Project>

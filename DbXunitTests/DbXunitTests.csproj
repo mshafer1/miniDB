@@ -111,6 +111,6 @@ cd $(SolutionDir)MiniDB\$(OutDir)
 
 $(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement MiniDB.dll IUndoRedoManager
 
-move /Y StubUndoRedoManager.cs  $(ProjectDir)GeneratedCode</PreBuildEvent>
+copy /Y StubUndoRedoManager.cs  $(ProjectDir)GeneratedCode</PreBuildEvent>
   </PropertyGroup>
 </Project>

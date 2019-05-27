@@ -15,8 +15,8 @@ namespace DbXunitTests.UndoRedoTests
 
         public DBDefaultUndoRedoManagerTests()
         {
-            this.manager = new MiniDB.Transactions.UndoRedoManager();
             this.storageStrategy = new NullWriterStorageStrategy();
+            this.manager = new MiniDB.Transactions.UndoRedoManager((ITransactionStorageStrategy)this.storageStrategy, "test");
 
             this.testDB = new MiniDB.DataBase("test", 1, 1, this.storageStrategy, this.manager);
         }

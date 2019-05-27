@@ -18,7 +18,7 @@ namespace MiniDB
             this.MinimumCompatibleVersion = minimumCompatibleVersion;
         }
 
-        public void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string transactionsFilename)
+        void ITransactionStorageStrategy._cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string transactionsFilename)
         {
             var json = JsonConvert.SerializeObject(dBTransactions);
             System.IO.File.WriteAllText(transactionsFilename, json);
@@ -30,7 +30,7 @@ namespace MiniDB
             System.IO.File.WriteAllText(db.Filename, json);
         }
 
-        public ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename)
+        ObservableCollection<IDBTransaction> ITransactionStorageStrategy._getTransactionsCollection(string filename)
         {
             /*this.DBVersion = databaseVersion;
             this.Filename = filename;
@@ -105,21 +105,6 @@ namespace MiniDB
         {
             // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
             return JsonConvert.SerializeObject(db, new DataBaseSerializer<T>());
-        }
-
-        DataBase IStorageStrategy._loadDB(string filename)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IStorageStrategy._cacheDB(DataBase db)
-        {
-            throw new NotImplementedException();
-        }
-
-        void IStorageStrategy._migrate(float oldVersion, float newVersion)
-        {
-            throw new NotImplementedException();
         }
     }
 }

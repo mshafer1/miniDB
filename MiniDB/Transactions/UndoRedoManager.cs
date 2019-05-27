@@ -12,25 +12,40 @@ namespace MiniDB.Transactions
     // this class is responsible for know how to handle undos and redos for the DB
     public class UndoRedoManager : IUndoRedoManager
     {
-        public UndoRedoManager()
+        private readonly ITransactionStorageStrategy storageStrategy;
+        private readonly ObservableCollection<IDBTransaction> transactions_DB;
+        private readonly string transactions_filename;
+
+        public UndoRedoManager(ITransactionStorageStrategy storageStrategy, string filename)
         {
-            // NO-OP
+            this.storageStrategy = storageStrategy;
+            this.transactions_filename = filename;
+
+            this.transactions_DB = storageStrategy._getTransactionsCollection(this.transactions_filename);
+            this.transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
         }
 
-        public bool CheckCanUndo(IEnumerable<IDBTransaction> transactions)
+        public bool CheckCanUndo()
         {
-            return transactions.Count() > 0 && transactions.Count() >
-                    (2 * transactions.Count(x => x.DBTransactionType == DBTransactionType.Undo));
+            return this.transactions_DB.Count() > 0 && this.transactions_DB.Count() >
+                    (2 * this.transactions_DB.Count(x => x.DBTransactionType == DBTransactionType.Undo));
         }
 
-        public bool CheckCanRedo(IEnumerable<IDBTransaction> transactions)
+        public bool CheckCanRedo()
         {
             // TODOne: this should be number of immediate redo's is less than number of next immediate undo's
             //  bool result = true;
-            var redos_count = this.CountRecentTransactions(DBTransactionType.Redo, transactions);
+            var redos_count = this.CountRecentTransactions(DBTransactionType.Redo, this.transactions_DB);
             Func<IDBTransaction, bool> matcher = x => x.DBTransactionType == DBTransactionType.Undo && x.Active == true;
-            var undos_count = this.CountRecentTransactions(matcher, transactions.Skip(redos_count * 2));
+            var undos_count = this.CountRecentTransactions(matcher, this.transactions_DB.Skip(redos_count * 2));
             return undos_count > 0;
+        }
+
+
+        public void InsertTransaction(IDBTransaction transaction)
+        {
+            this.transactions_DB.Insert(0, transaction);
+            //this.storageStrategy._cacheTransactions(this.transactions_DB, this.transactions_filename);
         }
 
         /// <summary>
@@ -79,44 +94,44 @@ namespace MiniDB.Transactions
             return count;
         }
 
-        public void Undo(IList<IDBObject> dataToActOn, IList<IDBTransaction> transactions, NotifyCollectionChangedEventHandler dataChangedHandler, NotifyCollectionChangedEventHandler transactionsChangedHandler, PropertyChangedExtendedEventHandler propertyChangedHandler)
+        public void Undo(IList<IDBObject> dataToActOn, NotifyCollectionChangedEventHandler dataChangedHandler, PropertyChangedExtendedEventHandler propertyChangedHandler)
         {
             // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
-            if (!this.CheckCanUndo(transactions))
+            if (!this.CheckCanUndo())
             {
                 throw new DBCannotUndoException("Cannot undo at this time");
             }
 
             IDBTransaction new_transaction = null;
-            using (new TransactionBlockScope(dataToActOn, transactions, dataChangedHandler, transactionsChangedHandler))
+            using (new TransactionBlockScope(dataToActOn, this.transactions_DB, dataChangedHandler, this.DataBase_TransactionsChanged))
             {
                 // get last transaction
-                var last_transaction = this.GetLastTransaction(transactions, DBTransactionType.Undo, x => x.Active == true);
+                var last_transaction = this.GetLastTransaction(DBTransactionType.Undo, x => x.Active == true);
 
                 new_transaction = last_transaction.Revert(dataToActOn, propertyChangedHandler);
             }
 
-            transactions.Insert(0, new_transaction);
+            this.transactions_DB.Insert(0, new_transaction);
         }
 
-        public void Redo(Collection<IDBObject> dataToActOn, Collection<IDBTransaction> transactions, NotifyCollectionChangedEventHandler dataChangedHandler, NotifyCollectionChangedEventHandler transactionsChangedHandler, PropertyChangedExtendedEventHandler propertyChangedHandler)
+        public void Redo(Collection<IDBObject> dataToActOn, NotifyCollectionChangedEventHandler dataChangedHandler, PropertyChangedExtendedEventHandler propertyChangedHandler)
         {
             // inside mutex; however, not in creation, so normal catch/dispose methods should clear mutex
-            if (!this.CheckCanRedo(transactions))
+            if (!this.CheckCanRedo())
             {
                 throw new DBCannotRedoException("Cannot undo at this time");
             }
 
             IDBTransaction new_transaction = null;
-            using (new TransactionBlockScope(dataToActOn, transactions, dataChangedHandler, transactionsChangedHandler))
+            using (new TransactionBlockScope(dataToActOn, this.transactions_DB, dataChangedHandler, this.DataBase_TransactionsChanged))
             {
                 // get last transaction
-                var last_transaction = this.GetLastTransaction(transactions, DBTransactionType.Redo, x => x.Active == true);
+                var last_transaction = this.GetLastTransaction(DBTransactionType.Redo, x => x.Active == true);
 
                 new_transaction = last_transaction.Revert(dataToActOn, propertyChangedHandler);
             }
 
-            transactions.Insert(0, new_transaction);
+            this.transactions_DB.Insert(0, new_transaction);
         }
 
         /// <summary>
@@ -138,6 +153,11 @@ namespace MiniDB.Transactions
                     .Where(x => !transactionTypes.Contains(x.item.DBTransactionType)).Select(x => x.index).FirstOrDefault()
                 : 0;
             return count;
+        }
+
+        private void DataBase_TransactionsChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            this.storageStrategy._cacheTransactions(this.transactions_DB, this.transactions_filename);
         }
 
         private static void DeregisterListener(IDBObject item, PropertyChangedExtendedEventHandler listener)
@@ -287,10 +307,10 @@ namespace MiniDB.Transactions
         /// <param name="notTransactionType">Transaction type to skip</param>
         /// <param name="matcher">checker to determine match</param>
         /// <returns>last transaction skipping all transaction with a type in notTransactionType and matches matcher</returns>
-        private IDBTransaction GetLastTransaction(IEnumerable<IDBTransaction> transactions, DBTransactionType notTransactionType, Func<IDBTransaction, bool> matcher)
+        private IDBTransaction GetLastTransaction(DBTransactionType notTransactionType, Func<IDBTransaction, bool> matcher)
         {
             IDBTransaction last_transaction = null;
-            IEnumerable<IDBTransaction> temp_list = transactions;
+            IEnumerable<IDBTransaction> temp_list = this.transactions_DB;
             do
             {
                 bool first_matches = false;

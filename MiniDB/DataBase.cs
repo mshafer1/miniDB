@@ -43,9 +43,11 @@ namespace MiniDB
         {
             this.Filename = filename;
             this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
+            this.TransactionsFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
+
 
             this.storageStrategy = storageStrategy;
-            this.undoRedoManager = undoRedoManager;
+            this.undoRedoManager = undoRedoManager ?? new UndoRedoManager((ITransactionStorageStrategy)this.storageStrategy, this.TransactionsFilename);
 
             this.DBVersion = version;
             this.MinimumCompatibleVersion = minimumCompatibleVersion;
@@ -56,10 +58,6 @@ namespace MiniDB
 
                 try
                 {
-                    this.TransactionsFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-                    this.Transactions_DB = this.storageStrategy._getTransactionsCollection(this.TransactionsFilename);
-                    this.Transactions_DB.CollectionChanged += this.DataBase_TransactionsChanged;
-
                     this.LoadFile(filename, true);
 
                     this.CollectionChanged += this.DataBase_CollectionChanged;
@@ -146,7 +144,6 @@ namespace MiniDB
         public float DBVersion { get; internal set; }
         public float MinimumCompatibleVersion { get; }
 
-        private ObservableCollection<IDBTransaction> Transactions_DB { get; }
 
         /// <summary>
         /// Gets a value indicating whether the collection currently can undo a recent transaction
@@ -155,7 +152,7 @@ namespace MiniDB
         {
             get
             {
-                return this.undoRedoManager.CheckCanUndo(this.Transactions_DB);
+                return this.undoRedoManager.CheckCanUndo();
             }
         }
 
@@ -166,7 +163,7 @@ namespace MiniDB
         {
             get
             {
-                return this.undoRedoManager.CheckCanRedo(this.Transactions_DB);
+                return this.undoRedoManager.CheckCanRedo();
             }
         }
 
@@ -220,16 +217,14 @@ namespace MiniDB
 
         public void Undo()
         {
-            if (!this.undoRedoManager.CheckCanUndo(this.Transactions_DB))
+            if (!this.undoRedoManager.CheckCanUndo())
             {
                 throw new DBCannotUndoException("Cannot undo at this time");
             }
 
             this.undoRedoManager.Undo(
                 dataToActOn: this,
-                transactions: this.Transactions_DB,
                 dataChangedHandler: this.DataBase_CollectionChanged,
-                transactionsChangedHandler: this.DataBase_TransactionsChanged,
                 propertyChangedHandler: this.DataBaseItem_PropertyChanged);
             this._cacheDB();
 
@@ -238,16 +233,14 @@ namespace MiniDB
 
         public void Redo()
         {
-            if (!this.undoRedoManager.CheckCanRedo(this.Transactions_DB))
+            if (!this.undoRedoManager.CheckCanRedo())
             {
                 throw new DBCannotRedoException("Cannot redo at this time");
             }
 
             this.undoRedoManager.Redo(
                 dataToActOn: this,
-                transactions: this.Transactions_DB,
                 dataChangedHandler: this.DataBase_CollectionChanged,
-                transactionsChangedHandler: this.DataBase_TransactionsChanged,
                 propertyChangedHandler: this.DataBaseItem_PropertyChanged);
             this._cacheDB();
 
@@ -342,7 +335,7 @@ namespace MiniDB
                 //else, store the transaction and notify
                 var transaction = new ModifyTransaction(changedItemID: (sender as IDBObject).ID, fieldName: e.PropertyName, oldValue: e.OldValue, newValue: e.NewValue);
 
-                this.Transactions_DB.Insert(0, transaction);
+                this.undoRedoManager.InsertTransaction(transaction);
                 this.OnItemChanged(item);
                 this.PublicOnPropertyChanged(nameof(this.CanUndo));
                 this.PublicOnPropertyChanged(nameof(this.CanRedo));
@@ -371,7 +364,7 @@ namespace MiniDB
 
                     // create add transaction
                     IDBTransaction dBTransaction = new AddTransaction(item);
-                    this.Transactions_DB.Insert(0, dBTransaction);
+                    this.undoRedoManager.InsertTransaction(dBTransaction);
                 }
 
                 changed = e.NewItems;
@@ -384,7 +377,7 @@ namespace MiniDB
                     // create add transaction
                     IDBTransaction dBTransaction = new DeleteTransaction(item);
 
-                    this.Transactions_DB.Insert(0, dBTransaction);
+                    this.undoRedoManager.InsertTransaction(dBTransaction);
                 }
 
                 changed = e.OldItems;
@@ -397,7 +390,7 @@ namespace MiniDB
                     // create add transaction
                     IDBTransaction dBTransaction = new DeleteTransaction(item);
 
-                    this.Transactions_DB.Insert(0, dBTransaction);
+                    this.undoRedoManager.InsertTransaction(dBTransaction);
                 }
 
                 changed = e.OldItems;
@@ -412,13 +405,13 @@ namespace MiniDB
 
                     // create remove transaction
                     IDBTransaction dBTransaction = new DeleteTransaction(item);
-                    this.Transactions_DB.Insert(0, dBTransaction);
+                    this.undoRedoManager.InsertTransaction(dBTransaction);
 
                     var newItem = e.NewItems[index] as IDBObject;
 
                     // create add transaction
                     dBTransaction = new AddTransaction(newItem);
-                    this.Transactions_DB.Insert(0, dBTransaction);
+                    this.undoRedoManager.InsertTransaction(dBTransaction);
                 }
             }
             else
@@ -427,13 +420,6 @@ namespace MiniDB
             }
         }
 
-        private void DataBase_TransactionsChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            lock (Locker)
-            {
-                this.storageStrategy._cacheTransactions(this.Transactions_DB, this.TransactionsFilename);
-            }
-        }
 
         /// <summary>
         /// Raise the PublicPropertyChanged event

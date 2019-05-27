@@ -1,7 +1,7 @@
 ﻿using System;
 
 using MiniDB;
-
+using MiniDB.Transactions;
 using Xunit;
 
 namespace DbXunitTests.UndoRedoTests
@@ -29,11 +29,11 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void Test_DBCanUndoMirrorsManager()
         {
-            this.manager.CheckCanUndo = (dontCare) => { return false; };
+            this.manager.CheckCanUndo = () => { return false; };
 
             Assert.False(this.testDB.CanUndo);
 
-            this.manager.CheckCanUndo = (dontCare) => { return true; };
+            this.manager.CheckCanUndo = () => { return true; };
 
             Assert.True(this.testDB.CanUndo);
         }
@@ -41,11 +41,11 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void Test_DBCanRedoMirrorsManager()
         {
-            this.manager.CheckCanRedo = (dontCare) => { return false; };
+            this.manager.CheckCanRedo = () => { return false; };
 
             Assert.False(this.testDB.CanRedo);
 
-            this.manager.CheckCanRedo = (dontCare) => { return true; };
+            this.manager.CheckCanRedo = () => { return true; };
 
             Assert.True(this.testDB.CanRedo);
         }
@@ -53,7 +53,7 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void Test_DBUndoThrowsIfCannotUndo()
         {
-            this.manager.CheckCanUndo = (dontCare) => { return false; };
+            this.manager.CheckCanUndo = () => { return false; };
 
             Assert.ThrowsAny<DBException>(() => 
             {
@@ -64,7 +64,7 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void Test_DBUndoThrowsIfCannotRedo()
         {
-            this.manager.CheckCanRedo = (dontCare) => { return false; };
+            this.manager.CheckCanRedo = () => { return false; };
 
             Assert.ThrowsAny<DBException>(() =>
             {
@@ -75,13 +75,14 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void Test_DBUndoCallsManagerAndStoresUndoTransaction()
         {
-            this.manager.CheckCanUndo = (dontCare) => { return true; };
+            this.manager.CheckCanUndo = () => { return true; };
             this.storageStrategy.ClearWroteFlags();
-            this.manager.Undo = (data, transactions, dontcare1, dontcare2, doncare3) => 
+            this.manager.Undo = (data, dontcare1, dontcare2) => 
             {
                 var item = new ExampleStoredItem();
                 data.Add(item);
-                transactions.Add(new MiniDB.Transactions.UndoTransaction(item, DBTransactionType.Add));
+                var trans = new AddTransaction(item);
+                this.storageStrategy._cacheTransactions(new System.Collections.ObjectModel.ObservableCollection<IDBTransaction> { trans }, "blah");
             };
 
             this.testDB.Undo();
@@ -94,13 +95,14 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void Test_DBRedoCallsManagerAndStoresRedoTransaction()
         {
-            this.manager.CheckCanRedo = (dontCare) => { return true; };
+            this.manager.CheckCanRedo = () => { return true; };
             this.storageStrategy.ClearWroteFlags();
-            this.manager.Redo = (data, transactions, dontcare1, dontcare2, doncare3) =>
+            this.manager.Redo = (data, dontcare1, dontcare2) =>
             {
                 var item = new ExampleStoredItem();
                 data.Add(item);
-                transactions.Add(new MiniDB.Transactions.UndoTransaction(item, DBTransactionType.Add));
+                var trans = new AddTransaction(item);
+                this.storageStrategy._cacheTransactions(new System.Collections.ObjectModel.ObservableCollection<IDBTransaction> { trans }, "blah");
             };
 
             this.testDB.Redo();

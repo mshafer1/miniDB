@@ -64,7 +64,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DBCallsStorageStrategyTests.cs" />
     <Compile Include="DBLoadTests.cs" />
     <Compile Include="ExampleComplicatedStoredItem.cs" />
     <Compile Include="ExampleStoredItem.cs" />

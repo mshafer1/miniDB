@@ -106,9 +106,10 @@ namespace MiniDB
         {
             if(this.alreadyDisposed)
             {
-                throw new Exception("Already Disposed!");
                 return;
             }
+
+            throw new Exception("Is this getting called?");
 
             if (disposing)
             {

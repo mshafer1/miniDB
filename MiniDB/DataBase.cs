@@ -100,34 +100,36 @@ namespace MiniDB
         #endregion
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool alreadyDisposed = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!this.disposedValue)
+            if(this.alreadyDisposed)
             {
-                if (disposing)
-                {
-                    // clear mutex
-                    if (this.mut != null && this.mut.WaitOne(TimeSpan.FromSeconds(5), false))
-                    {
-                        this.mut.ReleaseMutex();
-                        this.mut.Close();
-                        this.mut = null;
-                    }
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
-                this.disposedValue = true;
+                return;
             }
-        }
 
-        ~DataBase()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            this.Dispose();
+            if (disposing)
+            {
+                // free unmanaged resources here
+            }
+
+            // clear mutex
+            if (this.mut != null)
+            {
+                if(this.mut.WaitOne(TimeSpan.FromSeconds(5), false))
+                {
+                    this.mut.ReleaseMutex();
+                    this.mut.Close();
+                    this.mut = null;
+                }
+                else
+                {
+                    throw new DBException("Cannot get mutex lock to release database!");
+                }
+            }
+
+            this.alreadyDisposed = true;
         }
 
         // This code added to correctly implement the disposable pattern.
@@ -135,8 +137,7 @@ namespace MiniDB
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             this.Dispose(true);
-            //// TODO: uncomment the following line if the finalizer is overridden above.
-            //GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
         #endregion
 

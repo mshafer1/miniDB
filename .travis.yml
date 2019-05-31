@@ -3,12 +3,11 @@ notifications:
   email: false
 os:
   - linux
-mono: none
 
 solution: MiniDatabase.sln
 install:
   - nuget restore MiniDatabase.sln
   - nuget install xunit.runner.console -Version 2.3.1 -OutputDirectory testrunner
 script:
-  - dotnet build
-  - dotnet nest ./DbXunitTests/DbXunitTests.csproj -parallel none -noshadow
+  - xbuild /p:Configuration=Release MiniDatabase.sln
+  - mono ./testrunner/xunit.runner.console.2.3.1/tools/net452/xunit.console.exe ./DbXunitTests/bin/Release/DbXunitTests.dll -parallel none -noshadow

@@ -121,17 +121,13 @@ namespace MiniDB
                 {
                     this.mut.ReleaseMutex();
                     this.mut.Close();
+                    this.mut.Dispose();
                     this.mut = null;
-                    throw new Exception("is this getting called?");
                 }
                 else
                 {
                     throw new DBException("Cannot get mutex lock to release database!");
                 }
-            }
-            else
-            {
-                throw new Exception("it shouldn't be getting here!");
             }
 
             this.alreadyDisposed = true;

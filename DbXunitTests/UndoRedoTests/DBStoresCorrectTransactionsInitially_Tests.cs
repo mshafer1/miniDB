@@ -95,6 +95,8 @@ namespace DbXunitTests.UndoRedoTests
             // if using NullWriter, no files to clean up, but clear the DB
             this.testDB.Dispose();
             this.testDB = null;
+
+            throw new Exception("Is this getting called?");
         }
         #endregion
     }

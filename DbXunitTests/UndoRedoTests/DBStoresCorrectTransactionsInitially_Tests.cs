@@ -21,14 +21,8 @@ namespace DbXunitTests.UndoRedoTests
         #endregion
 
         #region dispose/destruct
-        // cleanup once finished
-        ~DBStoresCorrectTransactionsInitially_Tests()
-        {
-            this.Cleanup();
-        }
-
         /// <summary>
-        /// In between each test, cleanup.
+        /// After each test, cleanup
         /// </summary>
         public void Dispose()
         {
@@ -99,16 +93,8 @@ namespace DbXunitTests.UndoRedoTests
         private void Cleanup()
         {
             // if using NullWriter, no files to clean up, but clear the DB
-            this.testDB?.Dispose();
+            this.testDB.Dispose();
             this.testDB = null;
-        }
-
-        /// <summary>
-        /// After all tests have run, clear resources
-        /// </summary>
-        private void Finally()
-        {
-            this.Dispose();
         }
         #endregion
     }

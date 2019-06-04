@@ -3,11 +3,17 @@ notifications:
   email: false
 os:
   - linux
+mono: none
+dotnet: 4.7.1
+dist: trusty
+
+env:
+  global:
+    - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
+    - DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 solution: MiniDatabase.sln
 install:
-  - nuget restore MiniDatabase.sln
-  - nuget install xunit.runner.console -Version 2.3.1 -OutputDirectory testrunner
+  - dotnet restore
 script:
-  - xbuild /p:Configuration=Release MiniDatabase.sln
-  - mono ./testrunner/xunit.runner.console.2.3.1/tools/net452/xunit.console.exe ./DbXunitTests/bin/Release/DbXunitTests.dll -parallel none -noshadow
+  - dotnet test

@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="FileMutex.cs" />
     <Compile Include="IMutex.cs" />
+    <Compile Include="MutexException.cs" />
     <Compile Include="MutexObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

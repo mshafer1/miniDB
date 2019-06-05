@@ -1,27 +1,43 @@
 ﻿using System;
+using System.IO;
 
 namespace MutexLocks
 {
-    class FileMutex : IDisposable, IMutex
+    public class FileMutex : IDisposable, IMutex
     {
+        private readonly string file_name;
+        private FileStream file;
+
+        public FileMutex (string lock_name)
+        {
+            this.file_name = lock_name.Replace(Path.DirectorySeparatorChar, '.').Trim('.');
+        }
+
         public void Dispose()
         {
-            throw new NotImplementedException();
+            this.Unlock();
         }
 
         public MutexObject Get()
         {
-            throw new NotImplementedException();
-        }
+            try
+            {
+                this.file = File.Open(this.file_name, FileMode.OpenOrCreate);
+            }
+            catch (System.IO.IOException)
+            {
+                throw new MutexException($"Cannot open file {this.file_name}, another process is using it.");
+            }
 
-        public void Lock(string name)
-        {
-            throw new NotImplementedException();
+            return new MutexObject(this);
         }
 
         public void Unlock()
         {
-            throw new NotImplementedException();
+            this.file.Close();
+            this.file = null;
+
+            File.Delete(this.file_name);
         }
     }
 }

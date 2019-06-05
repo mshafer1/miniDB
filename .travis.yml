@@ -4,7 +4,7 @@ notifications:
 os:
   - linux
 mono: none
-dotnet: 2.0.0
+dotnet: 3.0.0
 dist: trusty
 
 env:

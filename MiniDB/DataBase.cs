@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-
+using Medallion.Threading;
 using MiniDB.Interfaces;
 using MiniDB.Transactions;
 using Newtonsoft.Json;
@@ -32,11 +32,12 @@ namespace MiniDB
         private readonly IUndoRedoManager undoRedoManager;
 
         /// <summary>
-        /// http://www.albahari.com/threading/part2.aspx#_Mutex
+        /// https://github.com/madelson/DistributedLock/blob/e974a0d5767e593016ff4dca29a9ee8398cd6b69/DistributedLock/SystemDistributedLock.cs
         /// Create mutex in constructor - name it so that only one instance of db class can be accessing file
-        ///  - this allows for multiple instances of a DB, but only one of a given type accessing a given file
+        ///  - this allows for multiple instances of a DB, but only one can be accessing a given file at a time.
         /// </summary>
-        private Mutex mut = null;
+        private Medallion.Threading.SystemDistributedLock mut = null;
+        private IDisposable acquiredMutex = null;
 
         #endregion
 
@@ -115,19 +116,10 @@ namespace MiniDB
             }
 
             // clear mutex
-            if (this.mut != null)
+            if (this.acquiredMutex != null)
             {
-                if(this.mut.WaitOne(TimeSpan.FromSeconds(5), false))
-                {
-                    this.mut.ReleaseMutex();
-                    this.mut.Close();
-                    this.mut.Dispose();
-                    this.mut = null;
-                }
-                else
-                {
-                    throw new DBException("Cannot get mutex lock to release database!");
-                }
+                this.acquiredMutex.Dispose();
+                this.acquiredMutex = null;
             }
 
             this.alreadyDisposed = true;
@@ -266,26 +258,18 @@ namespace MiniDB
         {
             string mutex_file_path = this.Filename.Replace("\\", "_").Replace("/", "_");
             string mutex_name = string.Format(@"{0}:{1}", nameof(DataBase), mutex_file_path); // from https://stackoverflow.com/a/2534867
-            string global_lock_mutex_name = @"Global\" + mutex_name;
 
             // from https://stackoverflow.com/a/3111740
             // try to get existing mutex from system
             try
             {
-                this.mut = System.Threading.Mutex.OpenExisting(global_lock_mutex_name);
+                this.mut = new SystemDistributedLock(mutex_name);
 
-                // mutex already exists - not inside mutex yet, so don't need to release if thrown
-                throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name);
+                // acquire the lock from the mutex - this is released in dispose
+                this.acquiredMutex = this.mut.Acquire(TimeSpan.FromSeconds(5));
             }
-            catch (WaitHandleCannotBeOpenedException)
+            catch (System.TimeoutException)
             {
-                this.mut = new System.Threading.Mutex(false, global_lock_mutex_name);
-            }
-
-            // acquire the lock from the mutex - this is released in dispose
-            if (!this.mut.WaitOne(TimeSpan.FromSeconds(5), false))
-            {
-                // did not get mutex, so don't need to release if thrown
                 throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name);
             }
         }

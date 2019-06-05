@@ -71,9 +71,9 @@ namespace DbXunitTests
             this.TestDBType(file => new MiniDB.JsonDataBase<ExampleStoredItem>(file, 1, 1));
         }
 
-        ///// <summary>
-        ///// Test that even with encryption, a DB can be cached an reloaded multiple times
-        ///// </summary>
+        /////// <summary>
+        /////// Test that even with encryption, a DB can be cached an reloaded multiple times
+        /////// </summary>
         ////[Fact]
         ////public void TestEncryptedDBCanReload()
         ////{

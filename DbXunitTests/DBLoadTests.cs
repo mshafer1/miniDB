@@ -84,7 +84,7 @@ namespace DbXunitTests
         /// <summary>
         /// Test that re-opening a db of the same type in the same file fails (mutex should prevent it).
         /// </summary>
-        //[Fact]
+        [Fact]
         public void TestCannotReloadSameDBTypeWithSameFile()
         {
             Console.WriteLine($"Test Cannot reload same DB type with same file");

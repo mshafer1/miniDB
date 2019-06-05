@@ -83,6 +83,10 @@
       <Project>{8e28e859-e1e9-45db-84e4-25fe9a4617f7}</Project>
       <Name>HardwareID</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MutexLocks\MutexLocks.csproj">
+      <Project>{10e479dc-dd75-46be-b3d0-a554f8929918}</Project>
+      <Name>MutexLocks</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="MiniDB.nuspec" />

@@ -1,3 +1,4 @@
 ﻿{
+  "parallelizeAssembly": false,
   "parallelizeTestCollections": false
 }

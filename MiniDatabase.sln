@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbXunitTests", "DbXunitTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MutexLocks", "MutexLocks\MutexLocks.csproj", "{10E479DC-DD75-46BE-B3D0-A554F8929918}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MutexLocksTests", "MutexLocksTests\MutexLocksTests.csproj", "{FCACCEE6-B1FC-4D0D-8F50-CBD60ABFFCB7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MutexLockTests", "MutexLockTests\MutexLockTests.csproj", "{6D16E39C-753F-4669-988B-0ECD32E3E39D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{10E479DC-DD75-46BE-B3D0-A554F8929918}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10E479DC-DD75-46BE-B3D0-A554F8929918}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10E479DC-DD75-46BE-B3D0-A554F8929918}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FCACCEE6-B1FC-4D0D-8F50-CBD60ABFFCB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FCACCEE6-B1FC-4D0D-8F50-CBD60ABFFCB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FCACCEE6-B1FC-4D0D-8F50-CBD60ABFFCB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FCACCEE6-B1FC-4D0D-8F50-CBD60ABFFCB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D16E39C-753F-4669-988B-0ECD32E3E39D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D16E39C-753F-4669-988B-0ECD32E3E39D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D16E39C-753F-4669-988B-0ECD32E3E39D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D16E39C-753F-4669-988B-0ECD32E3E39D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

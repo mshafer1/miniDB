@@ -34,6 +34,10 @@ namespace MutexLocks
 
         public void Unlock()
         {
+            if (this.file == null)
+            {
+                return;
+            }
             this.file.Close();
             this.file = null;
 

@@ -59,6 +59,7 @@ namespace MutexLocksTests
             {
                 // unsafe code
             }
+            mut.Dispose();
         }
 
         [Fact]
@@ -87,6 +88,7 @@ namespace MutexLocksTests
 
             mut.Get();
             // inherently assert a no-throw
+            mut.Dispose();
         }
     }
 }

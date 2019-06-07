@@ -15,6 +15,7 @@ namespace HardwareID
     public static class HardwareID
     {
         #region constants
+
         /// <summary>
         /// Keys to parse from SystemInfo
         /// </summary>

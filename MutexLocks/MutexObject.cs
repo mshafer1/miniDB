@@ -16,10 +16,11 @@ namespace MutexLocks
 
         public void Dispose()
         {
-            if(!this.alreadyDisposed)
+            if (!this.alreadyDisposed)
             {
                 this.lockObject.Dispose();
             }
+
             this.alreadyDisposed = true;
         }
 

@@ -8,7 +8,7 @@ namespace MutexLocks
         private readonly string file_name;
         private FileStream file;
 
-        public FileMutex (string lock_name)
+        public FileMutex(string lock_name)
         {
             this.file_name = Path.Combine(Path.GetTempPath(), lock_name.Replace(':', '_').Replace(Path.DirectorySeparatorChar, '.').Trim('.') + ".lock");
         }
@@ -24,7 +24,7 @@ namespace MutexLocks
             {
                 this.file = File.Open(this.file_name, FileMode.OpenOrCreate);
             }
-            catch (System.IO.IOException)
+            catch (IOException)
             {
                 throw new MutexException($"Cannot open file {this.file_name}, another process is using it.");
             }
@@ -38,6 +38,7 @@ namespace MutexLocks
             {
                 return;
             }
+
             this.file.Close();
             this.file = null;
 

@@ -427,7 +427,7 @@ namespace MiniDB
             }
         }
 
-        private void Handle_sub_items(IDBObject item, string path = string.Empty, IDBObject parent = null)
+        private void Handle_sub_items(IDBObject item, string path = "", IDBObject parent = null)
         {
             var properties = new List<PropertyInfo>(item.GetType().GetProperties());
             var care_about = properties.ToList().Where(prop => prop.GetValue(item, null) is IDBObject);

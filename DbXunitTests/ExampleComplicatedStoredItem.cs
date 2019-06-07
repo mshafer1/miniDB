@@ -1,4 +1,6 @@
-﻿namespace DbXunitTests
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace DbXunitTests
 {
     /// <summary>
     /// Example of a storable item with a nested property (Address)
@@ -6,6 +8,7 @@
     public class ExampleComplicatedStoredItem : MiniDB.BaseDBObject
     {
         #region constructors
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ExampleComplicatedStoredItem" /> class.
         /// Create the object with a nested tracked object (Address)
@@ -22,6 +25,7 @@
         #endregion
 
         #region properties
+
         /// <summary>
         /// Gets or sets the first name
         /// </summary>
@@ -56,7 +60,7 @@
         {
             get
             {
-                return $"{FirstName} {LastName}";
+                return $"{this.FirstName} {this.LastName}";
             }
         }
 
@@ -70,6 +74,7 @@
     /// <summary>
     /// Example of an supported nested property
     /// </summary>
+    [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "SA1402:FileMayOnlyContainASingleType", Justification = "Quick example - should go in own file in real world")]
     public class AddressClass : MiniDB.BaseDBObject
     {
         /// <summary>
@@ -128,6 +133,7 @@
     }
 
     // create a second nested item
+    [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "SA1402:FileMayOnlyContainASingleType", Justification = "Quick example - should go in own file in real world")]
     public class Zip : MiniDB.BaseDBObject
     {
         public Zip()

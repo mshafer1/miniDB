@@ -21,6 +21,7 @@ namespace DbXunitTests.UndoRedoTests
         #endregion
 
         #region dispose/destruct
+
         /// <summary>
         /// After each test, cleanup
         /// </summary>
@@ -55,8 +56,10 @@ namespace DbXunitTests.UndoRedoTests
                 modifyTransactionAdded = transaction.DBTransactionType == MiniDB.DBTransactionType.Modify;
             };
 
-            var jdoe = new ExampleStoredItem("John", "Doe");
-            jdoe.Age = 10;
+            var jdoe = new ExampleStoredItem("John", "Doe")
+            {
+                Age = 10,
+            };
 
             this.testDB.Add(jdoe);
             Assert.False(modifyTransactionAdded, "Should not have added a modify yet");
@@ -87,6 +90,7 @@ namespace DbXunitTests.UndoRedoTests
         }
 
         #region cleanup
+
         /// <summary>
         /// remove files that represent the database and the transactions files
         /// </summary>

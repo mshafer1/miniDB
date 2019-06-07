@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using Xunit;
 
 using MiniDB;
 using MiniDB.Interfaces;
+using Xunit;
 
 namespace DbXunitTests.UndoRedoTests
 {
@@ -16,9 +16,9 @@ namespace DbXunitTests.UndoRedoTests
         public DBDefaultUndoRedoManagerTests()
         {
             this.storageStrategy = new NullWriterStorageStrategy();
-            this.manager = new MiniDB.Transactions.UndoRedoManager((ITransactionStorageStrategy)this.storageStrategy, "test");
+            this.manager = new MiniDB.Transactions.UndoRedoManager(this.storageStrategy, "test");
 
-            this.testDB = new MiniDB.DataBase("test", 1, 1, this.storageStrategy, this.manager);
+            this.testDB = new DataBase("test", 1, 1, this.storageStrategy, this.manager);
         }
 
         public void Dispose()
@@ -166,7 +166,6 @@ namespace DbXunitTests.UndoRedoTests
             Assert.False(this.testDB.CanUndo, "should be NOT able to undo on empty");
             this.AssertStorageCached();
         }
-
 
         [Fact]
         public void Test_AddItem()
@@ -525,7 +524,7 @@ namespace DbXunitTests.UndoRedoTests
         {
             // Arrange
             var entry = new ExampleComplicatedStoredItem("John", "Doe");
-            entry.Address.FirstLine = "";
+            entry.Address.FirstLine = string.Empty;
             var db = new DBStateBuilder(this.testDB)
                 .AddItem(entry)
                 .EditItem(item => { ((ExampleComplicatedStoredItem)item).Address.FirstLine = "PO Box"; })
@@ -539,7 +538,7 @@ namespace DbXunitTests.UndoRedoTests
             Assert.Single(db);
             var first = (ExampleComplicatedStoredItem)db.First();
             Assert.Equal(entry, first);
-            Assert.Equal("", first.Address.FirstLine);
+            Assert.Equal(string.Empty, first.Address.FirstLine);
         }
 
         [Fact]
@@ -547,7 +546,7 @@ namespace DbXunitTests.UndoRedoTests
         {
             // Arrange
             var entry = new ExampleComplicatedStoredItem("John", "Doe");
-            entry.Address.FirstLine = "";
+            entry.Address.FirstLine = string.Empty;
             var db = new DBStateBuilder(this.testDB)
                 .AddItem(entry)
                 .EditItem(item => { ((ExampleComplicatedStoredItem)item).Address.FirstLine = "PO Box"; })

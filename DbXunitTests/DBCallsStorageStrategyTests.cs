@@ -89,7 +89,6 @@ namespace DbXunitTests
         }
 
         // TODO: DoesWriteTransactionsFileOnEditItem
-
         [Fact]
         public void DoesWriteMainFileOnItemNestedEdit()
         {

@@ -163,6 +163,7 @@ namespace DbXunitTests
         #region helper methods
 
         #region cleanup
+
         /// <summary>
         /// remove files that represent the database and the transactions files
         /// </summary>

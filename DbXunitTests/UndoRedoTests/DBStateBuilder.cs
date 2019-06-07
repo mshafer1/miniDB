@@ -7,34 +7,34 @@ namespace DbXunitTests.UndoRedoTests
     // inspired by discussion here: https://raygun.com/blog/unit-testing-patterns/#state
     internal class DBStateBuilder
     {
-        private readonly MiniDB.DataBase _db;    
-        
+        private readonly MiniDB.DataBase db;
+
         public DBStateBuilder(MiniDB.DataBase db)
         {
-            this._db = db;
+            this.db = db;
         }
 
-        public DBStateBuilder AddItem(MiniDB.Interfaces.IDBObject dbObjcet)
+        public DBStateBuilder AddItem(IDBObject dbObjcet)
         {
-            this._db.Add(dbObjcet);
+            this.db.Add(dbObjcet);
             return this;
         }
 
         public DBStateBuilder Undo()
         {
-            this._db.Undo();
+            this.db.Undo();
             return this;
         }
 
         public DBStateBuilder Redo()
         {
-            this._db.Redo();
+            this.db.Redo();
             return this;
         }
 
-        public DBStateBuilder EditItem(System.Action<MiniDB.Interfaces.IDBObject> edit)
+        public DBStateBuilder EditItem(System.Action<IDBObject> edit)
         {
-            var first = this._db.Single();
+            var first = this.db.Single();
 
             edit(first);
 
@@ -43,7 +43,7 @@ namespace DbXunitTests.UndoRedoTests
 
         public MiniDB.DataBase Get_DB()
         {
-            return this._db;
+            return this.db;
         }
     }
 }

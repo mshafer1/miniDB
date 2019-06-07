@@ -2,26 +2,39 @@
 using System.Collections.ObjectModel;
 
 using MiniDB;
-using MiniDB.Transactions;
-
 using MiniDB.Interfaces;
+using MiniDB.Transactions;
 
 namespace DbXunitTests
 {
-    class NullWriterStorageStrategy : MiniDB.Interfaces.IStorageStrategy
+    internal class NullWriterStorageStrategy : IStorageStrategy
     {
-        public delegate void WriteMessageHandler(IEnumerable<IDBObject> data);
-        public delegate void WriteTransactionHandler(IEnumerable<IDBTransaction> data);
-
-        public event WriteMessageHandler WroteMain;
-        public event WriteTransactionHandler WroteTransactions;
-
-        public NullWriterStorageStrategy(): base()
+        public NullWriterStorageStrategy()
+            : base()
         {
             this.WroteFlag = false;
             this.WroteTransactionsFlag = false;
         }
 
+        public delegate void WriteMessageHandler(IEnumerable<IDBObject> data);
+
+        public delegate void WriteTransactionHandler(IEnumerable<IDBTransaction> data);
+
+        #region Events
+        public event WriteMessageHandler WroteMain;
+
+        public event WriteTransactionHandler WroteTransactions;
+        #endregion
+
+        #region Properties
+        public IEnumerable<IDBObject> DBObjects { get; set; }
+
+        public bool WroteFlag { get; private set; }
+
+        public bool WroteTransactionsFlag { get; private set; }
+        #endregion
+
+        #region API
         public void CacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename)
         {
             // NOOP
@@ -42,15 +55,16 @@ namespace DbXunitTests
         public DataBase LoadDB(string filename)
         {
             var result = new DataBase("blah", 1, 1);
-            if(this.dBObjects == null)
+            if (this.DBObjects == null)
             {
                 return result;
             }
 
-            foreach(var item in this.dBObjects)
+            foreach (var item in this.DBObjects)
             {
                 result.Add(item);
             }
+
             return result;
         }
 
@@ -64,7 +78,9 @@ namespace DbXunitTests
             this.WroteFlag = false;
             this.WroteTransactionsFlag = false;
         }
+        #endregion
 
+        #region HelperMethods
         private void OnMainWrite(IEnumerable<IDBObject> data)
         {
             this.WroteFlag = true;
@@ -76,10 +92,6 @@ namespace DbXunitTests
             this.WroteTransactionsFlag = true;
             this.WroteTransactions?.Invoke(data);
         }
-
-        public IEnumerable<IDBObject> dBObjects { get; set; }
-
-        public bool WroteFlag { get; private set; }
-        public bool WroteTransactionsFlag { get; private set; }
+        #endregion
     }
 }

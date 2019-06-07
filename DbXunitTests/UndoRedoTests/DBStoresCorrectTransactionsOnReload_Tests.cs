@@ -22,10 +22,12 @@ namespace DbXunitTests.UndoRedoTests
             this.nullWritingStorageStrategy = new NullWriterStorageStrategy();
 
             // simulate reloading the DB by causing it to load with an item in it.
-            var jdoe = new ExampleStoredItem("John", "Doe");
-            jdoe.Age = 10;
+            var jdoe = new ExampleStoredItem("John", "Doe")
+            {
+                Age = 10,
+            };
 
-            this.nullWritingStorageStrategy.dBObjects = new List<ExampleStoredItem>() { jdoe };
+            this.nullWritingStorageStrategy.DBObjects = new List<ExampleStoredItem>() { jdoe };
 
             this.testDB = new MiniDB.DataBase(dbFilename, 1, 1, this.nullWritingStorageStrategy);
             this.storedItem = this.testDB.FirstOrDefault(); // allow access for modifying it.
@@ -89,19 +91,20 @@ namespace DbXunitTests.UndoRedoTests
         [Fact]
         public void TestRemovingItemFromDBMakes_Delete_Transaction_onExistingItem()
         {
-            bool ModifyTransactionAdded = false;
+            bool modifyTransactionAdded = false;
             this.nullWritingStorageStrategy.WroteTransactions += (data) =>
             {
                 var transaction = data.Last();
-                ModifyTransactionAdded = transaction.DBTransactionType == MiniDB.DBTransactionType.Delete;
+                modifyTransactionAdded = transaction.DBTransactionType == MiniDB.DBTransactionType.Delete;
             };
 
             this.testDB.Remove(this.storedItem);
 
-            Assert.True(ModifyTransactionAdded);
+            Assert.True(modifyTransactionAdded);
         }
 
         #region cleanup
+
         /// <summary>
         /// remove files that represent the database and the transactions files
         /// </summary>

@@ -47,7 +47,7 @@ namespace DbXunitTests.UndoRedoTests
             {
                 new ExampleStoredItem("John", "Doe"),
                 new ExampleStoredItem("Jane", "Doe"),
-                new ExampleStoredItem("Molly", "Doe")
+                new ExampleStoredItem("Molly", "Doe"),
             };
 
             int remove_count = 0;
@@ -80,7 +80,7 @@ namespace DbXunitTests.UndoRedoTests
             {
                 new ExampleStoredItem("John", "Doe"),
                 new ExampleStoredItem("Jane", "Doe"),
-                new ExampleStoredItem("Molly", "Doe")
+                new ExampleStoredItem("Molly", "Doe"),
             };
 
             int remove_count = 0;
@@ -113,7 +113,7 @@ namespace DbXunitTests.UndoRedoTests
             {
                 new ExampleStoredItem("John", "Doe"),
                 new ExampleStoredItem("Jane", "Doe"),
-                new ExampleStoredItem("Molly", "Doe")
+                new ExampleStoredItem("Molly", "Doe"),
             };
 
             foreach (var item in thingsToAdd)
@@ -152,6 +152,7 @@ namespace DbXunitTests.UndoRedoTests
         #endregion
 
         #region cleanup
+
         /// <summary>
         /// remove files that represent the database and the transactions files
         /// </summary>

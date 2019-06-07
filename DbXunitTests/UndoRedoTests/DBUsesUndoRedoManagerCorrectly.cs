@@ -17,7 +17,7 @@ namespace DbXunitTests.UndoRedoTests
             this.manager = new MiniDB.Interfaces.StubUndoRedoManager();
             this.storageStrategy = new NullWriterStorageStrategy();
 
-            this.testDB = new MiniDB.DataBase("test", 1, 1, this.storageStrategy, this.manager);
+            this.testDB = new DataBase("test", 1, 1, this.storageStrategy, this.manager);
         }
 
         public void Dispose()
@@ -55,7 +55,7 @@ namespace DbXunitTests.UndoRedoTests
         {
             this.manager.CheckCanUndo = () => { return false; };
 
-            Assert.ThrowsAny<DBException>(() => 
+            Assert.ThrowsAny<DBException>(() =>
             {
                 this.testDB.Undo();
             });
@@ -77,7 +77,7 @@ namespace DbXunitTests.UndoRedoTests
         {
             this.manager.CheckCanUndo = () => { return true; };
             this.storageStrategy.ClearWroteFlags();
-            this.manager.Undo = (data, dontcare1, dontcare2) => 
+            this.manager.Undo = (data, dontcare1, dontcare2) =>
             {
                 var item = new ExampleStoredItem();
                 data.Add(item);

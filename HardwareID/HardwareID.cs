@@ -30,30 +30,32 @@ namespace HardwareID
         #endregion
 
         #region fields
+
         /// <summary>
         /// Cache the fields, for quick recapture
         /// </summary>
-        private static readonly Dictionary<string, string> Data = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> Keys = new Dictionary<string, string>();
         #endregion
 
         #region properties
+
         /// <summary>
-        /// Get the name of OS type
+        /// Gets the name of OS type
         /// </summary>
         private static string OSName => Get();
 
         /// <summary>
-        /// Get the manufacturer of the OS
+        /// Gets the manufacturer of the OS
         /// </summary>
         private static string OSManufacturer => Get();
 
         /// <summary>
-        /// Get System Product ID
+        /// Gets System Product ID
         /// </summary>
         private static string ProductID => Get();
 
         /// <summary>
-        /// Get the System Model
+        /// Gets the System Model
         /// </summary>
         private static string SystemModel => Get();
 
@@ -68,14 +70,14 @@ namespace HardwareID
         private static string PhysicalMemory => Get();
 
         /// <summary>
-        /// The system name (used on Unix)
+        /// Gets the system name (used on Unix)
         /// </summary>
         private static string UName => Get();
 
         /// <summary>
         /// Gets the base string used for creating IDs
         /// </summary>
-        private static string _data
+        private static string DataString
         {
             get
             {
@@ -97,13 +99,14 @@ PhysicalMemory >> {PhysicalMemory}";
         #endregion
 
         #region public methods
+
         /// <summary>
         /// Get the ID
         /// </summary>
         /// <returns>string hash of _data property</returns>
         public static string UniqueID()
         {
-            return GetHash(_data);
+            return GetHash(DataString);
         }
 
         /// <summary>
@@ -113,11 +116,12 @@ PhysicalMemory >> {PhysicalMemory}";
         /// <returns>string hash of _data + seed</returns>
         public static string UniqueID(string seed)
         {
-            return GetHash($"{_data}\nSeed >> {seed}");
+            return GetHash($"{DataString}\nSeed >> {seed}");
         }
         #endregion
 
         #region helper methods
+
         /// <summary>
         /// Run system process `systeminfo` to get data
         /// </summary>
@@ -143,7 +147,7 @@ PhysicalMemory >> {PhysicalMemory}";
                     if (!match.Equals(default(KeyValuePair<string, string>)))
                     {
                         var rest = workingLine.Substring(match.Key.Length).Trim();
-                        Data[match.Value] = rest;
+                        Keys[match.Value] = rest;
                     }
                 }
             }
@@ -158,7 +162,7 @@ PhysicalMemory >> {PhysicalMemory}";
                 p.Start();
                 string output = p.StandardOutput.ReadToEnd();
                 p.WaitForExit();
-                Data[nameof(UName)] = output;
+                Keys[nameof(UName)] = output;
             }
         }
 
@@ -210,14 +214,14 @@ PhysicalMemory >> {PhysicalMemory}";
         /// <returns>the cached value</returns>
         private static string Get([CallerMemberName]string name = null)
         {
-            if (Data.ContainsKey(name))
+            if (Keys.ContainsKey(name))
             {
-                return Data[name];
+                return Keys[name];
             }
             else
             {
                 GetSystemInfo();
-                return Data[name];
+                return Keys[name];
             }
         }
 

@@ -1,6 +1,6 @@
-﻿using Xunit;
+﻿using MutexLocks;
+using Xunit;
 
-using MutexLocks;
 namespace MutexLocksTests
 {
     public class TestFileLocker
@@ -13,6 +13,7 @@ namespace MutexLocksTests
             using (var mut = new FileMutex(this.lock_name))
             {
                 mut.Get();
+
                 // inheritently assert a no-throw
             }
         }
@@ -42,6 +43,7 @@ namespace MutexLocksTests
 
             var secondMutex = new FileMutex(this.lock_name);
             secondMutex.Get();
+
             // inheritently assert no-throw
             secondMutex.Dispose();
         }
@@ -59,6 +61,7 @@ namespace MutexLocksTests
             {
                 // unsafe code
             }
+
             mut.Dispose();
         }
 
@@ -87,6 +90,7 @@ namespace MutexLocksTests
             lockItem2.Dispose();
 
             mut.Get();
+
             // inherently assert a no-throw
             mut.Dispose();
         }

@@ -37,16 +37,18 @@ namespace MiniDB
         /// </summary>
         private MutexLocks.MutexObject mut = null;
 
+        private bool alreadyDisposed = false; // To detect redundant calls
+
         #endregion
 
         #region Constructors
 
-        public DataBase(string filename, float version, float minimumCompatibleVersion, IStorageStrategy storageStrategy, IUndoRedoManager undoRedoManager = null) : base()
+        public DataBase(string filename, float version, float minimumCompatibleVersion, IStorageStrategy storageStrategy, IUndoRedoManager undoRedoManager = null)
+            : base()
         {
             this.Filename = filename;
             this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
             this.TransactionsFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
-
 
             this.storageStrategy = storageStrategy;
             this.undoRedoManager = undoRedoManager ?? new UndoRedoManager((ITransactionStorageStrategy)this.storageStrategy, this.TransactionsFilename);
@@ -56,7 +58,7 @@ namespace MiniDB
 
             lock (Locker)
             {
-                this.getMutex();
+                this.GetMutex();
 
                 try
                 {
@@ -73,12 +75,14 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Setup a basic DB class that does not have the ability to load or write to disk.
+        /// Initializes a new instance of the <see cref="DataBase"/> class.
+        /// Setup a basic DB class that does not have the ability to load or write to disk
         /// </summary>
-        /// <param name="filename"></param>
-        /// <param name="version"></param>
-        /// <param name="minimumCompatibleVersion"></param>
-        public DataBase(string filename, float version, float minimumCompatibleVersion) : base()
+        /// <param name="filename">File to store data in</param>
+        /// <param name="version">Current Version</param>
+        /// <param name="minimumCompatibleVersion">Minimum compatible version that can be migrated</param>
+        public DataBase(string filename, float version, float minimumCompatibleVersion)
+            : base()
         {
             this.Filename = filename;
             this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
@@ -88,57 +92,53 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataBase{T}" /> class.
+        /// Initializes a new instance of the <see cref="DataBase"/> class.
         /// Default constructor (allow Newtonsoft to create object without parameters
         /// </summary>
         [JsonConstructor]
-        internal DataBase() : base()
+        internal DataBase()
+            : base()
         {
         }
 
         #endregion
 
+        #region Delegates
+
+        /// <summary>
+        /// Delegate to specify what handlers of ItemChanged should look like
+        /// </summary>
+        /// <param name="sender">Instance of T that chaged</param>
+        /// <param name="id">Database ID for T object</param>
+        public delegate void TChangedEventHandler(object sender, ID id);
+
+        #endregion
+
         #region IDisposable Support
-        private bool alreadyDisposed = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if(this.alreadyDisposed)
-            {
-                return;
-            }
+        #endregion
 
-            if (disposing)
-            {
-                // free unmanaged resources here
-            }
+        #region Events
 
-            // clear mutex
-            if (this.mut != null)
-            {
-                this.mut.Release();
-                this.mut = null;
-            }
+        /// <summary>
+        /// Public event raised when an item is changed
+        /// </summary>
+        public event TChangedEventHandler ItemChanged;
 
-            this.alreadyDisposed = true;
-        }
+        /// <summary>
+        /// Public event for when a DB property has changed
+        /// </summary>
+        public event PropertyChangedEventHandler PublicPropertyChanged;
 
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
         #endregion
 
         #region Properties
 
         public string Filename { get; }
-        private string TransactionsFilename { get; }
-        public float DBVersion { get; internal set; }
-        public float MinimumCompatibleVersion { get; }
 
+        public float DBVersion { get; internal set; }
+
+        public float MinimumCompatibleVersion { get; }
 
         /// <summary>
         /// Gets a value indicating whether the collection currently can undo a recent transaction
@@ -162,26 +162,7 @@ namespace MiniDB
             }
         }
 
-        #endregion
-
-        #region events/delegates
-
-        /// <summary>
-        /// Delegate to specify what handlers of ItemChanged should look like
-        /// </summary>
-        /// <param name="sender">Instance of T that chaged</param>
-        /// <param name="id">Database ID for T object</param>
-        public delegate void TChangedEventHandler(object sender, ID id);
-
-        /// <summary>
-        /// Public event raised when an item is changed
-        /// </summary>
-        public event TChangedEventHandler ItemChanged;
-
-        /// <summary>
-        /// Public event for when a DB property has changed
-        /// </summary>
-        public event PropertyChangedEventHandler PublicPropertyChanged;
+        private string TransactionsFilename { get; }
 
         #endregion
 
@@ -189,15 +170,21 @@ namespace MiniDB
 
         #region API
 
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         /// <summary>
         /// Remove all elements from DB
         /// </summary>
         public new void Clear()
         {
-            //
             // Ordinarily, Clear wipes all elements then calls our collectionChanged with a NotifyCollectionChangedAction.Reset,
             // but the items are removed by then (and the OldItems in the event is null), so override the clear to remove each item so we can log it.
-
             var tempItems = new Collection<IDBObject>();
             foreach (var item in this)
             {
@@ -221,9 +208,9 @@ namespace MiniDB
                 dataToActOn: this,
                 dataChangedHandler: this.DataBase_CollectionChanged,
                 propertyChangedHandler: this.DataBaseItem_PropertyChanged);
-            this._cacheDB();
+            this.CacheDB();
 
-            this._alertUndoableChanged();
+            this.AlertUndoableChanged();
         }
 
         public void Redo()
@@ -237,22 +224,55 @@ namespace MiniDB
                 dataToActOn: this,
                 dataChangedHandler: this.DataBase_CollectionChanged,
                 propertyChangedHandler: this.DataBaseItem_PropertyChanged);
-            this._cacheDB();
+            this.CacheDB();
 
-            this._alertUndoableChanged();
+            this.AlertUndoableChanged();
         }
 
         #endregion
 
         #region helper methods
 
-        private void _alertUndoableChanged()
+        /// <summary>
+        /// Store the database to disk in <see cref="Filename"/>.
+        /// </summary>
+        protected virtual void CacheDB()
+        {
+            lock (Locker)
+            {
+                this.storageStrategy.CacheDB(this);
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (this.alreadyDisposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                // free unmanaged resources here
+            }
+
+            // clear mutex
+            if (this.mut != null)
+            {
+                this.mut.Release();
+                this.mut = null;
+            }
+
+            this.alreadyDisposed = true;
+        }
+
+        private void AlertUndoableChanged()
         {
             this.PublicOnPropertyChanged(nameof(this.CanUndo));
             this.PublicOnPropertyChanged(nameof(this.CanRedo));
         }
 
-        private void getMutex()
+        private void GetMutex()
         {
             string mutex_file_path = this.Filename.Replace("\\", "_").Replace("/", "_");
             string mutex_name = string.Format(@"{0}:{1}", nameof(DataBase), mutex_file_path); // from https://stackoverflow.com/a/2534867
@@ -270,7 +290,7 @@ namespace MiniDB
 
         private void LoadFile(string filename, bool registerItemsForPropertyChanged)
         {
-            var data = this.storageStrategy._loadDB(filename);
+            var data = this.storageStrategy.LoadDB(filename);
 
             // if new enough, and not too new,
             if (data.DBVersion >= this.MinimumCompatibleVersion && data.DBVersion <= this.DBVersion)
@@ -304,7 +324,7 @@ namespace MiniDB
                     }
                 });
 
-                this._cacheDB();
+                this.CacheDB();
 
                 // if not an undoable change, alert property changes and leave
                 if (!e.UndoableChange)
@@ -329,14 +349,13 @@ namespace MiniDB
         {
             lock (Locker)
             {
-                this._cacheDB();
+                this.CacheDB();
             }
 
             // TODO: implement storing changed transaction
 
             // TODOne: register new items
             IList changed = null;
-
 
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
@@ -345,7 +364,7 @@ namespace MiniDB
                     // register for property change
                     item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
 
-                    handle_sub_items(item);
+                    this.Handle_sub_items(item);
 
                     // create add transaction
                     IDBTransaction dBTransaction = new AddTransaction(item);
@@ -393,7 +412,7 @@ namespace MiniDB
                     this.undoRedoManager.InsertTransaction(dBTransaction);
 
                     var newItem = e.NewItems[index] as IDBObject;
-                    this.handle_sub_items(newItem);
+                    this.Handle_sub_items(newItem);
 
                     // create add transaction
                     dBTransaction = new AddTransaction(newItem);
@@ -406,47 +425,47 @@ namespace MiniDB
             }
         }
 
-        private void handle_sub_items(IDBObject item, string path="", IDBObject parent = null)
+        private void Handle_sub_items(IDBObject item, string path = "", IDBObject parent = null)
         {
             var properties = new List<PropertyInfo>(item.GetType().GetProperties());
             var care_about = properties.ToList();
-            foreach(var property in care_about)
+            foreach (var property in care_about)
             {
                 var field = property.GetValue(item, null) as IDBObject;
-                if(field == null)
+                if (field == null)
                 {
                     continue;
                 }
 
                 string sub_path = property.Name;
-                if (path != "")
+                if (path != string.Empty)
                 {
                     sub_path = $"{path}.{sub_path}";
                 }
 
-                if(parent == null)
+                if (parent == null)
                 {
                     parent = item;
                 }
 
                 this.DatBaseSubItemRegister(parent, field, sub_path);
-                handle_sub_items(field, sub_path, parent);
+                this.Handle_sub_items(field, sub_path, parent);
             }
         }
 
         private void DatBaseSubItemRegister(IDBObject parent, IDBObject item, string path)
         {
-            item.PropertyChangedExtended += (o, e) => 
+            item.PropertyChangedExtended += (o, e) =>
             {
                 var new_path = e.PropertyName;
-                if(path != "")
+                if (path != string.Empty)
                 {
                     new_path = $"{path}.{new_path}";
                 }
+
                 this.DataBaseItem_PropertyChanged(parent, new PropertyChangedExtendedEventArgs(new_path, e.OldValue, e.NewValue));
             };
         }
-
 
         /// <summary>
         /// Raise the PublicPropertyChanged event
@@ -473,17 +492,6 @@ namespace MiniDB
         private void OnItemChanged(ID id)
         {
             this.ItemChanged?.Invoke(this, id);
-        }
-
-        /// <summary>
-        /// Store the database to disk in <see cref="Filename"/>.
-        /// </summary>
-        protected virtual void _cacheDB()
-        {
-            lock (Locker)
-            {
-                this.storageStrategy._cacheDB(this);
-            }
         }
 
         #region mutex helpers

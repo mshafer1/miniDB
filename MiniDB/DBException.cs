@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MiniDB
 {
@@ -37,6 +38,7 @@ namespace MiniDB
     /// <summary>
     /// An exception class for erros with creating a Database
     /// </summary>
+    [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "SA1402:FileMayOnlyContainASingleType", Justification = "Empty types")]
     public class DBCreationException : DBException
     {
         /// <summary>
@@ -69,6 +71,7 @@ namespace MiniDB
     /// <summary>
     /// An exception class for Undo errors from DataBase.
     /// </summary>
+    [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "SA1402:FileMayOnlyContainASingleType", Justification = "Empty types")]
     public class DBCannotUndoException : DBException
     {
         /// <summary>
@@ -101,6 +104,7 @@ namespace MiniDB
     /// <summary>
     /// An exception class for errors with attempting to redo on the Database.
     /// </summary>
+    [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "SA1402:FileMayOnlyContainASingleType", Justification = "Empty types")]
     public class DBCannotRedoException : DBException
     {
         /// <summary>

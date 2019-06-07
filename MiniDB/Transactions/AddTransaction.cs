@@ -7,11 +7,13 @@ namespace MiniDB.Transactions
 {
     public class AddTransaction : WholeItemTransaction
     {
-        public AddTransaction(IDBObject addedObject) : base(addedObject)
+        public AddTransaction(IDBObject addedObject)
+            : base(addedObject)
         {
         }
 
-        public AddTransaction(IWholeItemTransaction other) : base(other)
+        public AddTransaction(IWholeItemTransaction other)
+            : base(other)
         {
         }
 

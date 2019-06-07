@@ -25,7 +25,7 @@ namespace MiniDB
         /// Get hardware ID as unigned 64-bit integer
         /// </summary>
         /// <returns>ID value</returns>
-        public static UInt64 IDValueInt()
+        public static ulong IDValueInt()
         {
             string id = ID();
             byte[] bytes = Encoding.ASCII.GetBytes(id);
@@ -49,7 +49,7 @@ namespace MiniDB
         /// </summary>
         /// <param name="seed">Seed pass to ID method</param>
         /// <returns>ID value</returns>
-        public static UInt64 IDValueInt(string seed)
+        public static ulong IDValueInt(string seed)
         {
             string id = ID(seed);
             byte[] bytes = Encoding.ASCII.GetBytes(id);

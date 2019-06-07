@@ -12,6 +12,7 @@ namespace MiniDB
     public class ID : IEquatable<ID>, IComparable<ID>
     {
         #region fields
+
         /// <summary>
         /// A radom number generator to create the next ID number from
         /// </summary>
@@ -31,6 +32,7 @@ namespace MiniDB
         #endregion
 
         #region constructors
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ID" /> class.
         /// Fills the properties with default values then call Set on self

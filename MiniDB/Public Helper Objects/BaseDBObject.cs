@@ -2,16 +2,15 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-using Newtonsoft.Json;
-
 using MiniDB.Interfaces;
-
+using Newtonsoft.Json;
 
 namespace MiniDB
 {
     public abstract class BaseDBObject : IDBObject
     {
         #region fields
+
         /// <summary>
         /// store the properties that are accessible via the Set and Get methods.
         /// </summary>
@@ -19,8 +18,9 @@ namespace MiniDB
         #endregion
 
         #region constructors
+
         /// <summary>
-        /// /// Initializes a new instance of the <see cref="DatabaseObject" /> class.
+        /// Initializes a new instance of the <see cref="BaseDBObject"/> class.
         /// </summary>
         public BaseDBObject()
         {
@@ -29,7 +29,7 @@ namespace MiniDB
         }
 
         /// <summary>
-        /// /// Initializes a new instance of the <see cref="DatabaseObject" /> class.
+        /// Initializes a new instance of the <see cref="BaseDBObject"/> class.
         /// </summary>
         /// <param name="id">The id to be used for the DB</param>
         public BaseDBObject(ID id)
@@ -39,6 +39,7 @@ namespace MiniDB
         #endregion
 
         #region events
+
         /// <summary>
         /// Event raised when specific undoable/settable properties are changed (includes how changed).
         /// </summary>
@@ -51,6 +52,7 @@ namespace MiniDB
         #endregion
 
         #region properties
+
         /// <summary>
         /// Gets this dbObjects ID
         /// </summary>
@@ -60,11 +62,12 @@ namespace MiniDB
         /// <summary>
         /// Re-assign the ID a new value.
         /// </summary>
-        public void SetID() => ID.Set(); // randomly re-assign
+        public void SetID() => this.ID.Set(); // randomly re-assign
         #endregion
 
         #region helper methods
         #region event raisers
+
         /// <summary>
         /// Raise property changed event args - contains just the changed property's name
         /// </summary>
@@ -90,13 +93,15 @@ namespace MiniDB
         #endregion
 
         #region Accessors
+
         /// <summary>
         /// Return the requested item by name from fields if it is there, else null.
         /// </summary>
         /// <param name="name">The name of the item to fetch (default: caller)</param>
         /// <returns>The object value requested</returns>
         protected dynamic Get([CallerMemberName]string name = null)
-        { // TODO changing this to dynamic may make structs not work correctly unless initialized 
+        {
+            // TODO changing this to dynamic may make structs not work correctly unless initialized
             return this.fields.ContainsKey(name) ? this.fields[name] : null;
         }
 

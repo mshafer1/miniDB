@@ -4,19 +4,20 @@ using MiniDB.Interfaces;
 
 namespace MiniDB.Transactions
 {
-    class DeleteTransaction : BaseDBTransaction
+    public class DeleteTransaction : BaseDBTransaction
     {
-        public override DBTransactionType DBTransactionType => DBTransactionType.Delete;
-
-        public DeleteTransaction(IDBObject transactedItem) : base(transactedItem.ID)
+        public DeleteTransaction(IDBObject transactedItem)
+            : base(transactedItem.ID)
         {
             this.TransactedItem = transactedItem;
         }
 
-        public DeleteTransaction(IDBTransaction other) : base(other)
+        public DeleteTransaction(IDBTransaction other)
+            : base(other)
         {
-           
         }
+
+        public override DBTransactionType DBTransactionType => DBTransactionType.Delete;
 
         public IDBObject TransactedItem { get; }
 

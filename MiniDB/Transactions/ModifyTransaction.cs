@@ -1,22 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-using Newtonsoft.Json;
-
 using MiniDB.Interfaces;
 
 namespace MiniDB.Transactions
 {
     public class ModifyTransaction : BaseDBTransaction, IModifyTransaction
     {
-        public ModifyTransaction(ID changedItemID, string fieldName, object oldValue, object newValue) : base(changedItemID)
+        public ModifyTransaction(ID changedItemID, string fieldName, object oldValue, object newValue)
+            : base(changedItemID)
         {
             this.ChangedFieldName = fieldName;
             this.OldValue = oldValue;
             this.NewValue = newValue;
         }
 
-        public ModifyTransaction(IModifyTransaction other) : base(other)
+        public ModifyTransaction(IModifyTransaction other)
+            : base(other)
         {
             this.ChangedFieldName = other.ChangedFieldName;
             this.OldValue = other.OldValue;

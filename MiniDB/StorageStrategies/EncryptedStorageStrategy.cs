@@ -8,27 +8,27 @@ namespace MiniDB
 {
     public class EncryptedStorageStrategy : IStorageStrategy
     {
-        public void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename)
+        public void CacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename)
         {
             throw new NotImplementedException();
         }
 
-        public void _cacheDB(DataBase db)
+        public void CacheDB(DataBase db)
         {
             throw new NotImplementedException();
         }
 
-        public ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename)
+        public ObservableCollection<IDBTransaction> GetTransactionsCollection(string filename)
         {
             throw new NotImplementedException();
         }
 
-        public DataBase _loadDB(string filename)
+        public DataBase LoadDB(string filename)
         {
             throw new NotImplementedException();
         }
 
-        public void _migrate(float oldVersion, float newVersion)
+        public void Migrate(float oldVersion, float newVersion)
         {
             throw new NotImplementedException();
         }

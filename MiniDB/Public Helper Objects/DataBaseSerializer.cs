@@ -1,39 +1,15 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-
-using Newtonsoft.Json;
-
+using System.Diagnostics.CodeAnalysis;
 using MiniDB.Interfaces;
+using Newtonsoft.Json;
 
 namespace MiniDB
 {
     // from https://stackoverflow.com/a/14384830/8100990
     //   possible alternative https://stackoverflow.com/a/22486943/8100990
-
-    /// <summary>
-    /// intermediate class that can be serialized by JSON.net
-    /// </summary>
-    /// <typeparam name="T">and contains the same data as <see cref="DataBase{T}"/> - allows for DBVersion to be serialized</typeparam>
-    internal class DataBaseSurrogate<T> where T : IDBObject
-    {
-        // the collection of T elements
-
-        /// <summary>
-        /// Gets or sets the collection to cache
-        /// Represent the Database data as an ObservableCollection of T (Database base class)
-        /// </summary>
-        public ObservableCollection<T> Collection { get; set; }
-
-        // the properties of DataBase to serialize
-
-        /// <summary>
-        /// Gets or sets the DBVersion
-        /// Make sure DBVersion gets included in serialization
-        /// </summary>
-        public float DBVersion { get; set; }
-    }
-
-    public class DataBaseSerializer<T> : JsonConverter where T : IDBObject
+    public class DataBaseSerializer<T> : JsonConverter
+        where T : IDBObject
     {
         /// <summary>
         /// Verify if JsonConverter can be used to convert this object from Json
@@ -78,12 +54,12 @@ namespace MiniDB
             // N.B. null handling is missing
             var db = (DataBase)value;
 
-            // create the surrogate and serialize it instead 
+            // create the surrogate and serialize it instead
             // of the collection itself
             var surrogate = new DataBaseSurrogate<IDBObject>()
             {
                 Collection = new ObservableCollection<IDBObject>(db),
-                DBVersion = db.DBVersion
+                DBVersion = db.DBVersion,
             };
 
             // from https://stackoverflow.com/questions/7397207/json-net-error-self-referencing-loop-detected-for-type
@@ -91,5 +67,30 @@ namespace MiniDB
             serializer.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
             serializer.Serialize(writer, surrogate);
         }
+    }
+
+    /// <summary>
+    /// intermediate class that can be serialized by JSON.net
+    /// </summary>
+    /// <typeparam name="T">and contains the same data as <see cref="DataBase{T}"/> - allows for DBVersion to be serialized</typeparam>
+    [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "SA1402:FileMayOnlyContainASingleType", Justification = "Helper type")]
+    internal class DataBaseSurrogate<T>
+        where T : IDBObject
+    {
+        // the collection of T elements
+
+        /// <summary>
+        /// Gets or sets the collection to cache
+        /// Represent the Database data as an ObservableCollection of T (Database base class)
+        /// </summary>
+        public ObservableCollection<T> Collection { get; set; }
+
+        // the properties of DataBase to serialize
+
+        /// <summary>
+        /// Gets or sets the DBVersion
+        /// Make sure DBVersion gets included in serialization
+        /// </summary>
+        public float DBVersion { get; set; }
     }
 }

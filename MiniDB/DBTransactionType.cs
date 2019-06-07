@@ -8,12 +8,12 @@ namespace MiniDB
 {
     /// <summary>
     /// Tracking what part of CRUD this is.
-    /// 
+    ///
     ///  C - create
     ///  R - read (not needed)
     ///  U - update
     ///  D - delete
-    ///  
+    ///
     /// TODO: add Resolve - used to mark sync point
     /// </summary>
     public enum DBTransactionType

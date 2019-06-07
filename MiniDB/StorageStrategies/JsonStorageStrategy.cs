@@ -1,41 +1,42 @@
-﻿using MiniDB.Transactions;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 
 using MiniDB.Interfaces;
+using MiniDB.Transactions;
+using Newtonsoft.Json;
 
 namespace MiniDB
 {
-    public class JsonStorageStrategy<T> : IStorageStrategy where T : IDBObject
+    public class JsonStorageStrategy<T> : IStorageStrategy
+        where T : IDBObject
     {
-        private readonly float DBVersion;
-        private readonly float MinimumCompatibleVersion;
+        private readonly float dBVersion;
+        private readonly float minimumCompatibleVersion;
 
         public JsonStorageStrategy(float dbVersion, float minimumCompatibleVersion)
         {
-            this.DBVersion = dbVersion;
-            this.MinimumCompatibleVersion = minimumCompatibleVersion;
+            this.dBVersion = dbVersion;
+            this.minimumCompatibleVersion = minimumCompatibleVersion;
         }
 
-        void ITransactionStorageStrategy._cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string transactionsFilename)
+        void ITransactionStorageStrategy.CacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string transactionsFilename)
         {
             var json = JsonConvert.SerializeObject(dBTransactions);
             System.IO.File.WriteAllText(transactionsFilename, json);
         }
 
-        public void _cacheDB(DataBase db)
+        public void CacheDB(DataBase db)
         {
-            var json = this.serializeDB(db);
+            var json = this.SerializeDB(db);
             System.IO.File.WriteAllText(db.Filename, json);
         }
 
-        ObservableCollection<IDBTransaction> ITransactionStorageStrategy._getTransactionsCollection(string filename)
+        ObservableCollection<IDBTransaction> ITransactionStorageStrategy.GetTransactionsCollection(string filename)
         {
             /*this.DBVersion = databaseVersion;
             this.Filename = filename;
             this.LoadFile(filename, false);*/
-            var json = this._readFile(filename);
+            var json = this.ReadFile(filename);
             if (json.Length == 0)
             {
                 return new ObservableCollection<IDBTransaction>();
@@ -52,30 +53,29 @@ namespace MiniDB
             return result;
         }
 
-        public DataBase _loadDB(string filename)
+        public DataBase LoadDB(string filename)
         {
-            var json = _readFile(filename);
-            var result = new DataBase(filename, this.DBVersion, this.MinimumCompatibleVersion);
+            var json = this.ReadFile(filename);
+            var result = new DataBase(filename, this.dBVersion, this.minimumCompatibleVersion);
             if (json.Length == 0)
             {
                 return result;
             }
 
             var adapted = JsonConvert.DeserializeObject<DataBase>(json, new DataBaseSerializer<T>());
-            if (adapted.DBVersion > this.DBVersion)
+            if (adapted.DBVersion > this.dBVersion)
             {
-                throw new DBCreationException($"Cannot load db of version {adapted.DBVersion}. Current version is only {this.DBVersion}");
+                throw new DBCreationException($"Cannot load db of version {adapted.DBVersion}. Current version is only {this.dBVersion}");
             }
 
             // TODO: implement migration callback
 
             // if still not new enough or too new
-            if (adapted.DBVersion < this.MinimumCompatibleVersion || adapted.DBVersion > this.DBVersion)
+            if (adapted.DBVersion < this.minimumCompatibleVersion || adapted.DBVersion > this.dBVersion)
             {
-                throw new DBCreationException($"Cannot load db of version {adapted.DBVersion}. Current version is only {this.DBVersion} and only supports back to {this.MinimumCompatibleVersion}");
+                throw new DBCreationException($"Cannot load db of version {adapted.DBVersion}. Current version is only {this.dBVersion} and only supports back to {this.minimumCompatibleVersion}");
             }
 
-            
             // parse and load
             foreach (var item in adapted)
             {
@@ -85,12 +85,12 @@ namespace MiniDB
             return result;
         }
 
-        public void _migrate(float oldVersion, float newVersion)
+        public void Migrate(float oldVersion, float newVersion)
         {
             throw new NotImplementedException();
         }
 
-        private string _readFile(string filename)
+        private string ReadFile(string filename)
         {
             if (System.IO.File.Exists(filename))
             {
@@ -101,7 +101,7 @@ namespace MiniDB
             return string.Empty;
         }
 
-        private string serializeDB(DataBase db)
+        private string SerializeDB(DataBase db)
         {
             // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
             return JsonConvert.SerializeObject(db, new DataBaseSerializer<T>());

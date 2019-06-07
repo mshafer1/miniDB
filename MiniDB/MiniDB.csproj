@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>..\StyleCopRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -45,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataBase.cs" />
-    <Compile Include="DBExceptions.cs" />
+    <Compile Include="DBException.cs" />
     <Compile Include="DBJsonSerializer.cs" />
     <Compile Include="DBOptions.cs" />
     <Compile Include="DBSurrogate.cs" />
@@ -57,7 +58,7 @@
     <Compile Include="Transactions\IDBTransaction.cs" />
     <Compile Include="DBTransactionType.cs" />
     <Compile Include="INotifyPropertyChangedExtended.cs" />
-    <Compile Include="Interfaces\IDatabaseObject.cs" />
+    <Compile Include="Interfaces\IDBObject.cs" />
     <Compile Include="Interfaces\IStorageStrategy.cs" />
     <Compile Include="JsonDataBase.cs" />
     <Compile Include="PropertyChangedExtendedEventArgs.cs" />
@@ -91,6 +92,10 @@
   <ItemGroup>
     <None Include="MiniDB.nuspec" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\StyleCop.Analyzers.1.1.118\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="..\packages\StyleCop.Analyzers.1.1.118\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -8,6 +8,6 @@ namespace MiniDB
 {
     public class DBOptions
     {
-        //TODO: public Func<string,DataBase<T>> JsonDataBase<T> => 
+        // TODO: public Func<string,DataBase<T>> JsonDataBase<T> =>
     }
 }

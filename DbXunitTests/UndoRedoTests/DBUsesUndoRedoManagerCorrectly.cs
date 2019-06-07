@@ -82,7 +82,7 @@ namespace DbXunitTests.UndoRedoTests
                 var item = new ExampleStoredItem();
                 data.Add(item);
                 var trans = new AddTransaction(item);
-                this.storageStrategy._cacheTransactions(new System.Collections.ObjectModel.ObservableCollection<IDBTransaction> { trans }, "blah");
+                this.storageStrategy.CacheTransactions(new System.Collections.ObjectModel.ObservableCollection<IDBTransaction> { trans }, "blah");
             };
 
             this.testDB.Undo();
@@ -102,7 +102,7 @@ namespace DbXunitTests.UndoRedoTests
                 var item = new ExampleStoredItem();
                 data.Add(item);
                 var trans = new AddTransaction(item);
-                this.storageStrategy._cacheTransactions(new System.Collections.ObjectModel.ObservableCollection<IDBTransaction> { trans }, "blah");
+                this.storageStrategy.CacheTransactions(new System.Collections.ObjectModel.ObservableCollection<IDBTransaction> { trans }, "blah");
             };
 
             this.testDB.Redo();

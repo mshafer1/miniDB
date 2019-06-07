@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 
-using Newtonsoft.Json;
-
 using MiniDB.Interfaces;
+using Newtonsoft.Json;
 
 namespace MiniDB
 {
@@ -11,7 +10,8 @@ namespace MiniDB
     /// Class to serialize database to json with db version number
     /// </summary>
     /// <typeparam name="T">The type of object stored in the Database</typeparam>
-    internal class DBJsonSerializer<T> : JsonConverter where T : IDBObject
+    internal class DBJsonSerializer<T> : JsonConverter
+        where T : IDBObject
     {
         /// <summary>
         /// Verify if JsonConverter can be used to convert this object from Json
@@ -56,12 +56,12 @@ namespace MiniDB
             // N.B. null handling is missing
             var db = (DataBase)value;
 
-            // create the surrogate and serialize it instead 
+            // create the surrogate and serialize it instead
             // of the collection itself
             var surrogate = new DBSurrogate()
             {
                 Collection = new ObservableCollection<IDBObject>(db),
-                DBVersion = db.DBVersion
+                DBVersion = db.DBVersion,
             };
 
             // from https://stackoverflow.com/questions/7397207/json-net-error-self-referencing-loop-detected-for-type

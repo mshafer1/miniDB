@@ -22,24 +22,24 @@ namespace DbXunitTests
             this.WroteTransactionsFlag = false;
         }
 
-        public void _cacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename)
+        public void CacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string filename)
         {
             // NOOP
             this.OnTransactionsWrite(dBTransactions);
         }
 
-        public void _cacheDB(DataBase db)
+        public void CacheDB(DataBase db)
         {
             // NOOP
             this.OnMainWrite(db);
         }
 
-        public ObservableCollection<IDBTransaction> _getTransactionsCollection(string filename)
+        public ObservableCollection<IDBTransaction> GetTransactionsCollection(string filename)
         {
             return new ObservableCollection<IDBTransaction>();
         }
 
-        public DataBase _loadDB(string filename)
+        public DataBase LoadDB(string filename)
         {
             var result = new DataBase("blah", 1, 1);
             if(this.dBObjects == null)
@@ -54,7 +54,7 @@ namespace DbXunitTests
             return result;
         }
 
-        public void _migrate(float oldVersion, float newVersion)
+        public void Migrate(float oldVersion, float newVersion)
         {
             // NOOP
         }

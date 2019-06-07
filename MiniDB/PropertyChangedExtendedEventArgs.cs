@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace MiniDB
 {
@@ -14,6 +9,7 @@ namespace MiniDB
     public class PropertyChangedExtendedEventArgs : PropertyChangedEventArgs
     {
         #region constructors
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyChangedExtendedEventArgs"/> class.
         /// </summary>
@@ -31,6 +27,7 @@ namespace MiniDB
         #endregion
 
         #region properties
+
         /// <summary>
         /// Gets the old value of the changed property
         /// </summary>

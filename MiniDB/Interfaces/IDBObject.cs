@@ -5,6 +5,7 @@ namespace MiniDB.Interfaces
     public interface IDBObject
     {
         #region events
+
         /// <summary>
         /// Event raised when specific undoable/settable properties are changed (includes how changed).
         /// </summary>

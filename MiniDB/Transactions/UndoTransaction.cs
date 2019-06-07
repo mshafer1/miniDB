@@ -8,13 +8,15 @@ namespace MiniDB.Transactions
 {
     public class UndoTransaction : BaseDBTransaction, IWholeItemTransaction, IModifyTransaction
     {
-        public UndoTransaction(IDBObject transactedItem, DBTransactionType subTransactionType) : base(transactedItem.ID)
+        public UndoTransaction(IDBObject transactedItem, DBTransactionType subTransactionType)
+            : base(transactedItem.ID)
         {
             this.TransactedItem = transactedItem;
             this.SubDBTransactionType = subTransactionType;
         }
 
-        public UndoTransaction(ID changedItemID, string changedPropertyName, object oldValue, object newValue) : base(changedItemID)
+        public UndoTransaction(ID changedItemID, string changedPropertyName, object oldValue, object newValue)
+            : base(changedItemID)
         {
             this.SubDBTransactionType = DBTransactionType.Modify;
             this.ChangedFieldName = changedPropertyName;
@@ -22,7 +24,8 @@ namespace MiniDB.Transactions
             this.NewValue = newValue;
         }
 
-        public UndoTransaction(IDBTransaction other) : base(other)
+        public UndoTransaction(IDBTransaction other)
+            : base(other)
         {
             if (other.DBTransactionType != this.DBTransactionType)
             {

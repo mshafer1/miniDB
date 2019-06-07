@@ -8,13 +8,15 @@ namespace MiniDB.Transactions
 {
     public class RedoTransaction : BaseDBTransaction, IModifyTransaction, IWholeItemTransaction
     {
-        public RedoTransaction(IDBObject transactedObject, DBTransactionType subTransactionType) : base(transactedObject.ID)
+        public RedoTransaction(IDBObject transactedObject, DBTransactionType subTransactionType)
+            : base(transactedObject.ID)
         {
             this.SubDBTransactionType = subTransactionType;
             this.TransactedItem = transactedObject;
         }
 
-        public RedoTransaction(ID changedItemID, string changedPropertyName, object oldValue, object newValue) : base(changedItemID)
+        public RedoTransaction(ID changedItemID, string changedPropertyName, object oldValue, object newValue)
+            : base(changedItemID)
         {
             this.SubDBTransactionType = DBTransactionType.Modify;
             this.ChangedFieldName = changedPropertyName;
@@ -22,7 +24,8 @@ namespace MiniDB.Transactions
             this.NewValue = newValue;
         }
 
-        public RedoTransaction(IDBTransaction other) : base(other)
+        public RedoTransaction(IDBTransaction other)
+            : base(other)
         {
             if (other.DBTransactionType != this.DBTransactionType)
             {
@@ -53,6 +56,7 @@ namespace MiniDB.Transactions
                 {
                     throw new DBCannotUndoException($"Cannot find item to re-remove");
                 }
+
                 var transactedItem = objects.FirstOrDefault(dbItem => dbItem.ID == this.TransactedItem.ID);
                 if (transactedItem == null)
                 {
@@ -90,7 +94,6 @@ namespace MiniDB.Transactions
             {
                 throw new NotImplementedException("TODO: implement rest of revert undo");
             }
-
 
             if (result == null)
             {

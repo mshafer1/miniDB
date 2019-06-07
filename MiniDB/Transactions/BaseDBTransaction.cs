@@ -1,21 +1,22 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
 
 using MiniDB.Interfaces;
-
+using Newtonsoft.Json;
 
 namespace MiniDB.Transactions
 {
     public abstract class BaseDBTransaction : BaseDBObject, IDBTransaction
     {
-        public BaseDBTransaction(ID changedItemID) : base()
+        public BaseDBTransaction(ID changedItemID)
+            : base()
         {
             this.Transaction_timestamp = System.DateTime.Now;
             this.Active = true;
             this.ChangedItemID = changedItemID;
         }
 
-        public BaseDBTransaction(IDBTransaction other) : this(other.ID)
+        public BaseDBTransaction(IDBTransaction other)
+            : this(other.ID)
         {
             if (other.DBTransactionType != this.DBTransactionType)
             {

@@ -51,7 +51,7 @@ namespace MiniDB
             this.TransactionsFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
 
             this.storageStrategy = storageStrategy;
-            this.undoRedoManager = undoRedoManager ?? new UndoRedoManager((ITransactionStorageStrategy)this.storageStrategy, this.TransactionsFilename);
+            this.undoRedoManager = undoRedoManager ?? new UndoRedoManager(this.storageStrategy, this.TransactionsFilename);
 
             this.DBVersion = version;
             this.MinimumCompatibleVersion = minimumCompatibleVersion;
@@ -279,12 +279,12 @@ namespace MiniDB
 
             try
             {
-                var mut = new MutexLocks.FileMutex(mutex_name);
+                MutexLocks.IMutex mut = new MutexLocks.FileMutex(mutex_name);
                 this.mut = mut.Get();
             }
-            catch (MutexLocks.MutexException)
+            catch (MutexLocks.MutexException e)
             {
-                throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name);
+                throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name, e);
             }
         }
 
@@ -302,6 +302,8 @@ namespace MiniDB
                     if (registerItemsForPropertyChanged)
                     {
                         item.PropertyChangedExtended += this.DataBaseItem_PropertyChanged;
+
+                        this.Handle_sub_items(item);
                     }
                 }
             }
@@ -425,17 +427,13 @@ namespace MiniDB
             }
         }
 
-        private void Handle_sub_items(IDBObject item, string path = "", IDBObject parent = null)
+        private void Handle_sub_items(IDBObject item, string path = string.Empty, IDBObject parent = null)
         {
             var properties = new List<PropertyInfo>(item.GetType().GetProperties());
-            var care_about = properties.ToList();
+            var care_about = properties.ToList().Where(prop => prop.GetValue(item, null) is IDBObject);
             foreach (var property in care_about)
             {
-                var field = property.GetValue(item, null) as IDBObject;
-                if (field == null)
-                {
-                    continue;
-                }
+                var field = (IDBObject)property.GetValue(item, null);
 
                 string sub_path = property.Name;
                 if (path != string.Empty)

@@ -50,6 +50,7 @@
     <Compile Include="DBJsonSerializer.cs" />
     <Compile Include="DBOptions.cs" />
     <Compile Include="DBSurrogate.cs" />
+    <Compile Include="EncryptedDataBase.cs" />
     <Compile Include="Interfaces\ITransactionStorageStrategy.cs" />
     <Compile Include="Interfaces\IUndoRedoManager.cs" />
     <Compile Include="Transactions\AddTransaction.cs" />

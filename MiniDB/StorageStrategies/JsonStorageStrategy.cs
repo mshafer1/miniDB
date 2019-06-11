@@ -19,6 +19,12 @@ namespace MiniDB
             this.minimumCompatibleVersion = minimumCompatibleVersion;
         }
 
+        public static string SerializeDB(DataBase db)
+        {
+            // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
+            return JsonConvert.SerializeObject(db, new DataBaseSerializer<T>());
+        }
+
         void ITransactionStorageStrategy.CacheTransactions(ObservableCollection<IDBTransaction> dBTransactions, string transactionsFilename)
         {
             var json = JsonConvert.SerializeObject(dBTransactions);
@@ -27,15 +33,12 @@ namespace MiniDB
 
         public void CacheDB(DataBase db)
         {
-            var json = this.SerializeDB(db);
+            var json = SerializeDB(db);
             System.IO.File.WriteAllText(db.Filename, json);
         }
 
         ObservableCollection<IDBTransaction> ITransactionStorageStrategy.GetTransactionsCollection(string filename)
         {
-            /*this.DBVersion = databaseVersion;
-            this.Filename = filename;
-            this.LoadFile(filename, false);*/
             var json = this.ReadFile(filename);
             if (json.Length == 0)
             {
@@ -99,12 +102,6 @@ namespace MiniDB
             }
 
             return string.Empty;
-        }
-
-        private string SerializeDB(DataBase db)
-        {
-            // TODO: compress https://dotnet-snippets.de/snippet/strings-komprimieren-und-dekomprimieren/1058
-            return JsonConvert.SerializeObject(db, new DataBaseSerializer<T>());
         }
     }
 }

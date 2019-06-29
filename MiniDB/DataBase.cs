@@ -48,7 +48,7 @@ namespace MiniDB
         {
             this.Filename = filename;
             this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
-            this.TransactionsFilename = string.Format(@"{0}\transactions_{1}.data", Path.GetDirectoryName(this.Filename), Path.GetFileName(this.Filename));
+            this.TransactionsFilename = Path.Combine(Path.GetDirectoryName(this.Filename), $"transactions_{Path.GetFileName(this.Filename)}.data");
 
             this.storageStrategy = storageStrategy;
             this.undoRedoManager = undoRedoManager ?? new UndoRedoManager(this.storageStrategy, this.TransactionsFilename);

@@ -6,4 +6,3 @@ sed -i 's;\$id\$;'"$title"';' MiniDB.nuspec
 sed -i 's;\$authors\$;'"$authors"';' MiniDB.nuspec
 sed -i 's;\$owners\$;'"$owners"';' MiniDB.nuspec
 sed -i 's;\$description\$;'"$description"';' MiniDB.nuspec
-

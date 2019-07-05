@@ -10,7 +10,9 @@ namespace MutexLocks
 
         public FileMutex(string lock_name)
         {
-            this.file_name = Path.Combine(Path.GetTempPath(), lock_name.Replace(':', '_').Replace(Path.DirectorySeparatorChar, '.').Trim('.') + ".lock");
+            var dir = Path.GetDirectoryName(lock_name);
+            var file = Path.GetFileName(lock_name) + ".lock";
+            this.file_name = Path.Combine(dir, file);
         }
 
         public void Dispose()

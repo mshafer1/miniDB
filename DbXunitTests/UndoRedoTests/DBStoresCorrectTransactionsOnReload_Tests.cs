@@ -10,8 +10,8 @@ namespace DbXunitTests.UndoRedoTests
     {
         #region Fields
         private readonly MiniDB.Interfaces.IDBObject storedItem;
-        private MiniDB.DataBase testDB;
-        private NullWriterStorageStrategy nullWritingStorageStrategy;
+        private readonly MiniDB.DataBase testDB;
+        private readonly NullWriterStorageStrategy nullWritingStorageStrategy;
         #endregion
 
         #region Constructors
@@ -29,7 +29,7 @@ namespace DbXunitTests.UndoRedoTests
 
             this.nullWritingStorageStrategy.DBObjects = new List<ExampleStoredItem>() { jdoe };
 
-            this.testDB = new MiniDB.DataBase(dbFilename, 1, 1, this.nullWritingStorageStrategy);
+            this.testDB = new MiniDB.DataBase(new MiniDB.DBMetadata(dbFilename, 1, 1), this.nullWritingStorageStrategy);
             this.storedItem = this.testDB.FirstOrDefault(); // allow access for modifying it.
 
             if (this.storedItem == null)

@@ -56,10 +56,10 @@ namespace MiniDB
             return result;
         }
 
-        public DataBase LoadDB(string filename)
+        public DBMetadata LoadDB(string filename)
         {
             var json = this.ReadFile(filename);
-            var result = new DataBase(filename, this.dBVersion, this.minimumCompatibleVersion);
+            var result = new DBMetadata(filename, this.dBVersion, this.minimumCompatibleVersion);
             if (json.Length == 0)
             {
                 return result;

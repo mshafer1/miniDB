@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 
 using MiniDB.Interfaces;
 using MiniDB.Transactions;
@@ -43,18 +42,18 @@ namespace MiniDB
 
         #region Constructors
 
-        public DataBase(string filename, float version, float minimumCompatibleVersion, IStorageStrategy storageStrategy, IUndoRedoManager undoRedoManager = null)
+        public DataBase(DBMetadata metadata, IStorageStrategy storageStrategy, IUndoRedoManager undoRedoManager = null)
             : base()
         {
-            this.Filename = filename;
+            this.Filename = metadata.Filename;
             this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
             this.TransactionsFilename = Path.Combine(Path.GetDirectoryName(this.Filename), $"transactions_{Path.GetFileName(this.Filename)}.data");
 
-            this.storageStrategy = storageStrategy;
+            this.storageStrategy = storageStrategy ?? throw new ArgumentNullException($"{nameof(storageStrategy)} cannot be null");
             this.undoRedoManager = undoRedoManager ?? new UndoRedoManager(this.storageStrategy, this.TransactionsFilename);
 
-            this.DBVersion = version;
-            this.MinimumCompatibleVersion = minimumCompatibleVersion;
+            this.DBVersion = metadata.DBVersion;
+            this.MinimumCompatibleVersion = metadata.MinimumCompatibleVersion;
 
             lock (Locker)
             {
@@ -62,7 +61,7 @@ namespace MiniDB
 
                 try
                 {
-                    this.LoadFile(filename, true);
+                    this.LoadFile(metadata.Filename, true);
 
                     this.CollectionChanged += this.DataBase_CollectionChanged;
                 }
@@ -72,23 +71,6 @@ namespace MiniDB
                     throw;
                 }
             }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataBase"/> class.
-        /// Setup a basic DB class that does not have the ability to load or write to disk
-        /// </summary>
-        /// <param name="filename">File to store data in</param>
-        /// <param name="version">Current Version</param>
-        /// <param name="minimumCompatibleVersion">Minimum compatible version that can be migrated</param>
-        public DataBase(string filename, float version, float minimumCompatibleVersion)
-            : base()
-        {
-            this.Filename = filename;
-            this.Filename = Path.GetFullPath(this.Filename); // use the full system path - especially for mutex to know if it needs to lock that file or not
-
-            this.DBVersion = version;
-            this.MinimumCompatibleVersion = minimumCompatibleVersion;
         }
 
         /// <summary>
@@ -274,29 +256,26 @@ namespace MiniDB
 
         private void GetMutex()
         {
-            string mutex_file_path = this.Filename.Replace("\\", "_").Replace("/", "_");
-            string mutex_name = string.Format(@"{0}:{1}", nameof(DataBase), mutex_file_path); // from https://stackoverflow.com/a/2534867
-
             try
             {
-                MutexLocks.IMutex mut = new MutexLocks.FileMutex(mutex_name);
+                MutexLocks.IMutex mut = new MutexLocks.FileMutex(this.Filename);
                 this.mut = mut.Get();
             }
             catch (MutexLocks.MutexException e)
             {
-                throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + mutex_name, e);
+                throw new DBCreationException("Another application instance is using that DB!\n\tError from: " + this.Filename, e);
             }
         }
 
         private void LoadFile(string filename, bool registerItemsForPropertyChanged)
         {
-            var data = this.storageStrategy.LoadDB(filename);
+            var metaData = this.storageStrategy.LoadDB(filename);
 
             // if new enough, and not too new,
-            if (data.DBVersion >= this.MinimumCompatibleVersion && data.DBVersion <= this.DBVersion)
+            if (metaData.DBVersion >= this.MinimumCompatibleVersion && metaData.DBVersion <= this.DBVersion)
             {
                 // parse and load
-                foreach (var item in data)
+                foreach (var item in metaData)
                 {
                     this.Add(item);
                     if (registerItemsForPropertyChanged)
@@ -309,7 +288,7 @@ namespace MiniDB
             }
             else
             {
-                throw new DBCreationException($"DB version {data.DBVersion} is too old. Oldest supported db version is {this.MinimumCompatibleVersion}");
+                throw new DBCreationException($"DB version {metaData.DBVersion} is too old. Oldest supported db version is {this.MinimumCompatibleVersion}");
             }
         }
 

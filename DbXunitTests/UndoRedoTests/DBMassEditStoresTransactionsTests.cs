@@ -9,8 +9,8 @@ namespace DbXunitTests.UndoRedoTests
     public class DBMassEditStoresTransactionsTests : IDisposable
     {
         #region Fields
-        private MiniDB.DataBase testDB;
-        private NullWriterStorageStrategy nullWritingStorageStrategy;
+        private readonly MiniDB.DataBase testDB;
+        private readonly NullWriterStorageStrategy nullWritingStorageStrategy;
         #endregion
 
         #region Constructors
@@ -19,7 +19,7 @@ namespace DbXunitTests.UndoRedoTests
             var dbFilename = "testDB.json"; // this is ignored because the nullStorageStrategy doesn't care, but let's be consistent.
 
             this.nullWritingStorageStrategy = new NullWriterStorageStrategy();
-            this.testDB = new MiniDB.DataBase(dbFilename, 1, 1, this.nullWritingStorageStrategy);
+            this.testDB = new MiniDB.DataBase(new MiniDB.DBMetadata(dbFilename, 1, 1), this.nullWritingStorageStrategy);
         }
         #endregion
 

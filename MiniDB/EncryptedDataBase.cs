@@ -6,7 +6,7 @@ namespace MiniDB
         where T : IDBObject
     {
         public EncryptedDataBase(string filename, float version, float minimumCompatibleVersion)
-            : base(filename, version, minimumCompatibleVersion, new EncryptedStorageStrategy<T>(version, minimumCompatibleVersion))
+            : base(new DBMetadata(filename, version, minimumCompatibleVersion), new EncryptedStorageStrategy<T>(version, minimumCompatibleVersion))
         {
         }
     }

@@ -48,6 +48,7 @@
     <Compile Include="DataBase.cs" />
     <Compile Include="DBException.cs" />
     <Compile Include="DBJsonSerializer.cs" />
+    <Compile Include="DBMetadata.cs" />
     <Compile Include="DBOptions.cs" />
     <Compile Include="DBSurrogate.cs" />
     <Compile Include="EncryptedDataBase.cs" />

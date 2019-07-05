@@ -6,13 +6,13 @@ namespace DbXunitTests
 {
     public class DBCallsStorageStrategyTests : IDisposable
     {
-        private MiniDB.DataBase testDB;
-        private NullWriterStorageStrategy nullWritingStorageStrategy;
+        private readonly MiniDB.DataBase testDB;
+        private readonly NullWriterStorageStrategy nullWritingStorageStrategy;
 
         public DBCallsStorageStrategyTests()
         {
             this.nullWritingStorageStrategy = new NullWriterStorageStrategy();
-            this.testDB = new MiniDB.DataBase("testDB.json", 1, 1, this.nullWritingStorageStrategy);
+            this.testDB = new MiniDB.DataBase(new MiniDB.DBMetadata("testDB.json", 1, 1), this.nullWritingStorageStrategy);
         }
 
         public void Dispose()

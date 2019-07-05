@@ -1,8 +1,4 @@
-﻿using System.Collections.ObjectModel;
-
-using MiniDB.Transactions;
-
-namespace MiniDB.Interfaces
+﻿namespace MiniDB.Interfaces
 {
     public interface IStorageStrategy : ITransactionStorageStrategy
     {
@@ -11,7 +7,7 @@ namespace MiniDB.Interfaces
         /// </summary>
         /// <param name="filename">File to load</param>
         /// <returns>An instance of <see cref="DataBase{T}" /> from file.</returns>
-        DataBase LoadDB(string filename);
+        DBMetadata LoadDB(string filename);
 
         /// <summary>
         /// Method to store in file;

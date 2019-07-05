@@ -8,15 +8,15 @@ namespace DbXunitTests.UndoRedoTests
     public class DBStoresCorrectTransactionsInitially_Tests : IDisposable
     {
         #region Fields
-        private MiniDB.DataBase testDB;
-        private NullWriterStorageStrategy nullWritingStorageStrategy;
+        private readonly MiniDB.DataBase testDB;
+        private readonly NullWriterStorageStrategy nullWritingStorageStrategy;
         #endregion
 
         #region Constructors
         public DBStoresCorrectTransactionsInitially_Tests()
         {
             this.nullWritingStorageStrategy = new NullWriterStorageStrategy();
-            this.testDB = new MiniDB.DataBase("testDB.json", 1, 1, this.nullWritingStorageStrategy);
+            this.testDB = new MiniDB.DataBase(new MiniDB.DBMetadata("testDB.json", 1, 1), this.nullWritingStorageStrategy);
         }
         #endregion
 
@@ -98,7 +98,6 @@ namespace DbXunitTests.UndoRedoTests
         {
             // if using NullWriter, no files to clean up, but clear the DB
             this.testDB.Dispose();
-            this.testDB = null;
         }
         #endregion
     }

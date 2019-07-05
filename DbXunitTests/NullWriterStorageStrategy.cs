@@ -52,9 +52,9 @@ namespace DbXunitTests
             return new ObservableCollection<IDBTransaction>();
         }
 
-        public DataBase LoadDB(string filename)
+        public DBMetadata LoadDB(string filename)
         {
-            var result = new DataBase("blah", 1, 1);
+            var result = new DBMetadata("blah", 1, 1);
             if (this.DBObjects == null)
             {
                 return result;

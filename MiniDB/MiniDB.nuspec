@@ -4,8 +4,8 @@
     <id>$id$</id>
     <version>$version$</version>
     <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
+    <authors>$authors$</authors>
+    <owners>$authors$</owners>
     <licenseUrl>https://github.com/mshafer1/minidb/blob/initial-publish/LICENSE</licenseUrl>
     <projectUrl>https://github.com/mshafer1/minidb/</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/mshafer1/miniDB/initial-publish/logo.png?raw=true</iconUrl>
@@ -16,6 +16,8 @@
     <tags>DB Database Persistent-collection</tags>
   </metadata>
   <files>
+    <file src="bin\Release\MiniDB.dll" target="lib\net461"/>
     <file src="bin\Release\HardwareID.dll" target="lib\net461"/>
+    <file src="bin\Release\MutexLocks.dll" target="lib\net461"/>
   </files>
 </package>

@@ -16,8 +16,8 @@
     <tags>DB Database Persistent-collection</tags>
   </metadata>
   <files>
-    <file src="bin\Release\MiniDB.dll" target="lib\net461"/>
-    <file src="bin\Release\HardwareID.dll" target="lib\net461"/>
-    <file src="bin\Release\MutexLocks.dll" target="lib\net461"/>
+    <file src="MiniDB\bin\Release\MiniDB.dll" target="lib\net461"/>
+    <file src="MiniDB\bin\Release\HardwareID.dll" target="lib\net461"/>
+    <file src="MiniDB\bin\Release\MutexLocks.dll" target="lib\net461"/>
   </files>
 </package>

@@ -1,5 +1,6 @@
 */libs/*
 _packages/*
+testrunner/*
 MiniDB.nuspec
 
 ## Ignore Visual Studio temporary files, build results, and

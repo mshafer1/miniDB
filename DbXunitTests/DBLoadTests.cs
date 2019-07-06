@@ -32,6 +32,8 @@ namespace DbXunitTests
         /// </summary>
         private readonly string transactions2File;
 
+        private MiniDB.DataBase db = null;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DBLoadTests" /> class.
         /// Setup up filenames and make sure the system is clean.
@@ -90,6 +92,7 @@ namespace DbXunitTests
             Console.WriteLine($"Test Cannot reload same DB type with same file");
             using (var db = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
             {
+                this.db = db;
                 Assert.Throws<MiniDB.DBCreationException>(() => new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1));
             }
         }
@@ -103,6 +106,7 @@ namespace DbXunitTests
             Console.WriteLine($"Test Can reload same DB type with different file");
             using (var db = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
             {
+                this.db = db;
                 new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename2, 1, 1); // should not throw
                 Assert.True(true); // if it made it this far, test is a success.
             }
@@ -118,11 +122,13 @@ namespace DbXunitTests
             using (var db = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
             {
                 // NO-OP
+                this.db = db;
             }
 
             using (var db2 = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1, 1))
             {
                 // create second DB of same type after cleaning the last one - this should succeed
+                this.db = db2;
             }
 
             Assert.True(true); // if it made it this far, test is a success.
@@ -138,6 +144,7 @@ namespace DbXunitTests
             Debug.WriteLine($"Successfully reloaded 0 times");
             using (var db = createDB(this.filename))
             {
+                this.db = db;
                 var entry = new ExampleStoredItem("John", "Doe");
                 id = entry.ID;
                 entry.Age = 0;
@@ -150,6 +157,7 @@ namespace DbXunitTests
             {
                 using (var db = createDB(this.filename))
                 {
+                    this.db = db;
                     Debug.WriteLine($"Successfully reloaded {i} times");
                     Assert.Single(db);
                     var entry = db.FirstOrDefault() as ExampleStoredItem;
@@ -177,6 +185,12 @@ namespace DbXunitTests
                 {
                     File.Delete(file);
                 }
+            }
+
+            if (this.db != null)
+            {
+                this.db.Dispose();
+                this.db = null;
             }
         }
 

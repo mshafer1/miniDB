@@ -32,7 +32,7 @@ namespace MutexLocks
                 }
                 catch (IOException)
                 {
-                    
+                    // NOOP
                 }
 
                 Thread.Sleep(5 * 1000);

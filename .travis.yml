@@ -12,7 +12,8 @@ script:
   - xbuild /p:Configuration=Release MiniDatabase.sln
   - mono ./testrunner/xunit.runner.console.2.3.1/tools/net452/xunit.console.exe ./DbXunitTests/bin/Release/DbXunitTests.dll -parallel none -noshadow
   - mono ./testrunner/xunit.runner.console.2.3.1/tools/net452/xunit.console.exe ./MutexLockTests/bin/Release/MutexLockTests.dll -parallel none -noshadow
-  - source setup_nuspec.sh
-  - nuget pack MiniDB\MiniDB.nuspec
+  - source ./setup_nuspec.sh
+  - nuget pack ./MiniDB.nuspec
+  # - source ./testProject.sh
 after_success:
   - ./deploy.sh

@@ -5,7 +5,7 @@ source metadata.sh
 FEED_PATH=`pwd`/_feed
 
 nuget init .\_packages $FEED_PATH
-cd TestProject
+cd TestProject/TestProject
 
 cp -f _testProject.csproj TestProject.csproj
 sed -i 's;<version>;'"$version"';' TestProject.csproj

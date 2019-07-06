@@ -157,7 +157,6 @@ namespace MiniDB
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             this.Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -242,6 +241,7 @@ namespace MiniDB
             if (this.mut != null)
             {
                 this.mut.Release();
+                this.mut.Dispose();
                 this.mut = null;
             }
 

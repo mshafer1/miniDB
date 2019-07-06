@@ -20,3 +20,4 @@ cd ..
 msbuild /p:Configuration=Release TestProject.sln
 
 mono TestProject/bin/Release/TestProject.exe || exit -1
+echo Successfully ran example program

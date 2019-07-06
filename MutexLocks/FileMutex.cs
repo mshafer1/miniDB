@@ -25,18 +25,26 @@ namespace MutexLocks
         {
             try
             {
-                try
+                for(int i = 0; i < 3; i++)
                 {
-                    this.file = File.Open(this.file_name, FileMode.OpenOrCreate);
-                    return new MutexObject(this);
-                }
-                catch (IOException)
-                {
-                    
+                    try
+                    {
+                        this.file = File.Open(this.file_name, FileMode.OpenOrCreate);
+
+                        // if opening the file succeeds, return the MutexObject
+                        return new MutexObject(this);
+                    }
+                    catch (IOException)
+                    {
+                        // if it fails, sleep for 1 second before trying again
+                        Thread.Sleep(3 * 1000);
+                    }
                 }
 
-                Thread.Sleep(5 * 1000);
+                // one last try, if this one fails, the outer catch will raise
                 this.file = File.Open(this.file_name, FileMode.OpenOrCreate);
+
+                // if opening the file succeeds, return the MutexObject
                 return new MutexObject(this);
             }
             catch (IOException)

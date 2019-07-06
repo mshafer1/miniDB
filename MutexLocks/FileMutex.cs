@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 namespace MutexLocks
 {
@@ -24,14 +25,24 @@ namespace MutexLocks
         {
             try
             {
+                try
+                {
+                    this.file = File.Open(this.file_name, FileMode.OpenOrCreate);
+                    return new MutexObject(this);
+                }
+                catch (IOException)
+                {
+                    
+                }
+
+                Thread.Sleep(5 * 1000);
                 this.file = File.Open(this.file_name, FileMode.OpenOrCreate);
+                return new MutexObject(this);
             }
             catch (IOException)
             {
                 throw new MutexException($"Cannot open file {this.file_name}, another process is using it.");
             }
-
-            return new MutexObject(this);
         }
 
         public void Unlock()

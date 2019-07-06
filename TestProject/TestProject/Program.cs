@@ -11,7 +11,7 @@ namespace TestProject
 
         static void Main(string[] args)
         {
-            var test = new MiniDB.DataBase("test.json", 1.0f, 1.0f);
+            var test = new MiniDB.JsonDataBase<DbObject>("test.json", 1.0f, 1.0f);
 
             var blah = new DbObject();
             blah.Name = "test";

@@ -46,7 +46,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MiniDataBase" Version="0.0.0.3"/>
+    <PackageReference Include="MiniDataBase" Version="<version>"/>
+    <PackageReference Include="NewtonSoft.Json" Version="10.0.0.0"/>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

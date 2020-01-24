@@ -159,7 +159,7 @@ namespace DbXunitTests.UndoRedoTests
         private void Cleanup()
         {
             // if using NullWriter, no files to clean up, but clear the DB
-            this.testDB?.Dispose();
+            this.testDB.Dispose();
         }
 
         /// <summary>

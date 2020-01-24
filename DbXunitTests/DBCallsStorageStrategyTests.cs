@@ -17,7 +17,7 @@ namespace DbXunitTests
 
         public void Dispose()
         {
-            this.testDB?.Dispose();
+            this.testDB.Dispose();
         }
 
         [Fact]
@@ -35,7 +35,6 @@ namespace DbXunitTests
         [Fact]
         public void DoesWriteMainFileOnInsert()
         {
-            Assert.False(this.nullWritingStorageStrategy.WroteFlag);
             this.testDB.Add(new ExampleStoredItem());
             Assert.True(this.nullWritingStorageStrategy.WroteFlag);
         }
@@ -44,7 +43,6 @@ namespace DbXunitTests
         public void DoesWriteTransactionsFileOnInsert()
         {
             this.nullWritingStorageStrategy.ClearWroteFlags();
-            Assert.False(this.nullWritingStorageStrategy.WroteTransactionsFlag);
 
             this.testDB.Add(new ExampleStoredItem());
 
@@ -57,9 +55,9 @@ namespace DbXunitTests
             var item = new ExampleStoredItem();
             this.testDB.Add(item);
             this.nullWritingStorageStrategy.ClearWroteFlags();
-            Assert.False(this.nullWritingStorageStrategy.WroteFlag);
 
             this.testDB.Remove(item);
+
             Assert.True(this.nullWritingStorageStrategy.WroteFlag);
         }
 
@@ -69,7 +67,6 @@ namespace DbXunitTests
             var item = new ExampleStoredItem();
             this.testDB.Add(item);
             this.nullWritingStorageStrategy.ClearWroteFlags();
-            Assert.False(this.nullWritingStorageStrategy.WroteTransactionsFlag);
 
             this.testDB.Remove(item);
 
@@ -82,13 +79,12 @@ namespace DbXunitTests
             var item = new ExampleStoredItem("John", "Dow");
             this.testDB.Add(item);
             this.nullWritingStorageStrategy.ClearWroteFlags();
-            Assert.False(this.nullWritingStorageStrategy.WroteFlag);
 
             item.FirstName = "Jane";
+
             Assert.True(this.nullWritingStorageStrategy.WroteFlag);
         }
 
-        // TODO: DoesWriteTransactionsFileOnEditItem
         [Fact]
         public void DoesWriteMainFileOnItemNestedEdit()
         {
@@ -96,12 +92,10 @@ namespace DbXunitTests
             item.Address.FirstLine = "P.O. Box";
             this.testDB.Add(item);
             this.nullWritingStorageStrategy.ClearWroteFlags();
-            Assert.False(this.nullWritingStorageStrategy.WroteFlag);
 
             item.Address.FirstLine = "PO Box";
+
             Assert.True(this.nullWritingStorageStrategy.WroteFlag);
         }
-
-        // TODO: DoesWriteTransactionsFileOnEditItemNested
     }
 }

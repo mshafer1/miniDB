@@ -72,7 +72,7 @@ namespace DbXunitTests
     }
 
     /// <summary>
-    /// Example of an supported nested property
+    /// Example of a supported nested property
     /// </summary>
     [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "SA1402:FileMayOnlyContainASingleType", Justification = "Quick example - should go in own file in real world")]
     public class AddressClass : MiniDB.BaseDBObject

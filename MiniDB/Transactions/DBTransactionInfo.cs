@@ -16,7 +16,7 @@ namespace MiniDB.Transactions
             // NO-OP
         }
 
-        event PropertyChangedExtendedEventHandler IDBObject.PropertyChangedExtended
+        event PropertyChangedExtendedEventHandler INotifyPropertyChangedExtended.PropertyChangedExtended
         {
             add
             {
@@ -29,7 +29,7 @@ namespace MiniDB.Transactions
             }
         }
 
-        event PropertyChangedEventHandler IDBObject.PropertyChanged
+        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
         {
             add
             {

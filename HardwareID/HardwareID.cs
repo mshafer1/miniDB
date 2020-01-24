@@ -189,6 +189,7 @@ PhysicalMemory >> {PhysicalMemory}";
 
         /// <summary>
         /// Convert byte list to hexadecimal string
+        /// Returns a string like FF-FF-FF
         /// </summary>
         /// <param name="bt">Byte list</param>
         /// <returns>hexadecimal string representation of list</returns>

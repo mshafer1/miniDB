@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using MiniDB;
-using MiniDB.Interfaces;
 
 using Xunit;
 
@@ -47,9 +41,10 @@ namespace DbXunitTests.SystemTests
             // Arrange
             var entry = new ExampleStoredItem("John", "Doe");
             var old_age = entry.Age = 0;
-            var db = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1.0f, 1.0f);
-
-            db.Add(entry);
+            var db = new MiniDB.JsonDataBase<ExampleStoredItem>(this.filename, 1.0f, 1.0f)
+            {
+                entry,
+            };
             entry.Age = 5;
 
             // Act

@@ -159,31 +159,7 @@ namespace MiniDB.Transactions
                         }
                     }
 
-                    Type t = lastObject.GetType();
-                    if (!t.IsGenericType || t.GetGenericTypeDefinition() != typeof(Dictionary<,>))
-                    {
-                        throw new DBCannotUndoException($"Property {lastObject} is not a dictionary, but was used with indexers");
-                    }
-
-                    var r = new Regex(@"\[.+\]");
-                    Match m = r.Match(attribute);
-                    if (!m.Success)
-                    {
-                        // possible??
-                        throw new DBCannotUndoException($"Cannot undo property: {attribute}");
-                    }
-
-                    var keyType = t.GetGenericArguments()[0];
-                    var valueType = t.GetGenericArguments()[1];
-
-                    // store key without square brackets
-                    var key = m.Value.Substring(1);
-                    key = key.Substring(0, key.Length - 1);
-                    var keyObject = Convert.ChangeType(key, keyType);
-
-                    // currentProperty = Convert.ChangeType(lastObject, keyType);
-                    var p1 = t.GetProperty("Item"); // get indexer property
-                    lastObject = p1.GetValue(lastObject, new object[] { keyObject });
+                    lastObject = GetIndexedObject(lastObject, attribute);
                     currentProperty = null;
                 }
             }
@@ -192,6 +168,36 @@ namespace MiniDB.Transactions
 
             // Set the value of the property
             currentProperty.SetValue(lastObject, oldVal, null);
+        }
+
+        private static object GetIndexedObject(object lastObject, string attribute)
+        {
+            Type t = lastObject.GetType();
+            if (!t.IsGenericType || t.GetGenericTypeDefinition() != typeof(Dictionary<,>))
+            {
+                throw new DBCannotUndoException($"Property {lastObject} is not a dictionary, but was used with indexers");
+            }
+
+            var r = new Regex(@"\[.+\]");
+            Match m = r.Match(attribute);
+            if (!m.Success)
+            {
+                // possible??
+                throw new DBCannotUndoException($"Cannot undo property: {attribute}");
+            }
+
+            var keyType = t.GetGenericArguments()[0];
+            var valueType = t.GetGenericArguments()[1];
+
+            // store key without square brackets
+            var key = m.Value.Substring(1);
+            key = key.Substring(0, key.Length - 1);
+            var keyObject = Convert.ChangeType(key, keyType);
+
+            // currentProperty = Convert.ChangeType(lastObject, keyType);
+            var p1 = t.GetProperty("Item"); // get indexer property
+            lastObject = p1.GetValue(lastObject, new object[] { keyObject });
+            return lastObject;
         }
 
         private static object GetOldValue(ModifyTransaction last_transaction, string[] properties, object lastObject, PropertyInfo currentProperty)

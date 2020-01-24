@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -28,8 +28,10 @@ namespace MiniDB.Transactions
 
         public bool CheckCanUndo()
         {
-            return this.transactions_DB.Count() > 0 && this.transactions_DB.Count() >
-                    (2 * this.transactions_DB.Count(x => x.DBTransactionType == DBTransactionType.Undo));
+            var transactionsCount = this.transactions_DB.Count();
+            var undoTransactionsCount = this.transactions_DB.Count(x => x.DBTransactionType == DBTransactionType.Undo);
+
+            return transactionsCount > 0 && transactionsCount > (2 * undoTransactionsCount);
         }
 
         public bool CheckCanRedo()

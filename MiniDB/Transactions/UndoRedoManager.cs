@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -188,6 +188,14 @@ namespace MiniDB.Transactions
                 }
             }
 
+            object oldVal = GetOldValue(last_transaction, properties, lastObject, currentProperty);
+
+            // Set the value of the property
+            currentProperty.SetValue(lastObject, oldVal, null);
+        }
+
+        private static object GetOldValue(ModifyTransaction last_transaction, string[] properties, object lastObject, PropertyInfo currentProperty)
+        {
             if (currentProperty == null)
             {
                 throw new DBCannotUndoException($"Cannot access property {properties.First()} on {lastObject}");
@@ -213,8 +221,7 @@ namespace MiniDB.Transactions
                 oldVal = Convert.ChangeType(last_transaction.OldValue, targetType);
             }
 
-            // Set the value of the property
-            currentProperty.SetValue(lastObject, oldVal, null);
+            return oldVal;
         }
 
         /// <summary>

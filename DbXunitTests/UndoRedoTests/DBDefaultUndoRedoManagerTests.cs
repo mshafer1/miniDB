@@ -586,6 +586,65 @@ namespace DbXunitTests.UndoRedoTests
             Assert.Equal(0, first.Address.Zip.Value);
         }
 
+        [Fact]
+        public void Test_LongChaneOfChanges_CanUndo()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Z"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Za"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zac"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zach"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zacha"; })
+                .Undo() // Zach
+                .Undo() // Zac
+                .Undo() // Za
+                .Redo() // Zac
+                .Undo() // Za
+                .Redo() // Zac
+                .Get_DB();
+
+            // Assert
+            Assert.Equal("Zac", entry.FirstName);
+            Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
+            Assert.False(db.CanRedo, "Should not be able to Redo an Undo");
+        }
+
+        [Fact]
+        public void Test_LongChaneOfChanges_UndoYieldsCorrectResult()
+        {
+            // Arrange
+            var entry = new ExampleStoredItem("John", "Doe");
+            var old_age = entry.Age = 0;
+            var db = new DBStateBuilder(this.testDB)
+                .AddItem(entry)
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Z"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Za"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zac"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zach"; })
+                .EditItem(item => { ((ExampleStoredItem)item).FirstName = "Zacha"; })
+                .Undo() // Zach
+                .Undo() // Zac
+                .Undo() // Za
+                .Redo() // Zac
+                .Undo() // Za
+                .Redo() // Zac
+                .Get_DB();
+            this.storageStrategy.ClearWroteFlags();
+
+            // Act
+            db.Undo();
+
+            // Assert
+            Assert.Equal("Za", entry.FirstName);
+            Assert.True(db.CanUndo, "Should be able to Undo an edit to a DB item");
+            Assert.True(db.CanRedo, "Should not be able to Redo an Undo");
+            this.AssertStorageCached();
+        }
+
         private void AssertStorageCached()
         {
             Assert.True(this.storageStrategy.WroteFlag, "Should have written to the db file");

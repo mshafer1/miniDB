@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace DbXunitTests
 {
@@ -21,6 +23,7 @@ namespace DbXunitTests
             this.FirstName = firstName;
             this.LastName = lastName;
             this.Address = new AddressClass();
+            this.OtherAddresses = new Dictionary<string, AddressClass>();
         }
         #endregion
 
@@ -68,6 +71,11 @@ namespace DbXunitTests
         /// Gets Nested property - this address is also tracked at a sub item level
         /// </summary>
         public AddressClass Address { get; }
+
+        /// <summary>
+        /// Gets dictionary sub nested level
+        /// </summary>
+        public Dictionary<string, AddressClass> OtherAddresses { get; }
         #endregion
     }
 

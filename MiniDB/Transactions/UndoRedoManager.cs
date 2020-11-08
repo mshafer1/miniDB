@@ -38,7 +38,7 @@ namespace MiniDB.Transactions
         {
             // TODOne: this should be number of immediate redo's is less than number of next immediate undo's
             var redos_count = this.CountRecentTransactions(DBTransactionType.Redo, this.transactions_DB);
-            Func<IDBTransaction, bool> matcher = x => x.DBTransactionType == DBTransactionType.Undo && x.Active == true;
+            Func<IDBTransaction, bool> matcher = transaction => transaction.DBTransactionType == DBTransactionType.Undo && transaction.Active == true;
             var undos_count = this.CountRecentTransactions(matcher, this.transactions_DB.Skip(redos_count * 2));
             return undos_count > 0;
         }

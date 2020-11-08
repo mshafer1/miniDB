@@ -79,6 +79,7 @@
     <Compile Include="UndoRedoTests\DBStoresCorrectTransactionsOnReload_Tests.cs" />
     <Compile Include="UndoRedoTests\DBStoresCorrectTransactionsInitially_Tests.cs" />
     <Compile Include="UndoRedoTests\DBUsesUndoRedoManagerCorrectly.cs" />
+    <Compile Include="UndoRedoTests\ExternalLogTransactionsCallStorageStrategyTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
+using System.Text.RegularExpressions;
 using MiniDB.Interfaces;
 using MiniDB.Transactions;
 using Newtonsoft.Json;
@@ -211,6 +211,28 @@ namespace MiniDB
             this.AlertUndoableChanged();
         }
 
+        public void RegisterNestedItem(ID parentID, string path)
+        {
+            path = path ?? throw new ArgumentNullException(nameof(path));
+            if (!path.Contains('['))
+            {
+                throw new DBException("Cannot register nested item without indexed path -> \"property[key]\"");
+            }
+
+            IDBObject parent = this.First(obj => obj.ID == parentID);
+            var nested_object = this.FindPropertyByPath(parentID, path, parent);
+
+            IDBObject child_object = GetIndexedObject(nested_object, path);
+
+            this.DatBaseSubItemRegister(parent, child_object, path);
+            this.Handle_sub_items(child_object, path, parent);
+        }
+
+        public void DeregisterNestedItem(ID parentID, string path)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         #region helper methods
@@ -246,6 +268,53 @@ namespace MiniDB
             }
 
             this.alreadyDisposed = true;
+        }
+
+        private static IDBObject GetIndexedObject(object parent_object, string path)
+        {
+            Type t = parent_object.GetType();
+            if (!t.IsGenericType || t.GetGenericTypeDefinition() != typeof(Dictionary<,>))
+            {
+                throw new DBCannotUndoException($"Property {parent_object} is not a dictionary. Currently, only dictionaries are supported with indexers");
+            }
+
+            var r = new Regex(@"\[.+\]");
+            Match m = r.Match(path);
+            if (!m.Success)
+            {
+                // possible??
+                throw new DBCannotUndoException($"Cannot undo property: {path}");
+            }
+
+            var keyType = t.GetGenericArguments()[0];
+            var valueType = t.GetGenericArguments()[1];
+
+            // store key without square brackets
+            var key = m.Value.Trim("[]".ToCharArray());
+            var keyObject = Convert.ChangeType(key, keyType);
+
+            var p1 = t.GetProperty("Item"); // get indexer property
+            parent_object = p1.GetValue(parent_object, new object[] { keyObject });
+
+            if (!(parent_object is IDBObject))
+            {
+                throw new DBException($"Sub Property {path} must be of type IDBObject");
+            }
+
+            return (IDBObject)parent_object;
+        }
+
+        private object FindPropertyByPath(ID parentID, string path, IDBObject parent)
+        {
+            var propertyName = path.Substring(0, path.IndexOf('['));
+            var nested_property = parent.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance); // get the property
+            object nested_object = nested_property.GetValue(parent);
+            if (!(nested_object is IDictionary))
+            {
+                throw new DBException($"Only sub properties of type \"Dictionary\" are currently supported");
+            }
+
+            return nested_object;
         }
 
         private void AlertUndoableChanged()
@@ -409,7 +478,7 @@ namespace MiniDB
         private void Handle_sub_items(IDBObject item, string path = "", IDBObject parent = null)
         {
             var properties = new List<PropertyInfo>(item.GetType().GetProperties());
-            var care_about = properties.ToList().Where(prop => prop.GetValue(item, null) is IDBObject);
+            var care_about = properties.Where(prop => prop.GetValue(item, null) is IDBObject);
             foreach (var property in care_about)
             {
                 var field = (IDBObject)property.GetValue(item, null);
